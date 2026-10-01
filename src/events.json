@@ -1,0 +1,744 @@
+[
+  {
+    "id": "evt-dalat-2026",
+    "name": "Da Lat Ultra Trail 2026",
+    "tagline": "Conquer the misty pine forests and highland peaks of Lang Biang",
+    "location": "Da Lat, Lam Dong, Vietnam",
+    "coordinates": { "lat": 11.9025, "lng": 108.4350 },
+    "date": "2026-10-24",
+    "status": "live",
+    "organizer": {
+      "name": "Vietnam Trail Series & Lam Dong Sports Authority",
+      "email": "contact@dalatultratrail.vn",
+      "phone": "+84 263 382 1234",
+      "verified": true
+    },
+    "totalRunners": 4250,
+    "activeRunners": 3890,
+    "weather": { "temp": "18°C", "condition": "Misty", "humidity": "82%" },
+    "distances": [
+      {
+        "type": "5K",
+        "name": "5K Pine Lake Sprint",
+        "distanceKm": 5.0,
+        "elevationGainM": 85,
+        "maxElevationM": 1580,
+        "minElevationM": 1495,
+        "runnersCount": 850,
+        "color": "#10B981",
+        "startLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "finishLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "checkpoints": [
+          { "id": "CP-DL-0", "name": "Start Gate", "km": 0.0, "lat": 11.9025, "lng": 108.4350, "type": "start", "cutoff": "07:00", "elevation": 1495 },
+          { "id": "CP-DL-5K-1", "name": "Clay Tunnel Water Point", "km": 2.5, "lat": 11.8962, "lng": 108.4231, "type": "water", "cutoff": "07:45", "elevation": 1540 },
+          { "id": "CP-DL-5K-2", "name": "South Lakeside Aid", "km": 4.1, "lat": 11.8905, "lng": 108.4290, "type": "aid", "cutoff": "08:15", "elevation": 1510 },
+          { "id": "CP-DL-5K-FIN", "name": "Finish Arena", "km": 5.0, "lat": 11.9025, "lng": 108.4350, "type": "finish", "cutoff": "08:30", "elevation": 1495 }
+        ],
+        "osrmWaypoints": [
+          [108.4350, 11.9025],
+          [108.4231, 11.8962],
+          [108.4290, 11.8905],
+          [108.4350, 11.9025]
+        ],
+        "leafletPolyline": [
+          [11.9025, 108.4350],
+          [11.9001, 108.4295],
+          [11.8962, 108.4231],
+          [11.8920, 108.4250],
+          [11.8905, 108.4290],
+          [11.8940, 108.4335],
+          [11.8985, 108.4360],
+          [11.9025, 108.4350]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "5K Pine Lake Sprint", "distance": 5.0, "color": "#10B981" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [108.4350, 11.9025],
+              [108.4295, 11.9001],
+              [108.4231, 11.8962],
+              [108.4250, 11.8920],
+              [108.4290, 11.8905],
+              [108.4335, 11.8940],
+              [108.4360, 11.8985],
+              [108.4350, 11.9025]
+            ]
+          }
+        }
+      },
+      {
+        "type": "10K",
+        "name": "10K Valley Challenge",
+        "distanceKm": 10.0,
+        "elevationGainM": 240,
+        "maxElevationM": 1650,
+        "minElevationM": 1495,
+        "runnersCount": 1100,
+        "color": "#06B6D4",
+        "startLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "finishLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "checkpoints": [
+          { "id": "CP-DL-0", "name": "Start Gate", "km": 0.0, "lat": 11.9025, "lng": 108.4350, "type": "start", "cutoff": "06:30", "elevation": 1495 },
+          { "id": "CP-DL-10K-1", "name": "Clay Tunnel", "km": 2.5, "lat": 11.8962, "lng": 108.4231, "type": "water", "cutoff": "07:15", "elevation": 1540 },
+          { "id": "CP-DL-10K-2", "name": "Pinus Pine Forest Ridge", "km": 5.8, "lat": 11.8845, "lng": 108.4110, "type": "aid", "cutoff": "08:00", "elevation": 1650 },
+          { "id": "CP-DL-10K-3", "name": "Zen Monastery Vista", "km": 8.2, "lat": 11.9050, "lng": 108.4410, "type": "medical", "cutoff": "08:45", "elevation": 1530 },
+          { "id": "CP-DL-10K-FIN", "name": "Finish Arena", "km": 10.0, "lat": 11.9025, "lng": 108.4350, "type": "finish", "cutoff": "09:15", "elevation": 1495 }
+        ],
+        "osrmWaypoints": [
+          [108.4350, 11.9025],
+          [108.4231, 11.8962],
+          [108.4110, 11.8845],
+          [108.4410, 11.9050],
+          [108.4350, 11.9025]
+        ],
+        "leafletPolyline": [
+          [11.9025, 108.4350],
+          [11.8962, 108.4231],
+          [11.8910, 108.4180],
+          [11.8845, 108.4110],
+          [11.8810, 108.4190],
+          [11.8860, 108.4290],
+          [11.8930, 108.4380],
+          [11.9050, 108.4410],
+          [11.9025, 108.4350]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "10K Valley Challenge", "distance": 10.0, "color": "#06B6D4" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [108.4350, 11.9025],
+              [108.4231, 11.8962],
+              [108.4180, 11.8910],
+              [108.4110, 11.8845],
+              [108.4190, 11.8810],
+              [108.4290, 11.8860],
+              [108.4380, 11.8930],
+              [108.4410, 11.9050],
+              [108.4350, 11.9025]
+            ]
+          }
+        }
+      },
+      {
+        "type": "21K",
+        "name": "21K Half Marathon Mountain Pass",
+        "distanceKm": 21.1,
+        "elevationGainM": 620,
+        "maxElevationM": 1820,
+        "minElevationM": 1495,
+        "runnersCount": 1350,
+        "color": "#F59E0B",
+        "startLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "finishLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "checkpoints": [
+          { "id": "CP-DL-0", "name": "Start Gate", "km": 0.0, "lat": 11.9025, "lng": 108.4350, "type": "start", "cutoff": "05:45", "elevation": 1495 },
+          { "id": "CP-DL-21K-1", "name": "Bao Dai Waterfall", "km": 5.2, "lat": 11.8790, "lng": 108.4050, "type": "water", "cutoff": "06:45", "elevation": 1580 },
+          { "id": "CP-DL-21K-2", "name": "Samcom Highland Pass", "km": 11.0, "lat": 11.8620, "lng": 108.3890, "type": "aid", "cutoff": "08:00", "elevation": 1820 },
+          { "id": "CP-DL-21K-3", "name": "Gorge Creek Crossing", "km": 16.5, "lat": 11.8750, "lng": 108.4220, "type": "medical", "cutoff": "09:30", "elevation": 1610 },
+          { "id": "CP-DL-21K-4", "name": "Truc Lam Forest Exit", "km": 19.5, "lat": 11.9010, "lng": 108.4420, "type": "cutoff", "cutoff": "10:15", "elevation": 1520 },
+          { "id": "CP-DL-21K-FIN", "name": "Finish Arena", "km": 21.1, "lat": 11.9025, "lng": 108.4350, "type": "finish", "cutoff": "11:00", "elevation": 1495 }
+        ],
+        "osrmWaypoints": [
+          [108.4350, 11.9025],
+          [108.4050, 11.8790],
+          [108.3890, 11.8620],
+          [108.4220, 11.8750],
+          [108.4420, 11.9010],
+          [108.4350, 11.9025]
+        ],
+        "leafletPolyline": [
+          [11.9025, 108.4350],
+          [11.8920, 108.4200],
+          [11.8790, 108.4050],
+          [11.8700, 108.3950],
+          [11.8620, 108.3890],
+          [11.8580, 108.3990],
+          [11.8660, 108.4130],
+          [11.8750, 108.4220],
+          [11.8880, 108.4330],
+          [11.9010, 108.4420],
+          [11.9025, 108.4350]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "21K Mountain Pass", "distance": 21.1, "color": "#F59E0B" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [108.4350, 11.9025],
+              [108.4200, 11.8920],
+              [108.4050, 11.8790],
+              [108.3950, 11.8700],
+              [108.3890, 11.8620],
+              [108.3990, 11.8580],
+              [108.4130, 11.8660],
+              [108.4220, 11.8750],
+              [108.4330, 11.8880],
+              [108.4420, 11.9010],
+              [108.4350, 11.9025]
+            ]
+          }
+        }
+      },
+      {
+        "type": "42K",
+        "name": "42K Ultra Langbiang Summit Loop",
+        "distanceKm": 42.2,
+        "elevationGainM": 1420,
+        "maxElevationM": 2167,
+        "minElevationM": 1495,
+        "runnersCount": 950,
+        "color": "#FC4C02",
+        "startLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "finishLocation": { "name": "Tuyen Lam Lake National Plaza", "lat": 11.9025, "lng": 108.4350 },
+        "checkpoints": [
+          { "id": "CP-DL-0", "name": "Start Gate", "km": 0.0, "lat": 11.9025, "lng": 108.4350, "type": "start", "cutoff": "04:30", "elevation": 1495 },
+          { "id": "CP-DL-42K-1", "name": "Bao Dai Waterfall", "km": 5.2, "lat": 11.8790, "lng": 108.4050, "type": "water", "cutoff": "05:45", "elevation": 1580 },
+          { "id": "CP-DL-42K-2", "name": "Bidoup National Park Rim", "km": 14.5, "lat": 11.8410, "lng": 108.3620, "type": "aid", "cutoff": "07:30", "elevation": 1950 },
+          { "id": "CP-DL-42K-3", "name": "Lang Biang Summit Peak", "km": 24.2, "lat": 11.8210, "lng": 108.3380, "type": "medical", "cutoff": "09:45", "elevation": 2167 },
+          { "id": "CP-DL-42K-4", "name": "Ankroet Lake Gorge", "km": 32.0, "lat": 11.8490, "lng": 108.3810, "type": "cutoff", "cutoff": "11:30", "elevation": 1720 },
+          { "id": "CP-DL-42K-5", "name": "Golden Stream Valley", "km": 38.0, "lat": 11.8820, "lng": 108.4190, "type": "aid", "cutoff": "13:00", "elevation": 1550 },
+          { "id": "CP-DL-42K-FIN", "name": "Finish Arena", "km": 42.2, "lat": 11.9025, "lng": 108.4350, "type": "finish", "cutoff": "14:30", "elevation": 1495 }
+        ],
+        "osrmWaypoints": [
+          [108.4350, 11.9025],
+          [108.4050, 11.8790],
+          [108.3620, 11.8410],
+          [108.3380, 11.8210],
+          [108.3810, 11.8490],
+          [108.4190, 11.8820],
+          [108.4350, 11.9025]
+        ],
+        "leafletPolyline": [
+          [11.9025, 108.4350],
+          [11.8890, 108.4180],
+          [11.8790, 108.4050],
+          [11.8610, 108.3850],
+          [11.8410, 108.3620],
+          [11.8280, 108.3490],
+          [11.8210, 108.3380],
+          [11.8310, 108.3580],
+          [11.8490, 108.3810],
+          [11.8650, 108.4020],
+          [11.8820, 108.4190],
+          [11.8980, 108.4320],
+          [11.9025, 108.4350]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "42K Ultra Langbiang Summit", "distance": 42.2, "color": "#FC4C02" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [108.4350, 11.9025],
+              [108.4180, 11.8890],
+              [108.4050, 11.8790],
+              [108.3850, 11.8610],
+              [108.3620, 11.8410],
+              [108.3490, 11.8280],
+              [108.3380, 11.8210],
+              [108.3580, 11.8310],
+              [108.3810, 11.8490],
+              [108.4020, 11.8650],
+              [108.4190, 11.8820],
+              [108.4320, 11.8980],
+              [108.4350, 11.9025]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "evt-hanoi-2026",
+    "name": "Hanoi Midnight Heritage Marathon 2026",
+    "tagline": "Run through centuries of history around Sword Lake, the Old Quarter, and West Lake under the stars",
+    "location": "Hanoi, Vietnam",
+    "coordinates": { "lat": 21.0322, "lng": 105.8528 },
+    "date": "2026-11-15",
+    "status": "upcoming",
+    "organizer": {
+      "name": "Hanoi Athletics Federation & VP Heritage Sports",
+      "email": "info@hanoimarathon.vn",
+      "phone": "+84 243 926 5678",
+      "verified": true
+    },
+    "totalRunners": 6500,
+    "activeRunners": 0,
+    "weather": { "temp": "21°C", "condition": "Clear Night", "humidity": "68%" },
+    "distances": [
+      {
+        "type": "5K",
+        "name": "5K Old Quarter Midnight Run",
+        "distanceKm": 5.0,
+        "elevationGainM": 15,
+        "maxElevationM": 18,
+        "minElevationM": 12,
+        "runnersCount": 1500,
+        "color": "#10B981",
+        "startLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "finishLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "checkpoints": [
+          { "id": "CP-HN-0", "name": "Start Line Hoan Kiem", "km": 0.0, "lat": 21.0322, "lng": 105.8528, "type": "start", "cutoff": "00:00", "elevation": 14 },
+          { "id": "CP-HN-5K-1", "name": "Hanoi Opera House", "km": 2.2, "lat": 21.0242, "lng": 105.8576, "type": "water", "cutoff": "00:30", "elevation": 15 },
+          { "id": "CP-HN-5K-2", "name": "Ly Thai To Park", "km": 3.8, "lat": 21.0286, "lng": 105.8540, "type": "aid", "cutoff": "00:50", "elevation": 14 },
+          { "id": "CP-HN-5K-FIN", "name": "Sword Lake Finish", "km": 5.0, "lat": 21.0322, "lng": 105.8528, "type": "finish", "cutoff": "01:10", "elevation": 14 }
+        ],
+        "osrmWaypoints": [
+          [105.8528, 21.0322],
+          [105.8576, 21.0242],
+          [105.8540, 21.0286],
+          [105.8528, 21.0322]
+        ],
+        "leafletPolyline": [
+          [21.0322, 105.8528],
+          [21.0290, 105.8550],
+          [21.0242, 105.8576],
+          [21.0225, 105.8530],
+          [21.0260, 105.8505],
+          [21.0286, 105.8540],
+          [21.0322, 105.8528]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "5K Old Quarter Midnight", "distance": 5.0, "color": "#10B981" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [105.8528, 21.0322],
+              [105.8550, 21.0290],
+              [105.8576, 21.0242],
+              [105.8530, 21.0225],
+              [105.8505, 21.0260],
+              [105.8540, 21.0286],
+              [105.8528, 21.0322]
+            ]
+          }
+        }
+      },
+      {
+        "type": "10K",
+        "name": "10K French Quarter & Citadel",
+        "distanceKm": 10.0,
+        "elevationGainM": 25,
+        "maxElevationM": 20,
+        "minElevationM": 12,
+        "runnersCount": 1800,
+        "color": "#06B6D4",
+        "startLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "finishLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "checkpoints": [
+          { "id": "CP-HN-0", "name": "Start Line Hoan Kiem", "km": 0.0, "lat": 21.0322, "lng": 105.8528, "type": "start", "cutoff": "23:30", "elevation": 14 },
+          { "id": "CP-HN-10K-1", "name": "Ba Dinh Square", "km": 3.5, "lat": 21.0368, "lng": 105.8345, "type": "water", "cutoff": "00:15", "elevation": 16 },
+          { "id": "CP-HN-10K-2", "name": "Thang Long Imperial Citadel", "km": 6.8, "lat": 21.0345, "lng": 105.8402, "type": "aid", "cutoff": "01:00", "elevation": 17 },
+          { "id": "CP-HN-10K-3", "name": "Quan Thanh Temple", "km": 8.4, "lat": 21.0420, "lng": 105.8390, "type": "medical", "cutoff": "01:25", "elevation": 15 },
+          { "id": "CP-HN-10K-FIN", "name": "Sword Lake Finish", "km": 10.0, "lat": 21.0322, "lng": 105.8528, "type": "finish", "cutoff": "01:45", "elevation": 14 }
+        ],
+        "osrmWaypoints": [
+          [105.8528, 21.0322],
+          [105.8345, 21.0368],
+          [105.8402, 21.0345],
+          [105.8390, 21.0420],
+          [105.8528, 21.0322]
+        ],
+        "leafletPolyline": [
+          [21.0322, 105.8528],
+          [21.0350, 105.8460],
+          [21.0368, 105.8345],
+          [21.0345, 105.8402],
+          [21.0390, 105.8420],
+          [21.0420, 105.8390],
+          [21.0395, 105.8480],
+          [21.0322, 105.8528]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "10K French Quarter & Citadel", "distance": 10.0, "color": "#06B6D4" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [105.8528, 21.0322],
+              [105.8460, 21.0350],
+              [105.8345, 21.0368],
+              [105.8402, 21.0345],
+              [105.8420, 21.0390],
+              [105.8390, 21.0420],
+              [105.8480, 21.0395],
+              [105.8528, 21.0322]
+            ]
+          }
+        }
+      },
+      {
+        "type": "21K",
+        "name": "21K West Lake Half Marathon",
+        "distanceKm": 21.1,
+        "elevationGainM": 45,
+        "maxElevationM": 22,
+        "minElevationM": 12,
+        "runnersCount": 2000,
+        "color": "#F59E0B",
+        "startLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "finishLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "checkpoints": [
+          { "id": "CP-HN-0", "name": "Start Line Hoan Kiem", "km": 0.0, "lat": 21.0322, "lng": 105.8528, "type": "start", "cutoff": "23:00", "elevation": 14 },
+          { "id": "CP-HN-21K-1", "name": "Thanh Nien Boulevard", "km": 4.0, "lat": 21.0445, "lng": 105.8385, "type": "water", "cutoff": "23:45", "elevation": 15 },
+          { "id": "CP-HN-21K-2", "name": "West Lake Lotus Lagoon", "km": 10.5, "lat": 21.0680, "lng": 105.8190, "type": "aid", "cutoff": "01:00", "elevation": 16 },
+          { "id": "CP-HN-21K-3", "name": "Phu Tay Ho Peninsula", "km": 15.0, "lat": 21.0620, "lng": 105.8360, "type": "medical", "cutoff": "02:00", "elevation": 15 },
+          { "id": "CP-HN-21K-4", "name": "Long Bien Bridge Junction", "km": 18.8, "lat": 21.0425, "lng": 105.8540, "type": "cutoff", "cutoff": "02:45", "elevation": 18 },
+          { "id": "CP-HN-21K-FIN", "name": "Sword Lake Finish", "km": 21.1, "lat": 21.0322, "lng": 105.8528, "type": "finish", "cutoff": "03:15", "elevation": 14 }
+        ],
+        "osrmWaypoints": [
+          [105.8528, 21.0322],
+          [105.8385, 21.0445],
+          [105.8190, 21.0680],
+          [105.8360, 21.0620],
+          [105.8540, 21.0425],
+          [105.8528, 21.0322]
+        ],
+        "leafletPolyline": [
+          [21.0322, 105.8528],
+          [21.0390, 105.8450],
+          [21.0445, 105.8385],
+          [21.0550, 105.8280],
+          [21.0680, 105.8190],
+          [21.0720, 105.8270],
+          [21.0620, 105.8360],
+          [21.0510, 105.8450],
+          [21.0425, 105.8540],
+          [21.0322, 105.8528]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "21K West Lake Half Marathon", "distance": 21.1, "color": "#F59E0B" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [105.8528, 21.0322],
+              [105.8450, 21.0390],
+              [105.8385, 21.0445],
+              [105.8280, 21.0550],
+              [105.8190, 21.0680],
+              [105.8270, 21.0720],
+              [105.8360, 21.0620],
+              [105.8450, 21.0510],
+              [105.8540, 21.0425],
+              [105.8528, 21.0322]
+            ]
+          }
+        }
+      },
+      {
+        "type": "42K",
+        "name": "42K Full Heritage Grand Loop",
+        "distanceKm": 42.2,
+        "elevationGainM": 90,
+        "maxElevationM": 28,
+        "minElevationM": 12,
+        "runnersCount": 1200,
+        "color": "#FC4C02",
+        "startLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "finishLocation": { "name": "Dong Kinh Nghia Thuc Square", "lat": 21.0322, "lng": 105.8528 },
+        "checkpoints": [
+          { "id": "CP-HN-0", "name": "Start Line Hoan Kiem", "km": 0.0, "lat": 21.0322, "lng": 105.8528, "type": "start", "cutoff": "22:00", "elevation": 14 },
+          { "id": "CP-HN-42K-1", "name": "Thanh Nien Boulevard", "km": 4.0, "lat": 21.0445, "lng": 105.8385, "type": "water", "cutoff": "22:45", "elevation": 15 },
+          { "id": "CP-HN-42K-2", "name": "West Lake North Promenade", "km": 12.5, "lat": 21.0750, "lng": 105.8150, "type": "aid", "cutoff": "00:00", "elevation": 16 },
+          { "id": "CP-HN-42K-3", "name": "Nhat Tan Bridge Span", "km": 21.1, "lat": 21.0920, "lng": 105.8210, "type": "medical", "cutoff": "01:30", "elevation": 28 },
+          { "id": "CP-HN-42K-4", "name": "Red River Riverside Dyke", "km": 30.5, "lat": 21.0650, "lng": 105.8620, "type": "cutoff", "cutoff": "03:00", "elevation": 18 },
+          { "id": "CP-HN-42K-5", "name": "Long Bien Bridge Crossing", "km": 37.8, "lat": 21.0430, "lng": 105.8590, "type": "aid", "cutoff": "04:15", "elevation": 24 },
+          { "id": "CP-HN-42K-FIN", "name": "Sword Lake Finish", "km": 42.2, "lat": 21.0322, "lng": 105.8528, "type": "finish", "cutoff": "05:00", "elevation": 14 }
+        ],
+        "osrmWaypoints": [
+          [105.8528, 21.0322],
+          [105.8385, 21.0445],
+          [105.8150, 21.0750],
+          [105.8210, 21.0920],
+          [105.8620, 21.0650],
+          [105.8590, 21.0430],
+          [105.8528, 21.0322]
+        ],
+        "leafletPolyline": [
+          [21.0322, 105.8528],
+          [21.0445, 105.8385],
+          [21.0620, 105.8250],
+          [21.0750, 105.8150],
+          [21.0920, 105.8210],
+          [21.0850, 105.8450],
+          [21.0650, 105.8620],
+          [21.0510, 105.8610],
+          [21.0430, 105.8590],
+          [21.0322, 105.8528]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "42K Full Heritage Grand Loop", "distance": 42.2, "color": "#FC4C02" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [105.8528, 21.0322],
+              [105.8385, 21.0445],
+              [105.8250, 21.0620],
+              [105.8150, 21.0750],
+              [105.8210, 21.0920],
+              [105.8450, 21.0850],
+              [105.8620, 21.0650],
+              [105.8610, 21.0510],
+              [105.8590, 21.0430],
+              [105.8528, 21.0322]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "evt-saigon-2026",
+    "name": "Saigon Riverside International Marathon 2026",
+    "tagline": "Glide along the bustling Saigon River, state-of-the-art Thu Thiem bridges, and iconic skyscrapers",
+    "location": "Ho Chi Minh City, Vietnam",
+    "coordinates": { "lat": 10.7743, "lng": 106.7037 },
+    "date": "2026-12-06",
+    "status": "upcoming",
+    "organizer": {
+      "name": "HCMC Department of Culture & Sports · Pulse Active",
+      "email": "contact@saigonmarathon.com",
+      "phone": "+84 283 822 9988",
+      "verified": true
+    },
+    "totalRunners": 5200,
+    "activeRunners": 0,
+    "weather": { "temp": "26°C", "condition": "Breezy Riverbank", "humidity": "74%" },
+    "distances": [
+      {
+        "type": "5K",
+        "name": "5K Nguyen Hue Riverside Dash",
+        "distanceKm": 5.0,
+        "elevationGainM": 12,
+        "maxElevationM": 14,
+        "minElevationM": 6,
+        "runnersCount": 1200,
+        "color": "#10B981",
+        "startLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "finishLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "checkpoints": [
+          { "id": "CP-SG-0", "name": "Start Gate Nguyen Hue", "km": 0.0, "lat": 10.7743, "lng": 106.7037, "type": "start", "cutoff": "06:00", "elevation": 8 },
+          { "id": "CP-SG-5K-1", "name": "Bach Dang Waterbus Wharf", "km": 2.1, "lat": 10.7725, "lng": 106.7065, "type": "water", "cutoff": "06:30", "elevation": 6 },
+          { "id": "CP-SG-5K-2", "name": "Khanh Hoi Bridge", "km": 3.7, "lat": 10.7675, "lng": 106.7050, "type": "aid", "cutoff": "06:55", "elevation": 12 },
+          { "id": "CP-SG-5K-FIN", "name": "City Hall Finish", "km": 5.0, "lat": 10.7743, "lng": 106.7037, "type": "finish", "cutoff": "07:15", "elevation": 8 }
+        ],
+        "osrmWaypoints": [
+          [106.7037, 10.7743],
+          [106.7065, 10.7725],
+          [106.7050, 10.7675],
+          [106.7037, 10.7743]
+        ],
+        "leafletPolyline": [
+          [10.7743, 106.7037],
+          [10.7725, 106.7065],
+          [10.7690, 106.7075],
+          [10.7675, 106.7050],
+          [10.7700, 106.7020],
+          [10.7743, 106.7037]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "5K Nguyen Hue Riverside Dash", "distance": 5.0, "color": "#10B981" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [106.7037, 10.7743],
+              [106.7065, 10.7725],
+              [106.7075, 10.7690],
+              [106.7050, 10.7675],
+              [106.7020, 10.7700],
+              [106.7037, 10.7743]
+            ]
+          }
+        }
+      },
+      {
+        "type": "10K",
+        "name": "10K Ba Son Bridge & Waterfront",
+        "distanceKm": 10.0,
+        "elevationGainM": 32,
+        "maxElevationM": 26,
+        "minElevationM": 6,
+        "runnersCount": 1500,
+        "color": "#06B6D4",
+        "startLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "finishLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "checkpoints": [
+          { "id": "CP-SG-0", "name": "Start Gate Nguyen Hue", "km": 0.0, "lat": 10.7743, "lng": 106.7037, "type": "start", "cutoff": "05:30", "elevation": 8 },
+          { "id": "CP-SG-10K-1", "name": "Ba Son Bridge Peak", "km": 3.2, "lat": 10.7810, "lng": 106.7115, "type": "water", "cutoff": "06:15", "elevation": 26 },
+          { "id": "CP-SG-10K-2", "name": "Thu Thiem Central Lake", "km": 6.4, "lat": 10.7760, "lng": 106.7210, "type": "aid", "cutoff": "07:00", "elevation": 8 },
+          { "id": "CP-SG-10K-3", "name": "Thu Thiem Tunnel Park", "km": 8.5, "lat": 10.7690, "lng": 106.7130, "type": "medical", "cutoff": "07:30", "elevation": 7 },
+          { "id": "CP-SG-10K-FIN", "name": "City Hall Finish", "km": 10.0, "lat": 10.7743, "lng": 106.7037, "type": "finish", "cutoff": "07:50", "elevation": 8 }
+        ],
+        "osrmWaypoints": [
+          [106.7037, 10.7743],
+          [106.7115, 10.7810],
+          [106.7210, 10.7760],
+          [106.7130, 10.7690],
+          [106.7037, 10.7743]
+        ],
+        "leafletPolyline": [
+          [10.7743, 106.7037],
+          [10.7780, 106.7070],
+          [10.7810, 106.7115],
+          [10.7795, 106.7170],
+          [10.7760, 106.7210],
+          [10.7710, 106.7180],
+          [10.7690, 106.7130],
+          [10.7715, 106.7060],
+          [10.7743, 106.7037]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "10K Ba Son Bridge & Waterfront", "distance": 10.0, "color": "#06B6D4" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [106.7037, 10.7743],
+              [106.7070, 10.7780],
+              [106.7115, 10.7810],
+              [106.7170, 10.7795],
+              [106.7210, 10.7760],
+              [106.7180, 10.7710],
+              [106.7130, 10.7690],
+              [106.7060, 10.7715],
+              [106.7037, 10.7743]
+            ]
+          }
+        }
+      },
+      {
+        "type": "21K",
+        "name": "21K Two Bridges Half Marathon",
+        "distanceKm": 21.1,
+        "elevationGainM": 65,
+        "maxElevationM": 32,
+        "minElevationM": 6,
+        "runnersCount": 1600,
+        "color": "#F59E0B",
+        "startLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "finishLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "checkpoints": [
+          { "id": "CP-SG-0", "name": "Start Gate Nguyen Hue", "km": 0.0, "lat": 10.7743, "lng": 106.7037, "type": "start", "cutoff": "04:45", "elevation": 8 },
+          { "id": "CP-SG-21K-1", "name": "Ba Son Cable-stayed Bridge", "km": 4.0, "lat": 10.7810, "lng": 106.7115, "type": "water", "cutoff": "05:35", "elevation": 26 },
+          { "id": "CP-SG-21K-2", "name": "Sala Eco Forest Park", "km": 9.5, "lat": 10.7680, "lng": 106.7280, "type": "aid", "cutoff": "06:40", "elevation": 7 },
+          { "id": "CP-SG-21K-3", "name": "Thu Thiem Bridge 1 Span", "km": 14.8, "lat": 10.7920, "lng": 106.7180, "type": "medical", "cutoff": "07:50", "elevation": 30 },
+          { "id": "CP-SG-21K-4", "name": "Saigon Zoo & Botanical Gate", "km": 18.5, "lat": 10.7870, "lng": 106.7050, "type": "cutoff", "cutoff": "08:35", "elevation": 10 },
+          { "id": "CP-SG-21K-FIN", "name": "City Hall Finish", "km": 21.1, "lat": 10.7743, "lng": 106.7037, "type": "finish", "cutoff": "09:15", "elevation": 8 }
+        ],
+        "osrmWaypoints": [
+          [106.7037, 10.7743],
+          [106.7115, 10.7810],
+          [106.7280, 10.7680],
+          [106.7180, 10.7920],
+          [106.7050, 10.7870],
+          [106.7037, 10.7743]
+        ],
+        "leafletPolyline": [
+          [10.7743, 106.7037],
+          [10.7810, 106.7115],
+          [10.7780, 106.7220],
+          [10.7680, 106.7280],
+          [10.7720, 106.7320],
+          [10.7850, 106.7250],
+          [10.7920, 106.7180],
+          [10.7870, 106.7050],
+          [10.7780, 106.7010],
+          [10.7743, 106.7037]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "21K Two Bridges Half Marathon", "distance": 21.1, "color": "#F59E0B" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [106.7037, 10.7743],
+              [106.7115, 10.7810],
+              [106.7220, 10.7780],
+              [106.7280, 10.7680],
+              [106.7320, 10.7720],
+              [106.7250, 10.7850],
+              [106.7180, 10.7920],
+              [106.7050, 10.7870],
+              [106.7010, 10.7780],
+              [106.7037, 10.7743]
+            ]
+          }
+        }
+      },
+      {
+        "type": "42K",
+        "name": "42K Full Saigon River & Peninsula Marathon",
+        "distanceKm": 42.2,
+        "elevationGainM": 110,
+        "maxElevationM": 38,
+        "minElevationM": 5,
+        "runnersCount": 900,
+        "color": "#FC4C02",
+        "startLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "finishLocation": { "name": "Nguyen Hue Walking Street Plaza", "lat": 10.7743, "lng": 106.7037 },
+        "checkpoints": [
+          { "id": "CP-SG-0", "name": "Start Gate Nguyen Hue", "km": 0.0, "lat": 10.7743, "lng": 106.7037, "type": "start", "cutoff": "03:30", "elevation": 8 },
+          { "id": "CP-SG-42K-1", "name": "Ba Son Bridge", "km": 4.0, "lat": 10.7810, "lng": 106.7115, "type": "water", "cutoff": "04:15", "elevation": 26 },
+          { "id": "CP-SG-42K-2", "name": "Thu Thiem River Promenade", "km": 12.0, "lat": 10.7650, "lng": 106.7380, "type": "aid", "cutoff": "05:45", "elevation": 6 },
+          { "id": "CP-SG-42K-3", "name": "Phu My Bridge Ascent", "km": 21.1, "lat": 10.7420, "lng": 106.7490, "type": "medical", "cutoff": "07:15", "elevation": 38 },
+          { "id": "CP-SG-42K-4", "name": "Tan Thuan Port District 7", "km": 29.5, "lat": 10.7550, "lng": 106.7210, "type": "cutoff", "cutoff": "08:45", "elevation": 8 },
+          { "id": "CP-SG-42K-5", "name": "Vo Van Kiet Boulevard", "km": 37.0, "lat": 10.7600, "lng": 106.6950, "type": "aid", "cutoff": "10:15", "elevation": 7 },
+          { "id": "CP-SG-42K-FIN", "name": "City Hall Finish", "km": 42.2, "lat": 10.7743, "lng": 106.7037, "type": "finish", "cutoff": "11:30", "elevation": 8 }
+        ],
+        "osrmWaypoints": [
+          [106.7037, 10.7743],
+          [106.7115, 10.7810],
+          [106.7380, 10.7650],
+          [106.7490, 10.7420],
+          [106.7210, 10.7550],
+          [106.6950, 10.7600],
+          [106.7037, 10.7743]
+        ],
+        "leafletPolyline": [
+          [10.7743, 106.7037],
+          [10.7810, 106.7115],
+          [10.7750, 106.7280],
+          [10.7650, 106.7380],
+          [10.7520, 106.7450],
+          [10.7420, 106.7490],
+          [10.7480, 106.7320],
+          [10.7550, 106.7210],
+          [10.7610, 106.7080],
+          [10.7600, 106.6950],
+          [10.7680, 106.6980],
+          [10.7743, 106.7037]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "42K Full Saigon River", "distance": 42.2, "color": "#FC4C02" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [106.7037, 10.7743],
+              [106.7115, 10.7810],
+              [106.7280, 10.7750],
+              [106.7380, 10.7650],
+              [106.7450, 10.7520],
+              [106.7490, 10.7420],
+              [106.7320, 10.7480],
+              [106.7210, 10.7550],
+              [106.7080, 10.7610],
+              [106.6950, 10.7600],
+              [106.6980, 10.7680],
+              [106.7037, 10.7743]
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

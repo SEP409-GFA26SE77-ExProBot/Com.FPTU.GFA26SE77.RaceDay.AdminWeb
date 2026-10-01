@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, ReactNode } from "react";
-import Link from "next/link";
+import { useState, useEffect, useMemo, ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import eventsData from "@/events.json";
+import Sidebar from "./sections/Sidebar";
+import { useActiveTab } from "@/context/ActiveTabContext";
 
 export interface NavItem {
   id: string;
   label: string;
   icon: string;
   badge?: number | string;
+  href?: string;
 }
 
 export interface StatItem {
@@ -18,274 +22,95 @@ export interface StatItem {
   icon: string;
 }
 
-interface DashboardShellProps {
-  role: string;
-  roleAbbr: string;
-  roleIcon: string;
-  roleColor: string;
-  roleColorRgb: string; // e.g. "6,182,212"
-  navItems: NavItem[];
+export interface DashboardShellProps {
+  role?: string;
+  roleAbbr?: string;
+  roleIcon?: string;
+  roleColor?: string;
+  roleColorRgb?: string; // e.g. "6,182,212"
+  navItems?: NavItem[];
   stats?: StatItem[];
-  children: (activeSection: string, setSection: (s: string) => void) => ReactNode;
+  basePath?: string;
+  tab?: string;
+  children: ReactNode | ((activeSection: string, setSection: (s: string) => void) => ReactNode);
 }
 
 export default function DashboardShell({
-  role,
-  roleAbbr,
-  roleIcon,
-  roleColor,
-  roleColorRgb,
-  navItems,
+  role = "Race-Day Coordinator",
+  roleAbbr = "OPS",
+  roleIcon = "🗺️",
+  roleColor = "#F59E0B",
+  roleColorRgb = "245,158,11",
+  navItems = [],
   stats,
+  basePath,
+  tab,
   children,
 }: DashboardShellProps) {
+  const pathname = usePathname();
+  const contextTab = useActiveTab().activeTab;
   const [active, setActive] = useState(navItems[0]?.id ?? "");
   const [collapsed, setCollapsed] = useState(false);
+  const [isEventMenuOpen, setIsEventMenuOpen] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<(typeof eventsData)[0]>(eventsData[0]);
 
-  const activeItem = navItems.find((n) => n.id === active);
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("raceday_selected_event");
+        if (stored) {
+          setCurrentEvent(JSON.parse(stored));
+        } else {
+          // Check query param
+          const url = new URL(window.location.href);
+          const evId = url.searchParams.get("eventId");
+          const found = eventsData.find((e) => e.id === evId);
+          if (found) setCurrentEvent(found);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const currentActiveId = useMemo(() => {
+    if (basePath) {
+      if (pathname === basePath || pathname === `${basePath}/`) {
+        return navItems[0]?.id ?? "";
+      }
+      const matched = navItems.find((n) => {
+        const itemHref = n.href ?? `${basePath}/${n.id}`;
+        return pathname === itemHref || pathname.startsWith(`${itemHref}/`);
+      });
+      if (matched) return matched.id;
+    } else {
+      const matched = navItems.find((n) => {
+        if (!n.href) return false;
+        return pathname === n.href || pathname.startsWith(`${n.href}/`);
+      });
+      if (matched) return matched.id;
+    }
+    return active;
+  }, [basePath, pathname, navItems, active]);
+
+  const effectiveTab = tab || contextTab || currentActiveId;
+  const activeItem = navItems.find((n) => n.id === effectiveTab) ?? navItems[0];
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#06050C" }}>
-      {/* ── Sidebar ──────────────────────────────────── */}
-      <aside
-        style={{
-          width: collapsed ? "68px" : "248px",
-          flexShrink: 0,
-          background: "rgba(9,8,20,0.96)",
-          borderRight: "1px solid rgba(255,255,255,0.055)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          display: "flex",
-          flexDirection: "column",
-          transition: "width 0.28s cubic-bezier(0.4,0,0.2,1)",
-          overflow: "hidden",
-          zIndex: 20,
-          position: "relative",
-        }}
-      >
-        {/* Sidebar glow accent */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "2px",
-            background: `linear-gradient(90deg, transparent, ${roleColor}, transparent)`,
-            opacity: 0.6,
-          }}
-        />
-
-        {/* Logo row */}
-        <div
-          style={{
-            padding: "18px 12px",
-            borderBottom: "1px solid rgba(255,255,255,0.055)",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            minHeight: "68px",
-          }}
-        >
-          <div
-            style={{
-              width: "38px",
-              height: "38px",
-              borderRadius: "11px",
-              background: `linear-gradient(135deg, ${roleColor}28, ${roleColor}0e)`,
-              border: `1px solid ${roleColor}35`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px",
-              flexShrink: 0,
-              cursor: collapsed ? "pointer" : "default",
-            }}
-            onClick={() => collapsed && setCollapsed(false)}
-            title={collapsed ? "Expand sidebar" : undefined}
-          >
-            {roleIcon}
-          </div>
-
-          {!collapsed && (
-            <>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: "9px",
-                    color: "#334155",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  RaceDay
-                </div>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#fff",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {role}
-                </div>
-              </div>
-              <button
-                onClick={() => setCollapsed(true)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#334155",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "4px",
-                  borderRadius: "6px",
-                  flexShrink: 0,
-                }}
-                title="Collapse sidebar"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto", overflowX: "hidden" }}>
-          {navItems.map((item) => {
-            const isActive = active === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActive(item.id)}
-                title={collapsed ? item.label : undefined}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: collapsed ? "10px 0" : "9px 10px",
-                  borderRadius: "10px",
-                  marginBottom: "3px",
-                  background: isActive
-                    ? `rgba(${roleColorRgb},0.12)`
-                    : "transparent",
-                  border: isActive
-                    ? `1px solid rgba(${roleColorRgb},0.28)`
-                    : "1px solid transparent",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 0.18s",
-                  justifyContent: collapsed ? "center" : "flex-start",
-                  boxShadow: isActive
-                    ? `0 0 16px rgba(${roleColorRgb},0.12)`
-                    : "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive)
-                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "transparent";
-                }}
-              >
-                <span style={{ fontSize: "17px", flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
-                {!collapsed && (
-                  <>
-                    <span
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? roleColor : "#64748B",
-                        whiteSpace: "nowrap",
-                        flex: 1,
-                        transition: "color 0.15s",
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                    {item.badge !== undefined && (
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          fontWeight: 700,
-                          padding: "1px 6px",
-                          borderRadius: "100px",
-                          background: `rgba(${roleColorRgb},0.18)`,
-                          color: roleColor,
-                        }}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Bottom */}
-        <div style={{ padding: "10px 8px", borderTop: "1px solid rgba(255,255,255,0.055)" }}>
-          {collapsed ? (
-            <button
-              onClick={() => setCollapsed(false)}
-              style={{
-                width: "100%",
-                padding: "9px 0",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                color: "#334155",
-                display: "flex",
-                justifyContent: "center",
-                borderRadius: "8px",
-              }}
-              title="Expand sidebar"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          ) : (
-            <Link
-              href="/"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "9px 10px",
-                borderRadius: "10px",
-                color: "#334155",
-                fontSize: "13px",
-                textDecoration: "none",
-                transition: "color 0.15s, background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#64748B";
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#334155";
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span>Switch Role</span>
-            </Link>
-          )}
-        </div>
-      </aside>
+      {/* ── Extracted Standalone Sidebar Section ────────── */}
+      <Sidebar
+        tab={effectiveTab}
+        role={role}
+        roleName={role}
+        roleAbbr={roleAbbr}
+        roleIcon={roleIcon}
+        roleColor={roleColor}
+        roleColorRgb={roleColorRgb}
+        basePath={basePath}
+        navItems={navItems}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((prev) => !prev)}
+        onSelectTab={(newTab) => setActive(newTab)}
+      />
 
       {/* ── Main area ─────────────────────────────────── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
@@ -305,12 +130,115 @@ export default function DashboardShell({
             zIndex: 10,
           }}
         >
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "12px", color: "#334155", fontWeight: 500 }}>{roleAbbr}</span>
-            <span style={{ color: "#1E293B", fontSize: "14px" }}>/</span>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: "#94A3B8" }}>
-              {activeItem?.label ?? "Dashboard"}
-            </span>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "12px", color: "#334155", fontWeight: 500 }}>{roleAbbr}</span>
+              <span style={{ color: "#1E293B", fontSize: "14px" }}>/</span>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#94A3B8" }}>
+                {activeItem?.label ?? "Dashboard"}
+              </span>
+            </div>
+
+            {/* Active Event Indicator with Switcher */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setIsEventMenuOpen(!isEventMenuOpen)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  padding: "4px 10px",
+                  borderRadius: "8px",
+                  background: `rgba(${roleColorRgb},0.08)`,
+                  border: `1px solid rgba(${roleColorRgb},0.25)`,
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                <span>{currentEvent?.id.includes("dalat") ? "🌲" : currentEvent?.id.includes("hanoi") ? "🏛️" : "🏙️"}</span>
+                <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {currentEvent?.name ?? "Da Lat Ultra Trail 2026"}
+                </span>
+                <span style={{ fontSize: "10px", color: roleColor }}>▼</span>
+              </button>
+
+              {/* Event Switcher Dropdown */}
+              {isEventMenuOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    left: 0,
+                    width: "320px",
+                    background: "rgba(13,12,24,0.98)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: "14px",
+                    boxShadow: "0 16px 40px rgba(0,0,0,0.8)",
+                    padding: "8px",
+                    zIndex: 999,
+                    backdropFilter: "blur(20px)",
+                  }}
+                >
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
+                    Switch Active Event
+                  </div>
+                  {eventsData.map((eItem) => {
+                    const isSelected = (currentEvent?.id ?? "evt-dalat-2026") === eItem.id;
+                    return (
+                      <div
+                        key={eItem.id}
+                        onClick={() => {
+                          setCurrentEvent(eItem);
+                          setIsEventMenuOpen(false);
+                          try {
+                            if (typeof window !== "undefined") {
+                              localStorage.setItem("raceday_selected_event_id", eItem.id);
+                              localStorage.setItem("raceday_selected_event", JSON.stringify(eItem));
+                            }
+                          } catch {}
+                          // Update URL param
+                          const url = new URL(window.location.href);
+                          url.searchParams.set("eventId", eItem.id);
+                          window.history.replaceState({}, "", url.toString());
+                          window.dispatchEvent(new Event("raceday_event_changed"));
+                        }}
+                        style={{
+                          padding: "8px 10px",
+                          borderRadius: "8px",
+                          background: isSelected ? `rgba(${roleColorRgb},0.12)` : "transparent",
+                          border: isSelected ? `1px solid rgba(${roleColorRgb},0.3)` : "1px solid transparent",
+                          cursor: "pointer",
+                          marginBottom: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "12px", fontWeight: 700, color: isSelected ? roleColor : "#fff" }}>
+                            {eItem.id.includes("dalat") ? "🌲 " : eItem.id.includes("hanoi") ? "🏛️ " : "🏙️ "}
+                            {eItem.name}
+                          </div>
+                          <div style={{ fontSize: "10px", color: "#64748B" }}>
+                            {eItem.location} · {eItem.totalRunners.toLocaleString()} runners
+                          </div>
+                        </div>
+                        {isSelected && <span style={{ color: roleColor, fontSize: "12px", fontWeight: "bold" }}>✓</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Notification */}
@@ -432,7 +360,9 @@ export default function DashboardShell({
 
         {/* Content */}
         <main style={{ flex: 1, overflowY: "auto", padding: "24px", position: "relative" }}>
-          {children(active, setActive)}
+          {typeof children === "function"
+            ? (children as (activeSection: string, setSection: (s: string) => void) => ReactNode)(effectiveTab, setActive)
+            : children}
         </main>
       </div>
     </div>
