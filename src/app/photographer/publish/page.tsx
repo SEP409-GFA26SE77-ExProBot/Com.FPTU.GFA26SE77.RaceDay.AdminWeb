@@ -40,7 +40,7 @@ export default function PhotographerPublishPage() {
             <span style={{ fontSize: "18px", fontWeight: 800, color: C }}>{batch.count}</span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: "#fff", fontSize: "14px", marginBottom: "2px" }}>
+            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "14px", marginBottom: "2px" }}>
               {batch.event} — {batch.zone}
             </div>
             <div style={{ fontSize: "12px", color: "#475569" }}>

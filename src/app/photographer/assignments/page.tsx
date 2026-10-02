@@ -29,7 +29,7 @@ export default function PhotographerAssignmentsPage() {
                 🏔️
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: "#fff", fontSize: "15px", marginBottom: "2px" }}>{ev.name}</div>
+                <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "15px", marginBottom: "2px" }}>{ev.name}</div>
                 <div style={{ fontSize: "12px", color: "#475569" }}>
                   {ev.date} &nbsp;·&nbsp; {ev.distance} &nbsp;·&nbsp; Zone: <span style={{ color: C }}>{ev.zone}</span>
                 </div>

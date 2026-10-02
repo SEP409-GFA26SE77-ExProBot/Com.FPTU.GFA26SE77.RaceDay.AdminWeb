@@ -26,14 +26,14 @@ export function SectionHeader({ id, title, desc, color }: SectionHeaderProps) {
         style={{
           fontSize: "22px",
           fontWeight: 800,
-          color: "#fff",
+          color: "var(--text-primary, #fff)",
           margin: "0 0 6px",
           letterSpacing: "-0.02em",
         }}
       >
         {title}
       </h2>
-      <p style={{ fontSize: "13px", color: "#64748B", margin: 0, lineHeight: 1.6 }}>{desc}</p>
+      <p style={{ fontSize: "13px", color: "var(--text-secondary, #64748B)", margin: 0, lineHeight: 1.6 }}>{desc}</p>
     </div>
   );
 }

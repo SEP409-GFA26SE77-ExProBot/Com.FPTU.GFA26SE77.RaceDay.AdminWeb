@@ -57,7 +57,7 @@ export default function CoordinatorBroomPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <Card style={{ textAlign: "center" }}>
               <div style={{ fontSize: "36px", marginBottom: "6px" }}>🚐</div>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff", marginBottom: "4px" }}>Broom Wagon</div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>Broom Wagon</div>
               <Badge label="En Route → CP2" type="amber" />
               <div style={{ fontSize: "12px", color: "#475569", marginTop: "8px" }}>Current position: KM 18.3</div>
             </Card>

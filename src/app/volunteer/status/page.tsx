@@ -172,8 +172,8 @@ export default function VolunteerStatusPage() {
             >
               <Badge label={r.type} type={typeColor(r.type)} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
-                  {r.bib} <span style={{ color: "#475569", fontWeight: 400 }}>· {r.name}</span>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>
+                  {r.bib} <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>· {r.name}</span>
                 </div>
                 <div style={{ fontSize: "11px", color: "#334155" }}>
                   {r.cp} · {r.time}

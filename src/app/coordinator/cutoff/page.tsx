@@ -32,14 +32,14 @@ export default function CoordinatorCutoffPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{seg.name}</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>{seg.name}</span>
                 <span style={{ fontSize: "12px", color: "#475569" }}>Cut-off: <span style={{ color: C, fontWeight: 700 }}>{seg.cutoff}</span></span>
               </div>
               <div style={{ height: "6px", borderRadius: "3px", background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: "5px" }}>
                 <div style={{ height: "100%", width: `${Math.min((seg.runners / seg.total) * 100, 100)}%`, background: seg.status === "closed" ? "rgba(148,163,184,0.4)" : `rgba(${CR},0.8)`, borderRadius: "3px", transition: "width 1s" }} />
               </div>
               <div style={{ fontSize: "11px", color: "#334155" }}>
-                {seg.runners.toLocaleString()} runners in segment · {seg.total.toLocaleString()} total entered
+                {seg.runners.toLocaleString("en-US")} runners in segment · {seg.total.toLocaleString("en-US")} total entered
               </div>
             </div>
             <Badge label={seg.status} type={seg.status === "closed" ? "gray" : "green"} />

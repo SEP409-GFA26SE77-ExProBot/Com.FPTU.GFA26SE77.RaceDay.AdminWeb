@@ -34,7 +34,7 @@ export default function CoordinatorContingencyPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>{plan.code}: {plan.name}</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)" }}>{plan.code}: {plan.name}</span>
                 <Badge label={plan.status} type={plan.status === "ready" ? "amber" : "gray"} />
               </div>
               <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 6px", lineHeight: 1.5 }}>{plan.desc}</p>

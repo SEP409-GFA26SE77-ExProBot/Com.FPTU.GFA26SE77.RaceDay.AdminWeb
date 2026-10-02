@@ -740,5 +740,211 @@
         }
       }
     ]
+  },
+  {
+    "id": "evt-fansipan-2026",
+    "name": "Fansipan Sky Race 2026",
+    "tagline": "Conquer the Roof of Indochina across misty ridges, ethnic village paths, and steep vertical alpine ascents",
+    "location": "Sa Pa, Lao Cai, Vietnam",
+    "coordinates": { "lat": 22.3356, "lng": 103.8415 },
+    "date": "2026-12-14",
+    "status": "pending",
+    "organizer": {
+      "name": "VietTrail Corp. & Sa Pa Tourism Board",
+      "email": "admin@viettrail.vn",
+      "phone": "+84 214 387 1999",
+      "verified": false
+    },
+    "totalRunners": 800,
+    "activeRunners": 0,
+    "weather": { "temp": "12°C", "condition": "Mountain Mist", "humidity": "85%" },
+    "distances": [
+      {
+        "type": "21K",
+        "name": "21K Sa Pa Cloud Valley",
+        "distanceKm": 21.0,
+        "elevationGainM": 980,
+        "maxElevationM": 2150,
+        "minElevationM": 1450,
+        "runnersCount": 500,
+        "color": "#F59E0B",
+        "startLocation": { "name": "Sa Pa Stone Church Square", "lat": 22.3356, "lng": 103.8415 },
+        "finishLocation": { "name": "Sa Pa Stone Church Square", "lat": 22.3356, "lng": 103.8415 },
+        "checkpoints": [
+          { "id": "CP-FS-0", "name": "Sa Pa Central Square", "km": 0.0, "lat": 22.3356, "lng": 103.8415, "type": "start", "cutoff": "06:00", "elevation": 1500 },
+          { "id": "CP-FS-21K-1", "name": "Cat Cat Watermill Bridge", "km": 4.5, "lat": 22.3280, "lng": 103.8320, "type": "water", "cutoff": "07:15", "elevation": 1450 },
+          { "id": "CP-FS-21K-2", "name": "Y Linh Ho Ridge Aid", "km": 10.2, "lat": 22.3150, "lng": 103.8210, "type": "aid", "cutoff": "08:45", "elevation": 1780 },
+          { "id": "CP-FS-21K-3", "name": "Ham Rong Pine Gate", "km": 16.8, "lat": 22.3310, "lng": 103.8490, "type": "medical", "cutoff": "10:15", "elevation": 1850 },
+          { "id": "CP-FS-21K-FIN", "name": "Sa Pa Finish Plaza", "km": 21.0, "lat": 22.3356, "lng": 103.8415, "type": "finish", "cutoff": "11:30", "elevation": 1500 }
+        ],
+        "osrmWaypoints": [
+          [103.8415, 22.3356],
+          [103.8320, 22.3280],
+          [103.8210, 22.3150],
+          [103.8490, 22.3310],
+          [103.8415, 22.3356]
+        ],
+        "leafletPolyline": [
+          [22.3356, 103.8415],
+          [22.3310, 103.8360],
+          [22.3280, 103.8320],
+          [22.3210, 103.8250],
+          [22.3150, 103.8210],
+          [22.3230, 103.8350],
+          [22.3310, 103.8490],
+          [22.3340, 103.8460],
+          [22.3356, 103.8415]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "21K Sa Pa Cloud Valley", "distance": 21.0, "color": "#F59E0B" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [103.8415, 22.3356],
+              [103.8360, 22.3310],
+              [103.8320, 22.3280],
+              [103.8250, 22.3210],
+              [103.8210, 22.3150],
+              [103.8350, 22.3230],
+              [103.8490, 22.3310],
+              [103.8460, 22.3340],
+              [103.8415, 22.3356]
+            ]
+          }
+        }
+      },
+      {
+        "type": "80K",
+        "name": "80K Fansipan Summit Sky Trail",
+        "distanceKm": 80.0,
+        "elevationGainM": 3143,
+        "maxElevationM": 3143,
+        "minElevationM": 1420,
+        "runnersCount": 300,
+        "color": "#8B5CF6",
+        "startLocation": { "name": "Sa Pa Stone Church Square", "lat": 22.3356, "lng": 103.8415 },
+        "finishLocation": { "name": "Fansipan Summit Station", "lat": 22.3034, "lng": 103.7752 },
+        "checkpoints": [
+          { "id": "CP-FS-80K-0", "name": "Start Gate Sa Pa", "km": 0.0, "lat": 22.3356, "lng": 103.8415, "type": "start", "cutoff": "04:00", "elevation": 1500 },
+          { "id": "CP-FS-80K-1", "name": "Muong Hoa Bamboo Pass", "km": 18.5, "lat": 22.3050, "lng": 103.8650, "type": "water", "cutoff": "07:30", "elevation": 1620 },
+          { "id": "CP-FS-80K-2", "name": "Ta Van Terrace Ridge", "km": 36.0, "lat": 22.2850, "lng": 103.8820, "type": "aid", "cutoff": "11:00", "elevation": 1850 },
+          { "id": "CP-FS-80K-3", "name": "Tram Ton Ranger Post", "km": 54.0, "lat": 22.3520, "lng": 103.7760, "type": "medical", "cutoff": "15:00", "elevation": 1950 },
+          { "id": "CP-FS-80K-4", "name": "2800m Alpine Basecamp", "km": 68.0, "lat": 22.3180, "lng": 103.7790, "type": "cutoff", "cutoff": "18:30", "elevation": 2800 },
+          { "id": "CP-FS-80K-FIN", "name": "Fansipan Peak 3143m", "km": 80.0, "lat": 22.3034, "lng": 103.7752, "type": "finish", "cutoff": "22:00", "elevation": 3143 }
+        ],
+        "osrmWaypoints": [
+          [103.8415, 22.3356],
+          [103.8650, 22.3050],
+          [103.8820, 22.2850],
+          [103.7760, 22.3520],
+          [103.7790, 22.3180],
+          [103.7752, 22.3034]
+        ],
+        "leafletPolyline": [
+          [22.3356, 103.8415],
+          [22.3210, 103.8540],
+          [22.3050, 103.8650],
+          [22.2920, 103.8740],
+          [22.2850, 103.8820],
+          [22.3180, 103.8290],
+          [22.3520, 103.7760],
+          [22.3360, 103.7780],
+          [22.3180, 103.7790],
+          [22.3090, 103.7765],
+          [22.3034, 103.7752]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "80K Fansipan Summit Sky Trail", "distance": 80.0, "color": "#8B5CF6" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [103.8415, 22.3356],
+              [103.8540, 22.3210],
+              [103.8650, 22.3050],
+              [103.8740, 22.2920],
+              [103.8820, 22.2850],
+              [103.8290, 22.3180],
+              [103.7760, 22.3520],
+              [103.7780, 22.3360],
+              [103.7790, 22.3180],
+              [103.7765, 22.3090],
+              [103.7752, 22.3034]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "evt-danang-2026",
+    "name": "Da Nang Beach Sprint & Coastal Trail 2026",
+    "tagline": "Sprint along the golden sands of My Khe and ascend the coastal jungle passes of Son Tra Peninsula",
+    "location": "Da Nang, Vietnam",
+    "coordinates": { "lat": 16.0544, "lng": 108.2435 },
+    "date": "2026-11-20",
+    "status": "pending",
+    "organizer": {
+      "name": "Mountain Run VN & Da Nang Sports Dept",
+      "email": "contact@mrv.vn",
+      "phone": "+84 236 389 4455",
+      "verified": false
+    },
+    "totalRunners": 2000,
+    "activeRunners": 0,
+    "weather": { "temp": "25°C", "condition": "Coastal Breeze", "humidity": "72%" },
+    "distances": [
+      {
+        "type": "10K",
+        "name": "10K My Khe Beach Sprint",
+        "distanceKm": 10.0,
+        "elevationGainM": 45,
+        "maxElevationM": 35,
+        "minElevationM": 2,
+        "runnersCount": 1400,
+        "color": "#06B6D4",
+        "startLocation": { "name": "East Sea Park Plaza", "lat": 16.0688, "lng": 108.2465 },
+        "finishLocation": { "name": "East Sea Park Plaza", "lat": 16.0688, "lng": 108.2465 },
+        "checkpoints": [
+          { "id": "CP-DN-0", "name": "East Sea Park Gate", "km": 0.0, "lat": 16.0688, "lng": 108.2465, "type": "start", "cutoff": "05:30", "elevation": 3 },
+          { "id": "CP-DN-10K-1", "name": "Dragon Bridge Coastal View", "km": 4.2, "lat": 16.0610, "lng": 108.2380, "type": "water", "cutoff": "06:15", "elevation": 8 },
+          { "id": "CP-DN-10K-2", "name": "My An Beachfront Aid", "km": 7.5, "lat": 16.0480, "lng": 108.2460, "type": "aid", "cutoff": "06:50", "elevation": 4 },
+          { "id": "CP-DN-10K-FIN", "name": "East Sea Park Finish", "km": 10.0, "lat": 16.0688, "lng": 108.2465, "type": "finish", "cutoff": "07:30", "elevation": 3 }
+        ],
+        "osrmWaypoints": [
+          [108.2465, 16.0688],
+          [108.2380, 16.0610],
+          [108.2460, 16.0480],
+          [108.2465, 16.0688]
+        ],
+        "leafletPolyline": [
+          [16.0688, 108.2465],
+          [16.0645, 108.2420],
+          [16.0610, 108.2380],
+          [16.0540, 108.2425],
+          [16.0480, 108.2460],
+          [16.0580, 108.2470],
+          [16.0688, 108.2465]
+        ],
+        "geoJson": {
+          "type": "Feature",
+          "properties": { "name": "10K My Khe Beach Sprint", "distance": 10.0, "color": "#06B6D4" },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [108.2465, 16.0688],
+              [108.2420, 16.0645],
+              [108.2380, 16.0610],
+              [108.2425, 16.0540],
+              [108.2460, 16.0480],
+              [108.2470, 16.0580],
+              [108.2465, 16.0688]
+            ]
+          }
+        }
+      }
+    ]
   }
 ]
+

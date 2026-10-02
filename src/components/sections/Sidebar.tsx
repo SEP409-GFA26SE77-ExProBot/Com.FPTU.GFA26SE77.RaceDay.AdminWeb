@@ -6,6 +6,35 @@ import { usePathname } from "next/navigation";
 import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
 import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
 import { useActiveTab } from "@/context/ActiveTabContext";
+import {
+  QrCode,
+  PenTool,
+  AlertTriangle,
+  ClipboardList,
+  Map,
+  HeartPulse,
+  Timer,
+  Layers,
+  ShieldAlert,
+  Truck,
+  FileCheck,
+  Users,
+  Scale,
+  ShieldCheck,
+  BarChart3,
+  Calendar,
+  UploadCloud,
+  Scan,
+  Edit,
+  LineChart,
+  Send,
+  Inbox,
+  Activity,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  CircleDot,
+} from "lucide-react";
 
 export interface SidebarProps {
   /** Explicit active tab ID for the current route */
@@ -14,7 +43,7 @@ export interface SidebarProps {
   role?: string;
   roleName?: string;
   roleAbbr?: string;
-  roleIcon?: string;
+  roleIcon?: string | React.ReactNode;
   roleColor?: string;
   roleColorRgb?: string;
   basePath?: string;
@@ -24,6 +53,88 @@ export interface SidebarProps {
   onSelectTab?: (tabId: string) => void;
   style?: React.CSSProperties;
   className?: string;
+}
+
+function renderNavIcon(id: string, color: string, isActive: boolean) {
+  const iconProps = {
+    size: 17,
+    strokeWidth: 1.75,
+    style: {
+      color: isActive ? color : "var(--text-secondary)",
+      flexShrink: 0,
+      transition: "color 0.15s ease",
+    },
+  };
+
+  switch (id) {
+    case "scanner":
+      return <QrCode {...iconProps} />;
+    case "manual":
+      return <PenTool {...iconProps} />;
+    case "issues":
+      return <AlertTriangle {...iconProps} />;
+    case "status":
+      return <ClipboardList {...iconProps} />;
+    case "map":
+      return <Map {...iconProps} />;
+    case "medical":
+      return <HeartPulse {...iconProps} />;
+    case "cutoff":
+      return <Timer {...iconProps} />;
+    case "inventory":
+      return <Layers {...iconProps} />;
+    case "contingency":
+      return <ShieldAlert {...iconProps} />;
+    case "broom":
+      return <Truck {...iconProps} />;
+    case "approvals":
+      return <FileCheck {...iconProps} />;
+    case "users":
+      return <Users {...iconProps} />;
+    case "reconciliation":
+      return <Scale {...iconProps} />;
+    case "audit":
+      return <ShieldCheck {...iconProps} />;
+    case "stats":
+      return <BarChart3 {...iconProps} />;
+    case "assignments":
+      return <Calendar {...iconProps} />;
+    case "upload":
+      return <UploadCloud {...iconProps} />;
+    case "ocr":
+      return <Scan {...iconProps} />;
+    case "corrections":
+      return <Edit {...iconProps} />;
+    case "analytics":
+      return <LineChart {...iconProps} />;
+    case "publish":
+      return <Send {...iconProps} />;
+    case "requests":
+      return <Inbox {...iconProps} />;
+    default:
+      return <CircleDot {...iconProps} />;
+  }
+}
+
+function renderRoleIcon(roleKey: string, color: string) {
+  const iconProps = { size: 18, strokeWidth: 1.75, style: { color } };
+  switch (roleKey.toLowerCase()) {
+    case "coordinator":
+    case "ops":
+      return <Map {...iconProps} />;
+    case "volunteer":
+    case "vol":
+      return <Activity {...iconProps} />;
+    case "administrator":
+    case "admin":
+    case "adm":
+      return <ShieldCheck {...iconProps} />;
+    case "photographer":
+    case "pho":
+      return <Camera {...iconProps} />;
+    default:
+      return <ShieldCheck {...iconProps} />;
+  }
 }
 
 export default function Sidebar({
@@ -86,7 +197,6 @@ export default function Sidebar({
 
   const roleName = propRoleName ?? roleConfig?.name ?? "RaceDay Admin";
   const roleAbbr = propRoleAbbr ?? roleConfig?.roleAbbr ?? "ADM";
-  const roleIcon = propRoleIcon ?? roleConfig?.roleIcon ?? "⚡";
   const roleColor = propRoleColor ?? roleConfig?.roleColor ?? "#F59E0B";
   const roleColorRgb = propRoleColorRgb ?? roleConfig?.roleColorRgb ?? "245,158,11";
   const basePath = propBasePath ?? roleConfig?.basePath ?? `/${activeRoleKey}`;
@@ -108,8 +218,8 @@ export default function Sidebar({
       style={{
         width: isCollapsed ? "68px" : "248px",
         flexShrink: 0,
-        background: "rgba(9,8,20,0.96)",
-        borderRight: "1px solid rgba(255,255,255,0.055)",
+        background: "var(--sidebar-bg)",
+        borderRight: "1px solid var(--border)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
         display: "flex",
@@ -139,7 +249,7 @@ export default function Sidebar({
       <div
         style={{
           padding: "18px 12px",
-          borderBottom: "1px solid rgba(255,255,255,0.055)",
+          borderBottom: "1px solid var(--border)",
           display: "flex",
           alignItems: "center",
           gap: "10px",
@@ -158,12 +268,11 @@ export default function Sidebar({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "18px",
             flexShrink: 0,
             textDecoration: "none",
           }}
         >
-          {roleIcon}
+          {renderRoleIcon(activeRoleKey, roleColor)}
         </Link>
         {!isCollapsed && (
           <>
@@ -171,7 +280,7 @@ export default function Sidebar({
               <div
                 style={{
                   fontSize: "10px",
-                  color: "#64748B",
+                  color: "var(--text-muted)",
                   fontWeight: 600,
                   textTransform: "uppercase",
                   letterSpacing: "0.1em",
@@ -183,7 +292,7 @@ export default function Sidebar({
                 style={{
                   fontSize: "13px",
                   fontWeight: 700,
-                  color: "#fff",
+                  color: "var(--text-primary)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -198,7 +307,7 @@ export default function Sidebar({
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
-                color: "#334155",
+                color: "var(--text-muted)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -208,9 +317,7 @@ export default function Sidebar({
               }}
               title="Collapse sidebar"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronLeft size={16} strokeWidth={1.75} />
             </button>
           </>
         )}
@@ -224,14 +331,14 @@ export default function Sidebar({
 
           const buttonContent = (
             <>
-              <span style={{ fontSize: "17px", flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
+              {renderNavIcon(item.id, roleColor, isActive)}
               {!isCollapsed && (
                 <>
                   <span
                     style={{
                       fontSize: "13px",
                       fontWeight: isActive ? 600 : 400,
-                      color: isActive ? roleColor : "#64748B",
+                      color: isActive ? roleColor : "var(--text-secondary)",
                       whiteSpace: "nowrap",
                       flex: 1,
                       transition: "color 0.15s",
@@ -286,7 +393,7 @@ export default function Sidebar({
                 style={commonStyles}
                 onClick={() => onSelectTab?.(item.id)}
                 onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  if (!isActive) e.currentTarget.style.background = "var(--surface-hover)";
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) e.currentTarget.style.background = "transparent";
@@ -304,7 +411,7 @@ export default function Sidebar({
               title={isCollapsed ? item.label : undefined}
               style={commonStyles}
               onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                if (!isActive) e.currentTarget.style.background = "var(--surface-hover)";
               }}
               onMouseLeave={(e) => {
                 if (!isActive) e.currentTarget.style.background = "transparent";
@@ -317,7 +424,7 @@ export default function Sidebar({
       </nav>
 
       {/* Footer / Role status */}
-      <div style={{ padding: "10px 8px", borderTop: "1px solid rgba(255,255,255,0.055)" }}>
+      <div style={{ padding: "10px 8px", borderTop: "1px solid var(--border)" }}>
         {isCollapsed ? (
           <button
             onClick={toggleCollapse}
@@ -328,16 +435,14 @@ export default function Sidebar({
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
-              color: "#334155",
+              color: "var(--text-muted)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
             title="Expand sidebar"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ChevronRight size={16} strokeWidth={1.75} />
           </button>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -348,7 +453,8 @@ export default function Sidebar({
                 gap: "8px",
                 padding: "8px 10px",
                 borderRadius: "8px",
-                background: "rgba(255,255,255,0.02)",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
               }}
             >
               <div
@@ -361,7 +467,7 @@ export default function Sidebar({
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: "11px", color: "#64748B", flex: 1 }}>Live Sync</span>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)", flex: 1 }}>Live Sync</span>
               <span
                 style={{
                   fontSize: "10px",
@@ -384,16 +490,16 @@ export default function Sidebar({
                 padding: "6px",
                 borderRadius: "8px",
                 fontSize: "11px",
-                color: "#475569",
+                color: "var(--text-secondary)",
                 textDecoration: "none",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#94A3B8";
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                e.currentTarget.style.color = "var(--text-primary)";
+                e.currentTarget.style.background = "var(--surface-hover)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#475569";
+                e.currentTarget.style.color = "var(--text-secondary)";
                 e.currentTarget.style.background = "transparent";
               }}
             >
@@ -405,3 +511,4 @@ export default function Sidebar({
     </aside>
   );
 }
+

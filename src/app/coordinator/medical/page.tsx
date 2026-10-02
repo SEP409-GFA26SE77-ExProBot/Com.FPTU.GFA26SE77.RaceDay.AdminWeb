@@ -54,7 +54,7 @@ export default function CoordinatorMedicalPage() {
               🚑
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", marginBottom: "2px" }}>{t.name} <span style={{ fontSize: "11px", color: "#334155" }}>({t.vehicle})</span></div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "2px" }}>{t.name} <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>({t.vehicle})</span></div>
               <div style={{ fontSize: "11px", color: "#475569" }}>📍 {t.location} {t.incident ? `· Responding to ${t.incident}` : ""}</div>
             </div>
             <Badge label={t.status} type={t.status === "responding" ? "rose" : "green"} />

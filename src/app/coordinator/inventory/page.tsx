@@ -30,7 +30,7 @@ export default function CoordinatorInventoryPage() {
           return (
             <Card key={st.name} style={{ borderColor: hasAlert ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>{st.name}</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)" }}>{st.name}</div>
                 {hasAlert && <Badge label="LOW STOCK" type="rose" />}
               </div>
               {st.items.map((item) => {

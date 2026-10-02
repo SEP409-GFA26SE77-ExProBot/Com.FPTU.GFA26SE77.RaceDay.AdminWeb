@@ -4,11 +4,24 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import eventsData from "@/events.json";
 import { setStoredRole } from "@/lib/roleStorage";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { PendingEventInfoModal } from "@/components/PendingEventInfoModal";
+import { Button } from "@/components/ui/button";
+import {
+  Info,
+  Camera,
+  Activity,
+  Map,
+  ShieldCheck,
+  MapPin,
+  Calendar,
+  Users,
+  Building2,
+} from "lucide-react";
 
 interface RoleDef {
   id: string;
   name: string;
-  icon: string;
   description: string;
   frCount: number;
   color: string;
@@ -18,11 +31,26 @@ interface RoleDef {
   delay: string;
 }
 
+function renderRoleCardIcon(id: string, color: string, size = 24) {
+  const iconProps = { size, strokeWidth: 1.75, style: { color } };
+  switch (id) {
+    case "photographer":
+      return <Camera {...iconProps} />;
+    case "volunteer":
+      return <Activity {...iconProps} />;
+    case "coordinator":
+      return <Map {...iconProps} />;
+    case "administrator":
+      return <ShieldCheck {...iconProps} />;
+    default:
+      return <ShieldCheck {...iconProps} />;
+  }
+}
+
 const roles: RoleDef[] = [
   {
     id: "photographer",
     name: "Photographer",
-    icon: "📷",
     description:
       "Upload race photos in bulk, let AI tag BIB numbers automatically, and publish verified shots for runners to find.",
     frCount: 7,
@@ -35,7 +63,6 @@ const roles: RoleDef[] = [
   {
     id: "volunteer",
     name: "Volunteer",
-    icon: "🏃",
     description:
       "Scan QR / RFID codes at checkpoints, handle lost bibs, record manual entries, and mark DNS / DNF / DQ status.",
     frCount: 4,
@@ -48,7 +75,6 @@ const roles: RoleDef[] = [
   {
     id: "coordinator",
     name: "Race-Day Coordinator",
-    icon: "🗺️",
     description:
       "Track runners live on the map, dispatch medical teams for SOS, manage aid-station inventory, and activate contingency plans.",
     frCount: 6,
@@ -61,7 +87,6 @@ const roles: RoleDef[] = [
   {
     id: "administrator",
     name: "Administrator",
-    icon: "⚡",
     description:
       "Approve organizers and events, moderate content, reconcile timing anomalies, review audit trails and platform KPIs.",
     frCount: 5,
@@ -76,6 +101,7 @@ const roles: RoleDef[] = [
 export default function HomePage() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<RoleDef | null>(null);
+  const [infoEvent, setInfoEvent] = useState<(typeof eventsData)[0] | null>(null);
 
   // Close event selector modal on ESC
   useEffect(() => {
@@ -105,7 +131,7 @@ export default function HomePage() {
       className="grid-overlay"
       style={{
         minHeight: "100vh",
-        background: "#06050C",
+        background: "var(--background)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -115,6 +141,21 @@ export default function HomePage() {
         overflow: "hidden",
       }}
     >
+      {/* Top Right Actions */}
+      <div
+        style={{
+          position: "absolute",
+          top: "24px",
+          right: "28px",
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+        }}
+      >
+        <ThemeToggle showLabel size="md" />
+      </div>
+
       {/* Ambient blobs */}
       <div
         style={{
@@ -229,7 +270,7 @@ export default function HomePage() {
               }}
               style={{
                 position: "relative",
-                background: "rgba(255,255,255,0.025)",
+                background: "var(--surface)",
                 border: `1px solid ${role.borderColor}`,
                 borderRadius: "20px",
                 padding: "28px",
@@ -245,7 +286,7 @@ export default function HomePage() {
               onMouseEnter={(e) => {
                 const el = e.currentTarget;
                 el.style.transform = "translateY(-6px) scale(1.01)";
-                el.style.boxShadow = `0 0 48px ${role.glowColor}, 0 24px 64px rgba(0,0,0,0.55)`;
+                el.style.boxShadow = `0 0 48px ${role.glowColor}, 0 24px 64px rgba(0,0,0,0.25)`;
                 el.style.borderColor = role.color;
               }}
               onMouseLeave={(e) => {
@@ -280,18 +321,17 @@ export default function HomePage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "26px",
                   marginBottom: "18px",
                 }}
               >
-                {role.icon}
+                {renderRoleCardIcon(role.id, role.color, 24)}
               </div>
 
               <h2
                 style={{
                   fontSize: "18px",
                   fontWeight: 700,
-                  color: "#fff",
+                  color: "var(--text-primary)",
                   margin: "0 0 8px",
                 }}
               >
@@ -301,7 +341,7 @@ export default function HomePage() {
               <p
                 style={{
                   fontSize: "13px",
-                  color: "#64748B",
+                  color: "var(--text-secondary)",
                   lineHeight: 1.65,
                   margin: "0 0 18px",
                 }}
@@ -343,11 +383,11 @@ export default function HomePage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  borderTop: "1px solid var(--border)",
                   paddingTop: "16px",
                 }}
               >
-                <span style={{ fontSize: "12px", color: "#334155" }}>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                   {role.frCount} operations
                 </span>
                 <span
@@ -365,6 +405,7 @@ export default function HomePage() {
               </div>
             </div>
           ))}
+
         </div>
 
         {/* Footer */}
@@ -394,7 +435,7 @@ export default function HomePage() {
             alignItems: "center",
             justifyContent: "center",
             padding: "20px",
-            background: "rgba(6,5,12,0.85)",
+            background: "rgba(0,0,0,0.65)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
           }}
@@ -408,10 +449,10 @@ export default function HomePage() {
               width: "100%",
               maxWidth: "760px",
               maxHeight: "90vh",
-              background: "rgba(13,12,24,0.98)",
+              background: "var(--modal-bg)",
               border: `1px solid ${selectedRole.borderColor}`,
               borderRadius: "24px",
-              boxShadow: `0 24px 80px rgba(0,0,0,0.8), 0 0 50px ${selectedRole.glowColor}`,
+              boxShadow: `0 24px 80px rgba(0,0,0,0.5), 0 0 50px ${selectedRole.glowColor}`,
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
@@ -430,7 +471,7 @@ export default function HomePage() {
             <div
               style={{
                 padding: "24px 28px 18px",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                borderBottom: "1px solid var(--border)",
                 display: "flex",
                 alignItems: "flex-start",
                 justifyContent: "space-between",
@@ -448,10 +489,9 @@ export default function HomePage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "24px",
                   }}
                 >
-                  {selectedRole.icon}
+                  {renderRoleCardIcon(selectedRole.id, selectedRole.color, 22)}
                 </div>
                 <div>
                   <div
@@ -469,7 +509,7 @@ export default function HomePage() {
                     style={{
                       fontSize: "20px",
                       fontWeight: 900,
-                      color: "#fff",
+                      color: "var(--text-primary)",
                       margin: "2px 0 0",
                       letterSpacing: "-0.02em",
                     }}
@@ -486,9 +526,9 @@ export default function HomePage() {
                   width: "36px",
                   height: "36px",
                   borderRadius: "10px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#94A3B8",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -501,8 +541,8 @@ export default function HomePage() {
                   e.currentTarget.style.color = "#EF4444";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                  e.currentTarget.style.color = "#94A3B8";
+                  e.currentTarget.style.background = "var(--surface)";
+                  e.currentTarget.style.color = "var(--text-muted)";
                 }}
               >
                 ✕
@@ -521,6 +561,13 @@ export default function HomePage() {
             >
               {eventsData.map((evt) => {
                 const isLive = evt.status === "live";
+                const isPending = evt.status === "pending";
+                const statusBadgeStyle = isLive
+                  ? { bg: "rgba(239,68,68,0.18)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)", text: "LIVE NOW" }
+                  : isPending
+                  ? { bg: "rgba(245,158,11,0.18)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.3)", text: "PENDING APPROVAL" }
+                  : { bg: "rgba(16,185,129,0.15)", color: "#10B981", border: "1px solid rgba(16,185,129,0.3)", text: "UPCOMING" };
+
                 return (
                   <div
                     key={evt.id}
@@ -528,8 +575,8 @@ export default function HomePage() {
                     style={{
                       padding: "20px",
                       borderRadius: "16px",
-                      background: "rgba(255,255,255,0.025)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
                       cursor: "pointer",
                       transition:
                         "transform 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s, box-shadow 0.2s, background 0.2s",
@@ -540,14 +587,14 @@ export default function HomePage() {
                       const el = e.currentTarget;
                       el.style.transform = "translateY(-2px)";
                       el.style.borderColor = selectedRole.color;
-                      el.style.background = "rgba(255,255,255,0.04)";
-                      el.style.boxShadow = `0 10px 30px rgba(0,0,0,0.5), 0 0 20px ${selectedRole.glowColor}`;
+                      el.style.background = "var(--surface-hover)";
+                      el.style.boxShadow = `0 10px 30px rgba(0,0,0,0.2), 0 0 20px ${selectedRole.glowColor}`;
                     }}
                     onMouseLeave={(e) => {
                       const el = e.currentTarget;
                       el.style.transform = "translateY(0)";
-                      el.style.borderColor = "rgba(255,255,255,0.08)";
-                      el.style.background = "rgba(255,255,255,0.025)";
+                      el.style.borderColor = "var(--border)";
+                      el.style.background = "var(--surface)";
                       el.style.boxShadow = "none";
                     }}
                   >
@@ -560,31 +607,26 @@ export default function HomePage() {
                         marginBottom: "6px",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <span style={{ fontSize: "20px" }}>
-                          {evt.id.includes("dalat") ? "🌲" : evt.id.includes("hanoi") ? "🏛️" : "🏙️"}
-                        </span>
-                        <h3
-                          style={{
-                            fontSize: "17px",
-                            fontWeight: 800,
-                            color: "#fff",
-                            margin: 0,
-                            letterSpacing: "-0.01em",
-                          }}
-                        >
-                          {evt.name}
-                        </h3>
-                      </div>
+                      <h3
+                        style={{
+                          fontSize: "17px",
+                          fontWeight: 800,
+                          color: "var(--text-primary)",
+                          margin: 0,
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
+                        {evt.name}
+                      </h3>
                       <span
                         style={{
                           fontSize: "10px",
                           fontWeight: 800,
                           padding: "3px 9px",
                           borderRadius: "100px",
-                          background: isLive ? "rgba(239,68,68,0.18)" : "rgba(16,185,129,0.15)",
-                          color: isLive ? "#EF4444" : "#10B981",
-                          border: isLive ? "1px solid rgba(239,68,68,0.3)" : "1px solid rgba(16,185,129,0.3)",
+                          background: statusBadgeStyle.bg,
+                          color: statusBadgeStyle.color,
+                          border: statusBadgeStyle.border,
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "5px",
@@ -601,7 +643,7 @@ export default function HomePage() {
                             className="animate-ping-slow"
                           />
                         )}
-                        {isLive ? "LIVE NOW" : "UPCOMING"}
+                        {statusBadgeStyle.text}
                       </span>
                     </div>
 
@@ -609,7 +651,7 @@ export default function HomePage() {
                     <p
                       style={{
                         fontSize: "12px",
-                        color: "#94A3B8",
+                        color: "var(--text-secondary)",
                         margin: "0 0 14px",
                         lineHeight: 1.5,
                       }}
@@ -625,16 +667,26 @@ export default function HomePage() {
                         alignItems: "center",
                         gap: "14px",
                         fontSize: "12px",
-                        color: "#64748B",
+                        color: "var(--text-muted)",
                         marginBottom: "14px",
                       }}
                     >
-                      <span>📍 {evt.location}</span>
-                      <span>📅 {evt.date}</span>
-                      <span>
-                        🏃 <strong style={{ color: "#fff" }}>{evt.totalRunners.toLocaleString()}</strong> Runners
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        <MapPin size={13} strokeWidth={1.75} className="text-cyan-500" />
+                        {evt.location}
                       </span>
-                      <span>🏢 {evt.organizer.name}</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        <Calendar size={13} strokeWidth={1.75} className="text-purple-500" />
+                        {evt.date}
+                      </span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        <Users size={13} strokeWidth={1.75} className="text-emerald-500" />
+                        <strong style={{ color: "var(--text-primary)" }}>{evt.totalRunners.toLocaleString("en-US")}</strong> Runners
+                      </span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        <Building2 size={13} strokeWidth={1.75} className="text-amber-500" />
+                        {evt.organizer.name}
+                      </span>
                     </div>
 
                     {/* Distance Pills & Action CTA */}
@@ -643,7 +695,7 @@ export default function HomePage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        borderTop: "1px solid rgba(255,255,255,0.05)",
+                        borderTop: "1px solid var(--border)",
                         paddingTop: "12px",
                       }}
                     >
@@ -666,17 +718,34 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          color: selectedRole.color,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        Enter Dashboard &rarr;
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {isPending && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInfoEvent(evt);
+                            }}
+                            className="h-7 px-2.5 text-xs font-semibold border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-400 gap-1"
+                          >
+                            <Info className="h-3.5 w-3.5" />
+                            Information
+                          </Button>
+                        )}
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            color: selectedRole.color,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          Enter Dashboard &rarr;
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -688,14 +757,14 @@ export default function HomePage() {
             <div
               style={{
                 padding: "14px 28px",
-                background: "rgba(0,0,0,0.3)",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
+                background: "var(--surface)",
+                borderTop: "1px solid var(--border)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ fontSize: "11px", color: "#475569" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                 Select an event to load its routes, checkpoints, and runner data.
               </div>
               <button
@@ -703,9 +772,9 @@ export default function HomePage() {
                 style={{
                   padding: "7px 16px",
                   borderRadius: "8px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#94A3B8",
+                  background: "var(--surface-hover)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -717,6 +786,18 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Information Modal for Pending Events */}
+      {infoEvent && (
+        <PendingEventInfoModal
+          event={infoEvent}
+          open={!!infoEvent}
+          onOpenChange={(open) => {
+            if (!open) setInfoEvent(null);
+          }}
+        />
+      )}
+
     </main>
   );
 }

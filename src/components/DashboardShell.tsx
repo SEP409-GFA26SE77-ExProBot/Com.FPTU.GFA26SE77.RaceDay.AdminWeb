@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import eventsData from "@/events.json";
 import Sidebar from "./sections/Sidebar";
 import { useActiveTab } from "@/context/ActiveTabContext";
+import { ThemeToggle } from "./ui/ThemeToggle";
+import { Calendar, ChevronDown, Check } from "lucide-react";
 
 export interface NavItem {
   id: string;
@@ -95,7 +97,7 @@ export default function DashboardShell({
   const activeItem = navItems.find((n) => n.id === effectiveTab) ?? navItems[0];
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#06050C" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--background)" }}>
       {/* ── Extracted Standalone Sidebar Section ────────── */}
       <Sidebar
         tab={effectiveTab}
@@ -121,8 +123,8 @@ export default function DashboardShell({
             display: "flex",
             alignItems: "center",
             padding: "0 24px",
-            borderBottom: "1px solid rgba(255,255,255,0.055)",
-            background: "rgba(6,5,12,0.85)",
+            borderBottom: "1px solid var(--border)",
+            background: "var(--header-bg)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
             flexShrink: 0,
@@ -132,9 +134,9 @@ export default function DashboardShell({
         >
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontSize: "12px", color: "#334155", fontWeight: 500 }}>{roleAbbr}</span>
-              <span style={{ color: "#1E293B", fontSize: "14px" }}>/</span>
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "#94A3B8" }}>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>{roleAbbr}</span>
+              <span style={{ color: "var(--border-strong)", fontSize: "14px" }}>/</span>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-secondary)" }}>
                 {activeItem?.label ?? "Dashboard"}
               </span>
             </div>
@@ -147,22 +149,22 @@ export default function DashboardShell({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "7px",
-                  padding: "4px 10px",
+                  padding: "5px 10px",
                   borderRadius: "8px",
                   background: `rgba(${roleColorRgb},0.08)`,
                   border: `1px solid rgba(${roleColorRgb},0.25)`,
-                  color: "#fff",
+                  color: "var(--text-primary)",
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
                   transition: "all 0.15s",
                 }}
               >
-                <span>{currentEvent?.id.includes("dalat") ? "🌲" : currentEvent?.id.includes("hanoi") ? "🏛️" : "🏙️"}</span>
+                <Calendar size={14} strokeWidth={1.75} style={{ color: roleColor }} />
                 <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {currentEvent?.name ?? "Da Lat Ultra Trail 2026"}
                 </span>
-                <span style={{ fontSize: "10px", color: roleColor }}>▼</span>
+                <ChevronDown size={13} strokeWidth={1.75} style={{ color: roleColor }} />
               </button>
 
               {/* Event Switcher Dropdown */}
@@ -173,16 +175,16 @@ export default function DashboardShell({
                     top: "calc(100% + 8px)",
                     left: 0,
                     width: "320px",
-                    background: "rgba(13,12,24,0.98)",
-                    border: "1px solid rgba(255,255,255,0.12)",
+                    background: "var(--modal-bg)",
+                    border: "1px solid var(--border-strong)",
                     borderRadius: "14px",
-                    boxShadow: "0 16px 40px rgba(0,0,0,0.8)",
+                    boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
                     padding: "8px",
                     zIndex: 999,
                     backdropFilter: "blur(20px)",
                   }}
                 >
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
                     Switch Active Event
                   </div>
                   {eventsData.map((eItem) => {
@@ -217,22 +219,21 @@ export default function DashboardShell({
                           justifyContent: "space-between",
                         }}
                         onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                          if (!isSelected) e.currentTarget.style.background = "var(--surface-hover)";
                         }}
                         onMouseLeave={(e) => {
                           if (!isSelected) e.currentTarget.style.background = "transparent";
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: "12px", fontWeight: 700, color: isSelected ? roleColor : "#fff" }}>
-                            {eItem.id.includes("dalat") ? "🌲 " : eItem.id.includes("hanoi") ? "🏛️ " : "🏙️ "}
+                          <div style={{ fontSize: "12px", fontWeight: 700, color: isSelected ? roleColor : "var(--text-primary)" }}>
                             {eItem.name}
                           </div>
-                          <div style={{ fontSize: "10px", color: "#64748B" }}>
-                            {eItem.location} · {eItem.totalRunners.toLocaleString()} runners
+                          <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                            {eItem.location} · {eItem.totalRunners.toLocaleString("en-US")} runners
                           </div>
                         </div>
-                        {isSelected && <span style={{ color: roleColor, fontSize: "12px", fontWeight: "bold" }}>✓</span>}
+                        {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: roleColor }} />}
                       </div>
                     );
                   })}
@@ -241,21 +242,25 @@ export default function DashboardShell({
             </div>
           </div>
 
+          {/* Theme Toggle Button */}
+          <ThemeToggle size="md" />
+
           {/* Notification */}
           <div style={{ position: "relative" }}>
             <button
               style={{
-                width: "34px",
-                height: "34px",
-                borderRadius: "9px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
                 cursor: "pointer",
-                color: "#64748B",
+                color: "var(--text-secondary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "15px",
+                transition: "all 0.15s",
               }}
             >
               🔔
@@ -269,7 +274,7 @@ export default function DashboardShell({
                 height: "7px",
                 borderRadius: "50%",
                 background: "#EC4899",
-                border: "1.5px solid #06050C",
+                border: "1.5px solid var(--background)",
               }}
             />
           </div>
@@ -277,9 +282,9 @@ export default function DashboardShell({
           {/* Avatar */}
           <div
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "9px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
               background: `linear-gradient(135deg, ${roleColor}55, ${roleColor}22)`,
               border: `1px solid ${roleColor}35`,
               display: "flex",
@@ -300,8 +305,8 @@ export default function DashboardShell({
           <div
             style={{
               display: "flex",
-              borderBottom: "1px solid rgba(255,255,255,0.055)",
-              background: "rgba(6,5,12,0.6)",
+              borderBottom: "1px solid var(--border)",
+              background: "var(--surface)",
               flexShrink: 0,
               overflowX: "auto",
             }}
@@ -311,7 +316,7 @@ export default function DashboardShell({
                 key={i}
                 style={{
                   padding: "12px 22px",
-                  borderRight: "1px solid rgba(255,255,255,0.055)",
+                  borderRight: "1px solid var(--border)",
                   minWidth: "150px",
                   flexShrink: 0,
                 }}
@@ -319,7 +324,7 @@ export default function DashboardShell({
                 <div
                   style={{
                     fontSize: "10px",
-                    color: "#334155",
+                    color: "var(--text-muted)",
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
@@ -333,7 +338,7 @@ export default function DashboardShell({
                   {s.label}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "20px", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
+                  <span style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                     {s.value}
                   </span>
                   {s.change && (
@@ -357,6 +362,7 @@ export default function DashboardShell({
             ))}
           </div>
         )}
+
 
         {/* Content */}
         <main style={{ flex: 1, overflowY: "auto", padding: "24px", position: "relative" }}>

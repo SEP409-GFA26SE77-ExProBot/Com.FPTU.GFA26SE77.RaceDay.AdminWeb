@@ -211,7 +211,7 @@ export default function CoordinatorMapPage() {
                   color="#F59E0B"
                 />
                 <InfoCell
-                  value={selectedDist.runnersCount.toLocaleString()}
+                  value={selectedDist.runnersCount.toLocaleString("en-US")}
                   label="Registered"
                   color="#10B981"
                 />

@@ -55,7 +55,7 @@ export default function PhotographerCorrectionsPage() {
                         border: "1px solid rgba(255,255,255,0.12)",
                         borderRadius: "6px",
                         padding: "5px 10px",
-                        color: "#fff",
+                        color: "var(--text-primary)",
                         fontSize: "13px",
                         fontFamily: "monospace",
                         width: "100px",

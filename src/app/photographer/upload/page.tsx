@@ -38,10 +38,10 @@ export default function PhotographerUploadPage() {
         }}
       >
         <div style={{ fontSize: "40px", marginBottom: "12px" }}>☁️</div>
-        <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff", marginBottom: "6px" }}>
+        <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "6px" }}>
           Drop photos here or click to browse
         </div>
-        <div style={{ fontSize: "12px", color: "#475569" }}>
+        <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
           Supports JPG, PNG, RAW · Max 25 MB per file · Up to 500 files at once
         </div>
         <button
@@ -67,7 +67,7 @@ export default function PhotographerUploadPage() {
           style={{
             fontSize: "12px",
             fontWeight: 700,
-            color: "#64748B",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
             letterSpacing: "0.07em",
             marginBottom: "14px",
@@ -77,7 +77,7 @@ export default function PhotographerUploadPage() {
         </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
               {["File", "Size", "BIBs Found", "Status", ""].map((h) => (
                 <th
                   key={h}
@@ -85,7 +85,7 @@ export default function PhotographerUploadPage() {
                     textAlign: "left",
                     padding: "8px 10px",
                     fontSize: "11px",
-                    color: "#334155",
+                    color: "var(--text-muted)",
                     fontWeight: 600,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
@@ -98,10 +98,10 @@ export default function PhotographerUploadPage() {
           </thead>
           <tbody>
             {recent.map((r) => (
-              <tr key={r.name} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <td style={{ padding: "10px", fontSize: "13px", color: "#94A3B8" }}>{r.name}</td>
-                <td style={{ padding: "10px", fontSize: "13px", color: "#475569" }}>{r.size}</td>
-                <td style={{ padding: "10px", fontSize: "13px", color: "#fff", fontWeight: 600 }}>{r.bibs}</td>
+              <tr key={r.name} style={{ borderBottom: "1px solid var(--border)" }}>
+                <td style={{ padding: "10px", fontSize: "13px", color: "var(--text-primary)" }}>{r.name}</td>
+                <td style={{ padding: "10px", fontSize: "13px", color: "var(--text-secondary)" }}>{r.size}</td>
+                <td style={{ padding: "10px", fontSize: "13px", color: "var(--text-primary)", fontWeight: 600 }}>{r.bibs}</td>
                 <td style={{ padding: "10px" }}>
                   <Badge
                     label={r.status}

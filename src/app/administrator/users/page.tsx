@@ -53,8 +53,8 @@ export default function AdministratorUsersPage() {
           <tbody>
             {users.map((u) => (
               <tr key={u.email} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <td style={{ padding: "10px", fontSize: "13px", fontWeight: 600, color: "#fff" }}>{u.name}</td>
-                <td style={{ padding: "10px", fontSize: "12px", color: "#475569" }}>{u.email}</td>
+                <td style={{ padding: "10px", fontSize: "13px", fontWeight: 600, color: "var(--text-primary)" }}>{u.name}</td>
+                <td style={{ padding: "10px", fontSize: "12px", color: "var(--text-secondary)" }}>{u.email}</td>
                 <td style={{ padding: "10px" }}><Badge label={u.role} type={roleColor(u.role)} /></td>
                 <td style={{ padding: "10px" }}><Badge label={u.status} type={u.status === "active" ? "green" : "rose"} /></td>
                 <td style={{ padding: "10px", fontSize: "12px", color: "#334155" }}>{u.joined}</td>

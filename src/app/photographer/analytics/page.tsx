@@ -31,11 +31,11 @@ export default function PhotographerAnalyticsPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "16px", marginBottom: "20px" }}>
         {events.map((ev) => (
           <Card key={ev.name}>
-            <div style={{ fontWeight: 700, color: "#fff", fontSize: "14px", marginBottom: "12px" }}>{ev.name}</div>
+            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "14px", marginBottom: "12px" }}>{ev.name}</div>
             {[
-              { label: "👁️ Views", value: ev.views.toLocaleString(), max: 20000 },
-              { label: "⬇️ Downloads", value: ev.downloads.toLocaleString(), max: 5000 },
-              { label: "📷 Photos", value: ev.photos.toLocaleString(), max: 1000 },
+              { label: "👁️ Views", value: ev.views.toLocaleString("en-US"), max: 20000 },
+              { label: "⬇️ Downloads", value: ev.downloads.toLocaleString("en-US"), max: 5000 },
+              { label: "📷 Photos", value: ev.photos.toLocaleString("en-US"), max: 1000 },
             ].map((m) => (
               <div key={m.label} style={{ marginBottom: "10px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#475569", marginBottom: "4px" }}>
@@ -74,8 +74,8 @@ export default function PhotographerAnalyticsPage() {
           >
             <span style={{ fontSize: "20px", fontWeight: 900, color: "#1E293B", width: "24px", textAlign: "center" }}>#{i + 1}</span>
             <span style={{ flex: 1, fontSize: "13px", color: "#94A3B8" }}>{p.file}</span>
-            <span style={{ fontSize: "12px", color: "#475569" }}>👁️ {p.views.toLocaleString()}</span>
-            <span style={{ fontSize: "12px", color: "#475569" }}>⬇️ {p.downloads.toLocaleString()}</span>
+            <span style={{ fontSize: "12px", color: "#475569" }}>👁️ {p.views.toLocaleString("en-US")}</span>
+            <span style={{ fontSize: "12px", color: "#475569" }}>⬇️ {p.downloads.toLocaleString("en-US")}</span>
           </div>
         ))}
       </Card>

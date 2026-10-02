@@ -91,7 +91,7 @@ export default function AdministratorStatsPage() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
                 <span style={{ color: "#94A3B8" }}>{r.role}</span>
                 <span style={{ color: r.color, fontWeight: 700 }}>
-                  {r.count.toLocaleString()} <span style={{ color: "#334155", fontWeight: 400 }}>({r.pct}%)</span>
+                  {r.count.toLocaleString("en-US")} <span style={{ color: "#334155", fontWeight: 400 }}>({r.pct}%)</span>
                 </span>
               </div>
               <div style={{ height: "5px", borderRadius: "2.5px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
