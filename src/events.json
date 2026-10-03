@@ -9,13 +9,104 @@
     "status": "live",
     "organizer": {
       "name": "Vietnam Trail Series & Lam Dong Sports Authority",
+      "legalEntity": "Vietnam Trail Series Co., Ltd.",
       "email": "contact@dalatultratrail.vn",
       "phone": "+84 263 382 1234",
-      "verified": true
+      "website": "https://dalatultratrail.vn",
+      "verified": true,
+      "beneficiaryAccount": {
+        "accountHolder": "CONG TY TNHH VIETNAM TRAIL SERIES",
+        "accountNumber": "0501000456789",
+        "bankName": "Vietcombank (Bank for Foreign Trade of Vietnam)",
+        "branch": "Lam Dong Branch – Da Lat City",
+        "swiftCode": "BFTVVNVX",
+        "transferNote": "DLUT2026 – [Runner Full Name] – [Bib/Distance]"
+      }
     },
     "totalRunners": 4250,
     "activeRunners": 3890,
     "weather": { "temp": "18°C", "condition": "Misty", "humidity": "82%" },
+    "permitDocument": {
+      "fileName": "DLUT_2026_Official_Permit_Approved.pdf",
+      "fileUrl": "/docs/permit-approved-sample.pdf",
+      "permitNumber": "GP-TDTT-LAMDONG-2026/088-QD",
+      "issuingAuthority": "Department of Culture, Sports and Tourism of Lam Dong Province",
+      "issueDate": "2026-08-12",
+      "validUntil": "2026-10-30",
+      "status": "approved",
+      "fileSize": "420 KB"
+    },
+    "ticketPricing": {
+      "currency": "VND",
+      "phases": [
+        {
+          "phase": "Super Early Bird",
+          "period": "2026-04-01 → 2026-05-31",
+          "prices": { "5K": 350000, "10K": 490000, "21K": 750000, "42K": 1100000 },
+          "note": "Limited to first 500 slots per distance. Non-refundable."
+        },
+        {
+          "phase": "Early Bird",
+          "period": "2026-06-01 → 2026-07-31",
+          "prices": { "5K": 430000, "10K": 590000, "21K": 890000, "42K": 1350000 },
+          "note": "Limited availability. Non-refundable after 48 hours."
+        },
+        {
+          "phase": "Regular",
+          "period": "2026-08-01 → 2026-09-30",
+          "prices": { "5K": 520000, "10K": 720000, "21K": 1050000, "42K": 1600000 },
+          "note": "Standard registration. Transfer allowed up to 14 days before race."
+        },
+        {
+          "phase": "Late",
+          "period": "2026-10-01 → 2026-10-17",
+          "prices": { "5K": 620000, "10K": 850000, "21K": 1250000, "42K": 1900000 },
+          "note": "Last-chance slots only. No refunds or transfers."
+        }
+      ],
+      "groupDiscount": {
+        "eligible": true,
+        "tiers": [
+          { "minMembers": 5, "discountPercent": 8, "label": "Team (5–9 runners): 8% off each" },
+          { "minMembers": 10, "discountPercent": 15, "label": "Club (10–19 runners): 15% off each" },
+          { "minMembers": 20, "discountPercent": 20, "label": "Corporate / Club Elite (20+ runners): 20% off each" }
+        ],
+        "conditions": "All members must register simultaneously via group registration form. Discount applied at checkout. Cannot be combined with other promotions."
+      }
+    },
+    "merchandise": {
+      "runningShirt": {
+        "description": "Official Da Lat Ultra Trail 2026 Technical Running Shirt — moisture-wicking, reflective logo strip, recycled polyester blend.",
+        "sizeChartImage": "/tshirt.png",
+        "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+        "includedInRegistration": true
+      },
+      "bib": {
+        "description": "Official race BIB with integrated RFID timing chip, water-resistant coating, emergency contact field on reverse side.",
+        "designImage": "/BIB.png",
+        "note": "BIB number assigned 3 weeks before race day. Must be worn visibly on chest."
+      },
+      "medal": {
+        "description": "Finisher Medal — zinc alloy die-cast, antique bronze plating, custom Lang Biang mountain peak design, 80mm diameter.",
+        "designImage": "/medal.png",
+        "note": "Awarded at finish line to all official finishers within cutoff time."
+      }
+    },
+    "rules": {
+      "generalRules": "All participants must display their official race bib clearly on the chest at all times. Cutoff times at checkpoints are strictly enforced for safety.",
+      "mandatoryEquipment": "Minimum 1.5L hydration capacity, functional headlamp with spare batteries (21K/42K), emergency survival blanket, whistle, and mobile phone with race hotline.",
+      "cheatingAndPenalties": "Course cutting or taking motor vehicle transport results in immediate Disqualification (DQ). Running under another athlete's bib leads to DQ and 2-year ban from Vietnam Trail Series. Littering on trails incurs a 30-minute time penalty on 1st offense, and DQ on 2nd offense."
+    },
+    "rewards": {
+      "prizePool": "320,000,000 VND",
+      "podium": [
+        { "place": "1st Overall (M/F 42K)", "prize": "35,000,000 VND + Gold Champion Trophy + Sponsor Trail Gear Package" },
+        { "place": "2nd Overall (M/F 42K)", "prize": "20,000,000 VND + Silver Medal + Sponsor Voucher" },
+        { "place": "3rd Overall (M/F 42K)", "prize": "12,000,000 VND + Bronze Medal + Sponsor Voucher" },
+        { "place": "1st Overall (M/F 21K)", "prize": "18,000,000 VND + Winner Trophy + Sponsor Package" }
+      ],
+      "finisherRewards": "Custom Engraved Finisher Medal, Finisher Technical T-shirt, E-Certificate, and Post-race Recovery Meal"
+    },
     "distances": [
       {
         "type": "5K",
@@ -263,13 +354,104 @@
     "status": "upcoming",
     "organizer": {
       "name": "Hanoi Athletics Federation & VP Heritage Sports",
+      "legalEntity": "VP Heritage Sports & Events JSC",
       "email": "info@hanoimarathon.vn",
       "phone": "+84 243 926 5678",
-      "verified": true
+      "website": "https://hanoimarathon.vn",
+      "verified": true,
+      "beneficiaryAccount": {
+        "accountHolder": "CONG TY CO PHAN SPORTS VA SU KIEN VP HERITAGE",
+        "accountNumber": "1903660088880",
+        "bankName": "Techcombank (Vietnam Technological and Commercial Bank)",
+        "branch": "Hoan Kiem Branch – Hanoi",
+        "swiftCode": "VTCBVNVX",
+        "transferNote": "HNMM2026 – [Runner Full Name] – [Bib/Distance]"
+      }
     },
     "totalRunners": 6500,
     "activeRunners": 0,
     "weather": { "temp": "21°C", "condition": "Clear Night", "humidity": "68%" },
+    "permitDocument": {
+      "fileName": "HN_Midnight_Marathon_2026_Permit.pdf",
+      "fileUrl": "/docs/permit-approved-sample.pdf",
+      "permitNumber": "GP-SVHTT-HANOI-2026/142-GP",
+      "issuingAuthority": "Hanoi Department of Culture and Sports",
+      "issueDate": "2026-09-01",
+      "validUntil": "2026-11-30",
+      "status": "approved",
+      "fileSize": "385 KB"
+    },
+    "ticketPricing": {
+      "currency": "VND",
+      "phases": [
+        {
+          "phase": "Super Early Bird",
+          "period": "2026-05-01 → 2026-06-30",
+          "prices": { "5K": 300000, "10K": 450000, "21K": 700000, "42K": 1000000 },
+          "note": "Limited to first 600 slots per distance. Non-refundable."
+        },
+        {
+          "phase": "Early Bird",
+          "period": "2026-07-01 → 2026-08-31",
+          "prices": { "5K": 390000, "10K": 560000, "21K": 860000, "42K": 1280000 },
+          "note": "Transfers allowed within same distance only. Non-refundable."
+        },
+        {
+          "phase": "Regular",
+          "period": "2026-09-01 → 2026-10-31",
+          "prices": { "5K": 490000, "10K": 680000, "21K": 1020000, "42K": 1550000 },
+          "note": "Standard slots. Transfer deadline 21 days before race."
+        },
+        {
+          "phase": "Late",
+          "period": "2026-11-01 → 2026-11-08",
+          "prices": { "5K": 590000, "10K": 820000, "21K": 1220000, "42K": 1850000 },
+          "note": "Very limited spots. No refunds or transfers."
+        }
+      ],
+      "groupDiscount": {
+        "eligible": true,
+        "tiers": [
+          { "minMembers": 5, "discountPercent": 7, "label": "Team (5–9 runners): 7% off each" },
+          { "minMembers": 10, "discountPercent": 12, "label": "Club (10–29 runners): 12% off each" },
+          { "minMembers": 30, "discountPercent": 18, "label": "Corporate (30+ runners): 18% off each" }
+        ],
+        "conditions": "Group registration must be submitted in a single batch. Discount applied before checkout confirmation. Cannot be combined with other promo codes."
+      }
+    },
+    "merchandise": {
+      "runningShirt": {
+        "description": "Official Hanoi Midnight Heritage 2026 Long-sleeve Night Runner Shirt — reflective piping, breathable mesh panels, UV-coated ink print.",
+        "sizeChartImage": "/tshirt.png",
+        "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+        "includedInRegistration": true
+      },
+      "bib": {
+        "description": "Glow-in-the-dark accented race BIB with RFID timing chip, reflective border strips, QR code for emergency contact access.",
+        "designImage": "/BIB.png",
+        "note": "Distributed at race expo 2 days before event. Must be worn on chest at all times."
+      },
+      "medal": {
+        "description": "Heritage Finisher Medal — heavy zinc alloy, dual-tone gold/silver plating, Hoan Kiem Lake turtle tower silhouette, 90mm diameter.",
+        "designImage": "/medal.png",
+        "note": "Awarded at finish line to all official finishers completing within the cutoff time."
+      }
+    },
+    "rules": {
+      "generalRules": "Runners must follow the marked city course and obey all race marshals and traffic police instructions. Midnight start requires reflective gear.",
+      "mandatoryEquipment": "Reflective clip/vest, timing chip attached to race bib, reusable silicone cup for green eco aid stations.",
+      "cheatingAndPenalties": "Using bicycles, motorbikes, or unauthorized pacers results in immediate DQ. Pacing by non-registered runners or tampering with timing chips incurs instant disqualification. Leaving the official asphalt course or skipping timing gates leads to DQ."
+    },
+    "rewards": {
+      "prizePool": "500,000,000 VND",
+      "podium": [
+        { "place": "1st Overall (M/F 42K)", "prize": "50,000,000 VND + Heritage Champion Cup + International Flight Voucher" },
+        { "place": "2nd Overall (M/F 42K)", "prize": "30,000,000 VND + Trophy + Sport Watch" },
+        { "place": "3rd Overall (M/F 42K)", "prize": "18,000,000 VND + Trophy + Sponsor Gear" },
+        { "place": "1st Overall (M/F 21K)", "prize": "22,000,000 VND + Trophy + Sponsor Gift" }
+      ],
+      "finisherRewards": "Full Marathon Finisher Windbreaker, Heavy Engraved Zinc Alloy Medal, Digital Diploma, and Heritage Finisher Cap"
+    },
     "distances": [
       {
         "type": "5K",
@@ -505,13 +687,104 @@
     "status": "upcoming",
     "organizer": {
       "name": "HCMC Department of Culture & Sports · Pulse Active",
+      "legalEntity": "Pulse Active Events & Sports Management Co., Ltd.",
       "email": "contact@saigonmarathon.com",
       "phone": "+84 283 822 9988",
-      "verified": true
+      "website": "https://saigonmarathon.com",
+      "verified": true,
+      "beneficiaryAccount": {
+        "accountHolder": "CONG TY TNHH QUAN LY SU KIEN VA THE THAO PULSE ACTIVE",
+        "accountNumber": "0071001234567",
+        "bankName": "BIDV (Bank for Investment and Development of Vietnam)",
+        "branch": "District 1 Branch – Ho Chi Minh City",
+        "swiftCode": "BIDVVNVX",
+        "transferNote": "SGRM2026 – [Runner Full Name] – [Bib/Distance]"
+      }
     },
     "totalRunners": 5200,
     "activeRunners": 0,
     "weather": { "temp": "26°C", "condition": "Breezy Riverbank", "humidity": "74%" },
+    "permitDocument": {
+      "fileName": "HCMC_Saigon_Marathon_2026_Permit_Approved.pdf",
+      "fileUrl": "/docs/permit-approved-sample.pdf",
+      "permitNumber": "GP-VH-TT-TPHCM-2026/512-QD",
+      "issuingAuthority": "Ho Chi Minh City Department of Culture and Sports",
+      "issueDate": "2026-09-18",
+      "validUntil": "2026-12-20",
+      "status": "approved",
+      "fileSize": "410 KB"
+    },
+    "ticketPricing": {
+      "currency": "VND",
+      "phases": [
+        {
+          "phase": "Super Early Bird",
+          "period": "2026-05-15 → 2026-07-15",
+          "prices": { "5K": 280000, "10K": 420000, "21K": 680000, "42K": 990000 },
+          "note": "Capped at 800 slots per distance. Non-refundable."
+        },
+        {
+          "phase": "Early Bird",
+          "period": "2026-07-16 → 2026-09-15",
+          "prices": { "5K": 380000, "10K": 540000, "21K": 830000, "42K": 1230000 },
+          "note": "Standard transfer policy applies. Non-refundable after 48 hours."
+        },
+        {
+          "phase": "Regular",
+          "period": "2026-09-16 → 2026-11-15",
+          "prices": { "5K": 480000, "10K": 660000, "21K": 990000, "42K": 1490000 },
+          "note": "Transfer allowed up to 3 weeks before race day."
+        },
+        {
+          "phase": "Late",
+          "period": "2026-11-16 → 2026-11-28",
+          "prices": { "5K": 580000, "10K": 800000, "21K": 1190000, "42K": 1790000 },
+          "note": "Final wave. No refunds or bib transfers."
+        }
+      ],
+      "groupDiscount": {
+        "eligible": true,
+        "tiers": [
+          { "minMembers": 5, "discountPercent": 8, "label": "Team (5–9 runners): 8% off each" },
+          { "minMembers": 10, "discountPercent": 13, "label": "Club (10–24 runners): 13% off each" },
+          { "minMembers": 25, "discountPercent": 20, "label": "Corporate (25+ runners): 20% off each" }
+        ],
+        "conditions": "Group must use dedicated corporate/club registration link. Proof of group affiliation required at BIB pickup. Cannot be combined with referral or promo codes."
+      }
+    },
+    "merchandise": {
+      "runningShirt": {
+        "description": "Official Saigon Riverside 2026 Polo-Tee — lightweight DryFit material, contrast collar, reflective Saigon River print on back.",
+        "sizeChartImage": "/tshirt.png",
+        "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+        "includedInRegistration": true
+      },
+      "bib": {
+        "description": "Saigon Riverside official race BIB — UV-printed skyline design, embedded RFID chip, D-ring for gear attachment.",
+        "designImage": "/BIB.png",
+        "note": "BIBs distributed at Nguyen Hue Walking Street expo area D-1 and D-2 before race."
+      },
+      "medal": {
+        "description": "Finisher Medal — brushed silver alloy plating, colorful enamel fill with Saigon River Bridge motif, 85mm diameter.",
+        "designImage": "/medal.png",
+        "note": "Distributed at finish arch. All finishers within cutoff receive medal regardless of distance."
+      }
+    },
+    "rules": {
+      "generalRules": "Official bib must be pinned firmly to front jersey. Runners must maintain personal hydration between urban aid stations.",
+      "mandatoryEquipment": "Bib with intact RFID timing tag, reusable silicone cup (zero single-use cup policy), emergency contact card.",
+      "cheatingAndPenalties": "Any unauthorized shortcuts across pedestrian bridges or bypassing timing mats will trigger automatic DQ. Transferring bib without official transfer window leads to lifetime ban from Pulse Active races. Aggressive behavior toward volunteers results in immediate disqualification."
+    },
+    "rewards": {
+      "prizePool": "450,000,000 VND",
+      "podium": [
+        { "place": "1st Overall (M/F 42K)", "prize": "45,000,000 VND + Saigon River Crystal Trophy + Elite Runner Kit" },
+        { "place": "2nd Overall (M/F 42K)", "prize": "25,000,000 VND + Trophy + Premium Running Shoes" },
+        { "place": "3rd Overall (M/F 42K)", "prize": "15,000,000 VND + Trophy + Running Gear Set" },
+        { "place": "1st Overall (M/F 21K)", "prize": "20,000,000 VND + Trophy + Gift Certificate" }
+      ],
+      "finisherRewards": "Saigon Skyline Finisher Medal, Finisher Polo Shirt, Online Result Certificate, and Recovery Nutrition Pack"
+    },
     "distances": [
       {
         "type": "5K",
@@ -751,13 +1024,103 @@
     "status": "pending",
     "organizer": {
       "name": "VietTrail Corp. & Sa Pa Tourism Board",
+      "legalEntity": "VietTrail Corp. Co., Ltd.",
       "email": "admin@viettrail.vn",
       "phone": "+84 214 387 1999",
-      "verified": false
+      "website": "https://viettrail.vn",
+      "verified": false,
+      "beneficiaryAccount": {
+        "accountHolder": "CONG TY TNHH VIETTRAIL CORP",
+        "accountNumber": "6600205556789",
+        "bankName": "Agribank (Vietnam Bank for Agriculture and Rural Development)",
+        "branch": "Lao Cai Province Branch – Sa Pa Town",
+        "swiftCode": "VBAAVNVX",
+        "transferNote": "FSKR2026 – [Runner Full Name] – [Bib/Distance]"
+      }
     },
     "totalRunners": 800,
     "activeRunners": 0,
     "weather": { "temp": "12°C", "condition": "Mountain Mist", "humidity": "85%" },
+    "permitDocument": {
+      "fileName": "Fansipan_SkyRace_2026_Permit_Document.pdf",
+      "fileUrl": "/docs/permit-approved-sample.pdf",
+      "permitNumber": "GP-TDTT-LAOCAI-2026/045-GP",
+      "issuingAuthority": "Department of Culture, Sports and Tourism of Lao Cai Province & Hoang Lien National Park Authority",
+      "issueDate": "2026-10-01",
+      "validUntil": "2026-12-31",
+      "status": "approved",
+      "fileSize": "512 KB"
+    },
+    "ticketPricing": {
+      "currency": "VND",
+      "phases": [
+        {
+          "phase": "Super Early Bird",
+          "period": "2026-06-01 → 2026-07-31",
+          "prices": { "21K": 850000, "80K": 2200000 },
+          "note": "Limited to first 150 slots per distance. Non-refundable."
+        },
+        {
+          "phase": "Early Bird",
+          "period": "2026-08-01 → 2026-09-30",
+          "prices": { "21K": 1050000, "80K": 2700000 },
+          "note": "Gear check required at expo. Non-refundable after registration."
+        },
+        {
+          "phase": "Regular",
+          "period": "2026-10-01 → 2026-11-30",
+          "prices": { "21K": 1250000, "80K": 3200000 },
+          "note": "Standard registration. No transfers for extreme distance (80K)."
+        },
+        {
+          "phase": "Late",
+          "period": "2026-12-01 → 2026-12-07",
+          "prices": { "21K": 1500000, "80K": 3800000 },
+          "note": "Last-minute spots only. No refunds or transfers of any kind."
+        }
+      ],
+      "groupDiscount": {
+        "eligible": true,
+        "tiers": [
+          { "minMembers": 5, "discountPercent": 5, "label": "Trail Team (5–9 runners): 5% off each" },
+          { "minMembers": 10, "discountPercent": 10, "label": "Trail Club (10+ runners): 10% off each" }
+        ],
+        "conditions": "Applicable to 21K only. 80K extreme distance is excluded from group discounts due to capacity constraints. Group must register together and complete mandatory gear checklist."
+      }
+    },
+    "merchandise": {
+      "runningShirt": {
+        "description": "Official Fansipan Sky Race 2026 Hardshell Trail Tee — wind-resistant outer layer, thermal-bonded seams, summit silhouette print on chest.",
+        "sizeChartImage": "/tshirt.png",
+        "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+        "includedInRegistration": true
+      },
+      "bib": {
+        "description": "Extreme trail BIB — laminated waterproof race number, high-visibility orange border, RFID and emergency contact panel, altitude-rated ink.",
+        "designImage": "/BIB.png",
+        "note": "Distributed at Sa Pa Stone Church race expo. Mandatory gear inspection on BIB pickup day."
+      },
+      "medal": {
+        "description": "3143m Roof of Indochina Finisher Medallion — solid pewter cast, matte finish, Fansipan summit peak engraving, 95mm extra-large diameter.",
+        "designImage": "/medal.png",
+        "note": "Only awarded to runners who reach the finish within official cutoff time. Non-finishers receive a DNF participation token."
+      }
+    },
+    "rules": {
+      "generalRules": "Extreme mountain trail regulations apply. Runners must follow ridge markers and check in at every remote ranger outpost before strict cutoffs.",
+      "mandatoryEquipment": "Hydration pack (min 2.0L), waterproof windbreaker (min 10,000mm rating), emergency thermal foil blanket, whistle, high-lumen headlamp with backup battery, trail running poles with rubber tips.",
+      "cheatingAndPenalties": "Taking transport on cable car or mountain service roads results in immediate lifetime ban and DQ. Missing mandatory gear check at any checkpoint adds a 1-hour penalty; missing survival blanket or hydration results in immediate DQ. Leaving trash or polluting national park trails results in immediate DQ and local environmental penalty."
+    },
+    "rewards": {
+      "prizePool": "200,000,000 VND",
+      "podium": [
+        { "place": "1st Overall (M/F 80K Sky Peak)", "prize": "40,000,000 VND + Fansipan Bronze Peak Trophy + High Altitude Gear Kit" },
+        { "place": "2nd Overall (M/F 80K Sky Peak)", "prize": "22,000,000 VND + Mountain Medal + Outdoor Equipment Set" },
+        { "place": "3rd Overall (M/F 80K Sky Peak)", "prize": "14,000,000 VND + Mountain Medal + Gear Voucher" },
+        { "place": "1st Overall (M/F 21K Cloud Valley)", "prize": "16,000,000 VND + Trophy + Sponsor Gifts" }
+      ],
+      "finisherRewards": "3143m Roof of Indochina Finisher Medallion, Mountain Sky Hooded Jacket, GPX Badge Certificate, and Summit Herbal Foot Soak"
+    },
     "distances": [
       {
         "type": "21K",
@@ -887,13 +1250,102 @@
     "status": "pending",
     "organizer": {
       "name": "Mountain Run VN & Da Nang Sports Dept",
+      "legalEntity": "Mountain Run Vietnam JSC",
       "email": "contact@mrv.vn",
       "phone": "+84 236 389 4455",
-      "verified": false
+      "website": "https://mountainrunvietnam.vn",
+      "verified": false,
+      "beneficiaryAccount": {
+        "accountHolder": "CONG TY CO PHAN MOUNTAIN RUN VIETNAM",
+        "accountNumber": "1900559900112",
+        "bankName": "VPBank (Vietnam Prosperity Bank)",
+        "branch": "Da Nang Branch – Hai Chau District",
+        "swiftCode": "VPBKVNVX",
+        "transferNote": "DNBS2026 – [Runner Full Name] – [Bib/Distance]"
+      }
     },
     "totalRunners": 2000,
     "activeRunners": 0,
     "weather": { "temp": "25°C", "condition": "Coastal Breeze", "humidity": "72%" },
+    "permitDocument": {
+      "fileName": "Danang_BeachSprint_2026_Authority_Permit.pdf",
+      "fileUrl": "/docs/permit-approved-sample.pdf",
+      "permitNumber": "GP-SVHTT-DANANG-2026/077-QD",
+      "issuingAuthority": "Da Nang Department of Culture and Sports & Son Tra Management Board",
+      "issueDate": "2026-09-10",
+      "validUntil": "2026-11-30",
+      "status": "approved",
+      "fileSize": "360 KB"
+    },
+    "ticketPricing": {
+      "currency": "VND",
+      "phases": [
+        {
+          "phase": "Super Early Bird",
+          "period": "2026-07-01 → 2026-08-15",
+          "prices": { "10K": 220000 },
+          "note": "Limited to first 400 slots. Non-refundable."
+        },
+        {
+          "phase": "Early Bird",
+          "period": "2026-08-16 → 2026-09-30",
+          "prices": { "10K": 290000 },
+          "note": "Bib transfer allowed to same distance within 10 days."
+        },
+        {
+          "phase": "Regular",
+          "period": "2026-10-01 → 2026-11-10",
+          "prices": { "10K": 360000 },
+          "note": "Standard registration. Includes finisher kit and beach recovery package."
+        },
+        {
+          "phase": "Late",
+          "period": "2026-11-11 → 2026-11-17",
+          "prices": { "10K": 450000 },
+          "note": "Very limited spots. No refunds or transfers."
+        }
+      ],
+      "groupDiscount": {
+        "eligible": true,
+        "tiers": [
+          { "minMembers": 5, "discountPercent": 10, "label": "Beach Team (5–14 runners): 10% off each" },
+          { "minMembers": 15, "discountPercent": 18, "label": "Corporate Beach Run (15+ runners): 18% off each" }
+        ],
+        "conditions": "Group registration via dedicated corporate form only. Group T-shirt customization available for 20+ runners (additional fee). Cannot be combined with other discounts."
+      }
+    },
+    "merchandise": {
+      "runningShirt": {
+        "description": "Official Da Nang Beach Sprint 2026 Quick-dry Performance Singlet — UPF 50+ sun protection, sea-wave gradient print, ultralight fabric.",
+        "sizeChartImage": "/tshirt.png",
+        "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+        "includedInRegistration": true
+      },
+      "bib": {
+        "description": "Coastal race BIB — salt-resistant laminate, sandproof race number, RFID chip, dragon bridge motif design.",
+        "designImage": "/BIB.png",
+        "note": "BIBs collected at East Sea Park registration tent from 5:00AM on race morning."
+      },
+      "medal": {
+        "description": "Sun & Wave Die-cast Finisher Medal — ocean blue enamel fill, My Khe beach sunrise graphic, lightweight aluminum alloy, 75mm diameter.",
+        "designImage": "/medal.png",
+        "note": "Handed at finish line. All official finishers receive medal plus fresh coconut refreshment."
+      }
+    },
+    "rules": {
+      "generalRules": "Participants must stay within designated coastal paths and beach soft-sand corridors. Respect morning beachgoers and follow marshal directions.",
+      "mandatoryEquipment": "Official bib attached, soft flask / reusable water container, sunglasses/sunhat recommended.",
+      "cheatingAndPenalties": "Running outside designated shoreline boundary to bypass soft sand sections results in 15-minute penalty. Using non-approved escort pacing on electric scooters results in instant DQ. Unregistered bib swapping incurs disqualification."
+    },
+    "rewards": {
+      "prizePool": "120,000,000 VND",
+      "podium": [
+        { "place": "1st Overall (M/F 10K Beach Sprint)", "prize": "15,000,000 VND + Coastal Champion Trophy + Luxury Resort Stay 3D2N" },
+        { "place": "2nd Overall (M/F 10K Beach Sprint)", "prize": "8,000,000 VND + Silver Medal + Resort Dining Voucher" },
+        { "place": "3rd Overall (M/F 10K Beach Sprint)", "prize": "5,000,000 VND + Bronze Medal + Coastal Sports Pack" }
+      ],
+      "finisherRewards": "Sun & Wave Die-cast Finisher Medal, Beach Sprint Quick-dry Towel, e-Certificate, and Fresh Coconut Refreshment"
+    },
     "distances": [
       {
         "type": "10K",
