@@ -1,14 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Cookies from "js-cookie";
 import eventsData from "@/events.json";
+import { login } from "@/api/auth";
+import { getApiErrorMessage } from "@/lib/error";
+import { isAdminRole } from "@/lib/role";
 import { setStoredRole } from "@/lib/roleStorage";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { PendingEventInfoModal } from "@/components/PendingEventInfoModal";
+import { coerceRaceEvent } from "@/dto/event.dto";
 import { Button } from "@/components/ui/button";
 import {
-  Info,
+  Flag,
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
   Camera,
   Activity,
   Map,
@@ -17,787 +26,538 @@ import {
   Calendar,
   Users,
   Building2,
+  Info,
 } from "lucide-react";
+import "./auth.css";
 
-interface RoleDef {
-  id: string;
+type DemoRoleId = "photographer" | "volunteer" | "coordinator";
+
+interface DemoRole {
+  id: DemoRoleId;
   name: string;
   description: string;
-  frCount: number;
   color: string;
   borderColor: string;
   glowColor: string;
-  features: string[];
-  delay: string;
 }
 
-function renderRoleCardIcon(id: string, color: string, size = 24) {
-  const iconProps = { size, strokeWidth: 1.75, style: { color } };
-  switch (id) {
-    case "photographer":
-      return <Camera {...iconProps} />;
-    case "volunteer":
-      return <Activity {...iconProps} />;
-    case "coordinator":
-      return <Map {...iconProps} />;
-    case "administrator":
-      return <ShieldCheck {...iconProps} />;
-    default:
-      return <ShieldCheck {...iconProps} />;
-  }
-}
-
-const roles: RoleDef[] = [
+const DEMO_ROLES: DemoRole[] = [
   {
     id: "photographer",
     name: "Photographer",
-    description:
-      "Upload race photos in bulk, let AI tag BIB numbers automatically, and publish verified shots for runners to find.",
-    frCount: 7,
+    description: "Upload ảnh, OCR BIB — vào thẳng, không cần login.",
     color: "#06B6D4",
     borderColor: "rgba(6,182,212,0.30)",
     glowColor: "rgba(6,182,212,0.12)",
-    features: ["Bulk Upload", "OCR BIB Recognition", "Analytics", "Publish"],
-    delay: "0ms",
   },
   {
     id: "volunteer",
     name: "Volunteer",
-    description:
-      "Scan QR / RFID codes at checkpoints, handle lost bibs, record manual entries, and mark DNS / DNF / DQ status.",
-    frCount: 4,
+    description: "Scan QR / check-in — vào thẳng, không cần login.",
     color: "#10B981",
     borderColor: "rgba(16,185,129,0.30)",
     glowColor: "rgba(16,185,129,0.12)",
-    features: ["QR / RFID Scan", "Manual Entry", "Issue Handling", "Status"],
-    delay: "80ms",
   },
   {
     id: "coordinator",
-    name: "Race-Day Coordinator",
-    description:
-      "Track runners live on the map, dispatch medical teams for SOS, manage aid-station inventory, and activate contingency plans.",
-    frCount: 6,
+    name: "Coordinator",
+    description: "Race-day map / SOS — vào thẳng, không cần login.",
     color: "#F59E0B",
     borderColor: "rgba(245,158,11,0.30)",
     glowColor: "rgba(245,158,11,0.12)",
-    features: ["Live Map", "Medical Dispatch", "Aid Stations", "Cut-off"],
-    delay: "160ms",
-  },
-  {
-    id: "administrator",
-    name: "Administrator",
-    description:
-      "Approve organizers and events, moderate content, reconcile timing anomalies, review audit trails and platform KPIs.",
-    frCount: 5,
-    color: "#8B5CF6",
-    borderColor: "rgba(139,92,246,0.30)",
-    glowColor: "rgba(139,92,246,0.12)",
-    features: ["Approvals", "User Management", "Audit Trail", "Stats"],
-    delay: "240ms",
   },
 ];
 
-export default function HomePage() {
+function demoIcon(id: DemoRoleId, color: string) {
+  const props = { size: 22, strokeWidth: 1.75, style: { color } };
+  if (id === "photographer") return <Camera {...props} />;
+  if (id === "volunteer") return <Activity {...props} />;
+  return <Map {...props} />;
+}
+
+function LoginHomeInner() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<RoleDef | null>(null);
-  const [infoEvent, setInfoEvent] = useState<(typeof eventsData)[0] | null>(null);
+  const searchParams = useSearchParams();
+  const fromPath = searchParams.get("from") || "/administrator";
 
-  // Close event selector modal on ESC
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [selectedDemo, setSelectedDemo] = useState<DemoRole | null>(null);
+  const [infoEvent, setInfoEvent] = useState<(typeof eventsData)[0] | null>(
+    null
+  );
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedRole) {
-        setSelectedRole(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedRole]);
+    const token = Cookies.get("access_token");
+    const role = Cookies.get("role");
+    if (token && isAdminRole(role)) {
+      router.replace(
+        fromPath.startsWith("/administrator") ? fromPath : "/administrator"
+      );
+    }
+  }, [router, fromPath]);
 
-  const handleSelectEvent = (eventItem: (typeof eventsData)[0]) => {
-    if (!selectedRole) return;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.username.trim() || !form.password.trim()) {
+      setError("Vui lòng điền đầy đủ tên đăng nhập và mật khẩu.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
     try {
-      if (typeof window !== "undefined") {
-        setStoredRole(selectedRole.id);
-        localStorage.setItem("raceday_selected_event_id", eventItem.id);
-        localStorage.setItem("raceday_selected_event", JSON.stringify(eventItem));
+      const res = await login({
+        username: form.username.trim(),
+        password: form.password,
+      });
+      const role = Cookies.get("role") || res.role || "";
+      if (!isAdminRole(role)) {
+        Cookies.remove("access_token");
+        Cookies.remove("role");
+        Cookies.remove("username");
+        Cookies.remove("user_id");
+        setError(
+          "Tài khoản này không có quyền Administrator. Dùng admin / MatKhau@123."
+        );
+        return;
       }
-    } catch {}
-    router.push(`/${selectedRole.id}?eventId=${eventItem.id}`);
+      setStoredRole("administrator");
+      router.push(
+        fromPath.startsWith("/administrator") ? fromPath : "/administrator"
+      );
+    } catch (err) {
+      setError(
+        getApiErrorMessage(
+          err,
+          "Tên đăng nhập hoặc mật khẩu không chính xác."
+        )
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enterDemoDashboard = (eventItem: (typeof eventsData)[0]) => {
+    if (!selectedDemo) return;
+    setStoredRole(selectedDemo.id);
+    try {
+      localStorage.setItem("raceday_selected_event_id", eventItem.id);
+      localStorage.setItem(
+        "raceday_selected_event",
+        JSON.stringify(eventItem)
+      );
+    } catch {
+      /* ignore */
+    }
+    router.push(`/${selectedDemo.id}?eventId=${eventItem.id}`);
   };
 
   return (
-    <main
-      className="grid-overlay"
-      style={{
-        minHeight: "100vh",
-        background: "var(--background)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "48px 24px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Top Right Actions */}
+    <div className="auth-page">
       <div
         style={{
           position: "absolute",
-          top: "24px",
-          right: "28px",
-          zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
+          top: "1.25rem",
+          right: "1.25rem",
+          zIndex: 40,
         }}
       >
         <ThemeToggle showLabel size="md" />
       </div>
 
-      {/* Ambient blobs */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 0,
-          background:
-            "radial-gradient(ellipse 60% 50% at 20% 30%, rgba(139,92,246,0.10) 0%, transparent 100%)," +
-            "radial-gradient(ellipse 50% 40% at 80% 70%, rgba(6,182,212,0.07) 0%, transparent 100%)",
-        }}
-      />
+      <div className="auth-bg" />
+      <div className="auth-overlay" />
+      <div className="auth-particles" aria-hidden="true">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span key={i} className={`particle particle-${i + 1}`} />
+        ))}
+      </div>
 
-      {/* Floating orb */}
       <div
-        className="animate-float"
-        style={{
-          position: "fixed",
-          top: "15%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "600px",
-          height: "300px",
-          borderRadius: "50%",
-          background:
-            "radial-gradient(ellipse, rgba(168,85,247,0.18) 0%, transparent 70%)",
-          filter: "blur(40px)",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}
-      />
+        className="auth-content"
+        style={{ maxWidth: 480, width: "100%", paddingBottom: "2rem" }}
+      >
+        <div className="auth-brand" title="RaceDay Admin">
+          <div className="auth-brand-icon">
+            <Flag size={28} />
+          </div>
+          <span className="auth-brand-name">RaceDay Admin</span>
+        </div>
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "1160px" }}>
-        {/* ── Header ── */}
-        <div style={{ textAlign: "center", marginBottom: "64px" }}>
-          {/* Platform badge */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "5px 16px",
-              background: "rgba(139,92,246,0.10)",
-              border: "1px solid rgba(139,92,246,0.28)",
-              borderRadius: "100px",
-              marginBottom: "28px",
-            }}
-          >
+        {/* Login — bắt buộc cho Administrator */}
+        <div className="auth-card">
+          <div className="auth-card-header">
+            <h1 className="auth-title">Đăng nhập Admin</h1>
+            <p className="auth-subtitle">
+              Administrator cần đăng nhập IAM trước khi vào duyệt giải.
+            </p>
+          </div>
+
+          <div className="auth-tabs">
+            <span className="auth-tab auth-tab--active">Administrator</span>
             <span
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: "#A855F7",
-                display: "inline-block",
-              }}
-              className="animate-glow-pulse"
-            />
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "#A855F7",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
+              className="auth-tab"
+              style={{ opacity: 0.45, cursor: "default" }}
+              title="Demo roles bên dưới — không cần login"
             >
-              RaceDay Operations Platform
+              Demo ops
             </span>
           </div>
 
-          <h1
-            className="gradient-text"
-            style={{
-              fontSize: "clamp(38px, 6vw, 72px)",
-              fontWeight: 900,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.05,
-              margin: "0 0 18px",
-            }}
-          >
-            Select Your Role
-          </h1>
+          <form onSubmit={handleSubmit} className="auth-form" noValidate>
+            {error && (
+              <div className="auth-error" role="alert">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
 
-          <p
-            style={{
-              fontSize: "18px",
-              color: "#64748B",
-              maxWidth: "520px",
-              margin: "0 auto",
-              lineHeight: 1.65,
-            }}
-          >
-            Choose your operational role, pick an active race event, and enter your dedicated command center.
-          </p>
-        </div>
-
-        {/* ── Role cards ── */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "20px",
-          }}
-        >
-          {roles.map((role) => (
-            <div
-              key={role.id}
-              onClick={() => {
-                setSelectedRole(role);
-                setStoredRole(role.id);
-              }}
-              style={{
-                position: "relative",
-                background: "var(--surface)",
-                border: `1px solid ${role.borderColor}`,
-                borderRadius: "20px",
-                padding: "28px",
-                cursor: "pointer",
-                transition:
-                  "transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s, border-color 0.25s",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                overflow: "hidden",
-                animationDelay: role.delay,
-              }}
-              className="animate-slide-up"
-              onMouseEnter={(e) => {
-                const el = e.currentTarget;
-                el.style.transform = "translateY(-6px) scale(1.01)";
-                el.style.boxShadow = `0 0 48px ${role.glowColor}, 0 24px 64px rgba(0,0,0,0.25)`;
-                el.style.borderColor = role.color;
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget;
-                el.style.transform = "translateY(0) scale(1)";
-                el.style.boxShadow = "none";
-                el.style.borderColor = role.borderColor;
-              }}
-            >
-              {/* Background blob */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-30px",
-                  right: "-30px",
-                  width: "140px",
-                  height: "140px",
-                  borderRadius: "50%",
-                  background: `radial-gradient(circle, ${role.glowColor} 0%, transparent 70%)`,
-                  pointerEvents: "none",
-                }}
+            <div className="auth-field">
+              <label htmlFor="login-username" className="auth-label">
+                Tên đăng nhập
+              </label>
+              <input
+                id="login-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                placeholder="admin"
+                value={form.username}
+                onChange={handleChange}
+                className="auth-input"
+                disabled={loading}
               />
+            </div>
 
-              {/* Icon pill */}
-              <div
-                style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "14px",
-                  background: `linear-gradient(135deg, ${role.color}22, ${role.color}0a)`,
-                  border: `1px solid ${role.color}30`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "18px",
-                }}
-              >
-                {renderRoleCardIcon(role.id, role.color, 24)}
+            <div className="auth-field">
+              <div className="auth-label-row">
+                <label htmlFor="login-password" className="auth-label">
+                  Mật khẩu
+                </label>
               </div>
-
-              <h2
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 700,
-                  color: "var(--text-primary)",
-                  margin: "0 0 8px",
-                }}
-              >
-                {role.name}
-              </h2>
-
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.65,
-                  margin: "0 0 18px",
-                }}
-              >
-                {role.description}
-              </p>
-
-              {/* Feature tags */}
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "6px",
-                  marginBottom: "22px",
-                }}
-              >
-                {role.features.map((f) => (
-                  <span
-                    key={f}
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      padding: "3px 9px",
-                      borderRadius: "100px",
-                      background: `${role.color}18`,
-                      border: `1px solid ${role.color}30`,
-                      color: role.color,
-                      letterSpacing: "0.03em",
-                    }}
-                  >
-                    {f}
-                  </span>
-                ))}
-              </div>
-
-              {/* Footer row */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderTop: "1px solid var(--border)",
-                  paddingTop: "16px",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                  {role.frCount} operations
-                </span>
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: role.color,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
+              <div className="auth-input-wrapper">
+                <input
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="MatKhau@123"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="auth-input auth-input--with-icon"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  tabIndex={-1}
                 >
-                  Choose Event &rarr;
-                </span>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
-          ))}
 
+            <p
+              className="text-[11px] text-slate-400 -mt-1 mb-1"
+              style={{ lineHeight: 1.45 }}
+            >
+              Mẫu: <code className="text-orange-400">admin</code> /{" "}
+              <code className="text-orange-400">MatKhau@123</code>
+            </p>
+
+            <button
+              id="btn-login-submit"
+              type="submit"
+              className="auth-submit-btn"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="auth-spinner" />
+                  Đang đăng nhập…
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={18} />
+                  Đăng nhập Administrator
+                </>
+              )}
+            </button>
+          </form>
         </div>
 
-        {/* Footer */}
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "48px",
-            fontSize: "12px",
-            color: "#1E293B",
-            letterSpacing: "0.04em",
-          }}
+        {/* Demo roles — không login */}
+        <div
+          className="w-full rounded-2xl border border-white/10 bg-slate-950/55 backdrop-blur-md p-4 sm:p-5"
+          style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.35)" }}
         >
-          GFA26SE77 · RaceDay Operations Platform · v1.0.0
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 mb-1">
+            Vào nhanh (demo)
+          </p>
+          <p className="text-xs text-slate-500 mb-3">
+            Volunteer / Photographer / Coordinator — bấm là vào, chưa cần check
+            login.
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            {DEMO_ROLES.map((role) => (
+              <button
+                key={role.id}
+                type="button"
+                onClick={() => {
+                  setSelectedDemo(role);
+                  setStoredRole(role.id);
+                }}
+                className="text-left rounded-xl border bg-slate-900/70 p-3.5 transition-all hover:-translate-y-0.5"
+                style={{
+                  borderColor: role.borderColor,
+                  boxShadow: `0 0 0 0 ${role.glowColor}`,
+                }}
+              >
+                <div
+                  className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border"
+                  style={{
+                    borderColor: `${role.color}40`,
+                    background: `${role.color}18`,
+                  }}
+                >
+                  {demoIcon(role.id, role.color)}
+                </div>
+                <div
+                  className="text-sm font-bold"
+                  style={{ color: role.color }}
+                >
+                  {role.name}
+                </div>
+                <p className="mt-1 text-[11px] leading-snug text-slate-400">
+                  {role.description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-[11px] text-slate-500 text-center">
+          Admin API dùng cookie <code>access_token</code> + axios như User FE.
         </p>
       </div>
 
-      {/* ── Event Selection Menu Modal ── */}
-      {selectedRole && (
+      {/* Event picker cho demo roles */}
+      {selectedDemo && (
         <div
-          role="dialog"
-          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 9999,
+            zIndex: 80,
+            background: "rgba(2,6,23,0.72)",
+            backdropFilter: "blur(8px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "20px",
-            background: "rgba(0,0,0,0.65)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
+            padding: 16,
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSelectedRole(null);
-          }}
+          onClick={() => setSelectedDemo(null)}
         >
           <div
-            className="animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
-              maxWidth: "760px",
-              maxHeight: "90vh",
-              background: "var(--modal-bg)",
-              border: `1px solid ${selectedRole.borderColor}`,
-              borderRadius: "24px",
-              boxShadow: `0 24px 80px rgba(0,0,0,0.5), 0 0 50px ${selectedRole.glowColor}`,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              position: "relative",
+              maxWidth: 720,
+              maxHeight: "85vh",
+              overflow: "auto",
+              borderRadius: 20,
+              border: `1px solid ${selectedDemo.borderColor}`,
+              background: "var(--surface, #0f172a)",
+              boxShadow: `0 0 48px ${selectedDemo.glowColor}`,
             }}
           >
-            {/* Top Accent Line */}
-            <div
-              style={{
-                height: "3px",
-                background: `linear-gradient(90deg, transparent, ${selectedRole.color}, transparent)`,
-              }}
-            />
-
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: "24px 28px 18px",
-                borderBottom: "1px solid var(--border)",
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                gap: "16px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "14px",
-                    background: `linear-gradient(135deg, ${selectedRole.color}25, ${selectedRole.color}0a)`,
-                    border: `1px solid ${selectedRole.color}40`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {renderRoleCardIcon(selectedRole.id, selectedRole.color, 22)}
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      color: selectedRole.color,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    Role: {selectedRole.name}
-                  </div>
-                  <h2
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: 900,
-                      color: "var(--text-primary)",
-                      margin: "2px 0 0",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    Select Active Race Event
-                  </h2>
-                </div>
-              </div>
-
-              {/* Close button */}
-              <button
-                onClick={() => setSelectedRole(null)}
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)" }}>
+              <h2
                 style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "10px",
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  color: "var(--text-muted)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "16px",
-                  transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-                  e.currentTarget.style.color = "#EF4444";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--surface)";
-                  e.currentTarget.style.color = "var(--text-muted)";
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: "var(--text-primary)",
                 }}
               >
-                ✕
-              </button>
+                Chọn giải · {selectedDemo.name}
+              </h2>
+              <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--text-muted)" }}>
+                Demo ops — không cần IAM login.
+              </p>
             </div>
-
-            {/* Modal Body / Event Cards List */}
-            <div
-              style={{
-                padding: "24px 28px",
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
+            <div style={{ padding: 16, display: "grid", gap: 10 }}>
               {eventsData.map((evt) => {
                 const isLive = evt.status === "live";
                 const isPending = evt.status === "pending";
-                const statusBadgeStyle = isLive
-                  ? { bg: "rgba(239,68,68,0.18)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)", text: "LIVE NOW" }
-                  : isPending
-                  ? { bg: "rgba(245,158,11,0.18)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.3)", text: "PENDING APPROVAL" }
-                  : { bg: "rgba(16,185,129,0.15)", color: "#10B981", border: "1px solid rgba(16,185,129,0.3)", text: "UPCOMING" };
-
                 return (
                   <div
                     key={evt.id}
-                    onClick={() => handleSelectEvent(evt)}
+                    onClick={() => enterDemoDashboard(evt)}
                     style={{
-                      padding: "20px",
-                      borderRadius: "16px",
-                      background: "var(--surface)",
+                      padding: 14,
+                      borderRadius: 14,
                       border: "1px solid var(--border)",
+                      background: "var(--background)",
                       cursor: "pointer",
-                      transition:
-                        "transform 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s, box-shadow 0.2s, background 0.2s",
-                      position: "relative",
-                      overflow: "hidden",
                     }}
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget;
-                      el.style.transform = "translateY(-2px)";
-                      el.style.borderColor = selectedRole.color;
-                      el.style.background = "var(--surface-hover)";
-                      el.style.boxShadow = `0 10px 30px rgba(0,0,0,0.2), 0 0 20px ${selectedRole.glowColor}`;
-                    }}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget;
-                      el.style.transform = "translateY(0)";
-                      el.style.borderColor = "var(--border)";
-                      el.style.background = "var(--surface)";
-                      el.style.boxShadow = "none";
-                    }}
+                    className="hover:border-orange-500/40"
                   >
-                    {/* Top Row: Event Name & Live Badge */}
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "space-between",
-                        marginBottom: "6px",
+                        gap: 8,
+                        marginBottom: 6,
                       }}
                     >
-                      <h3
-                        style={{
-                          fontSize: "17px",
-                          fontWeight: 800,
-                          color: "var(--text-primary)",
-                          margin: 0,
-                          letterSpacing: "-0.01em",
-                        }}
-                      >
+                      <strong style={{ color: "var(--text-primary)", fontSize: 14 }}>
                         {evt.name}
-                      </h3>
+                      </strong>
                       <span
                         style={{
-                          fontSize: "10px",
+                          fontSize: 10,
                           fontWeight: 800,
-                          padding: "3px 9px",
-                          borderRadius: "100px",
-                          background: statusBadgeStyle.bg,
-                          color: statusBadgeStyle.color,
-                          border: statusBadgeStyle.border,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px",
+                          color: isLive
+                            ? "#EF4444"
+                            : isPending
+                              ? "#F59E0B"
+                              : "#94A3B8",
                         }}
                       >
-                        {isLive && (
-                          <span
-                            style={{
-                              width: "6px",
-                              height: "6px",
-                              borderRadius: "50%",
-                              background: "#EF4444",
-                            }}
-                            className="animate-ping-slow"
-                          />
-                        )}
-                        {statusBadgeStyle.text}
+                        {evt.status.toUpperCase()}
                       </span>
                     </div>
-
-                    {/* Tagline / Subtitle */}
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--text-secondary)",
-                        margin: "0 0 14px",
-                        lineHeight: 1.5,
-                      }}
-                    >
+                    <p style={{ margin: "0 0 10px", fontSize: 12, color: "var(--text-secondary)" }}>
                       {evt.tagline}
                     </p>
-
-                    {/* Meta Row: Date, Location, Organizer, Runners */}
                     <div
                       style={{
                         display: "flex",
                         flexWrap: "wrap",
-                        alignItems: "center",
-                        gap: "14px",
-                        fontSize: "12px",
+                        gap: 12,
+                        fontSize: 11,
                         color: "var(--text-muted)",
-                        marginBottom: "14px",
+                        marginBottom: 10,
                       }}
                     >
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                        <MapPin size={13} strokeWidth={1.75} className="text-cyan-500" />
-                        {evt.location}
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={12} /> {evt.location}
                       </span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                        <Calendar size={13} strokeWidth={1.75} className="text-purple-500" />
-                        {evt.date}
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar size={12} /> {evt.date}
                       </span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                        <Users size={13} strokeWidth={1.75} className="text-emerald-500" />
-                        <strong style={{ color: "var(--text-primary)" }}>{evt.totalRunners.toLocaleString("en-US")}</strong> Runners
+                      <span className="inline-flex items-center gap-1">
+                        <Users size={12} /> {evt.totalRunners.toLocaleString("en-US")}
                       </span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                        <Building2 size={13} strokeWidth={1.75} className="text-amber-500" />
-                        {evt.organizer.name}
+                      <span className="inline-flex items-center gap-1">
+                        <Building2 size={12} /> {evt.organizer.name}
                       </span>
                     </div>
-
-                    {/* Distance Pills & Action CTA */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        borderTop: "1px solid var(--border)",
-                        paddingTop: "12px",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                        {evt.distances.map((dist) => (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {evt.distances.map((d) => (
                           <span
-                            key={dist.type}
+                            key={d.type}
                             style={{
-                              fontSize: "10px",
+                              fontSize: 10,
                               fontWeight: 700,
                               padding: "2px 8px",
-                              borderRadius: "6px",
-                              background: `${dist.color}15`,
-                              border: `1px solid ${dist.color}35`,
-                              color: dist.color,
+                              borderRadius: 6,
+                              color: d.color,
+                              border: `1px solid ${d.color}40`,
                             }}
                           >
-                            {dist.type} ({dist.distanceKm}km)
+                            {d.type}
                           </span>
                         ))}
                       </div>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        {isPending && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setInfoEvent(evt);
-                            }}
-                            className="h-7 px-2.5 text-xs font-semibold border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-400 gap-1"
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                            Information
-                          </Button>
-                        )}
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            fontWeight: 700,
-                            color: selectedRole.color,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
+                      {isPending && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInfoEvent(evt);
                           }}
+                          className="h-7 px-2.5 text-xs gap-1"
                         >
-                          Enter Dashboard &rarr;
-                        </div>
-                      </div>
+                          <Info className="h-3.5 w-3.5" />
+                          Info
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            {/* Modal Footer */}
             <div
               style={{
-                padding: "14px 28px",
-                background: "var(--surface)",
+                padding: "12px 20px",
                 borderTop: "1px solid var(--border)",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                justifyContent: "flex-end",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                Select an event to load its routes, checkpoints, and runner data.
-              </div>
               <button
-                onClick={() => setSelectedRole(null)}
+                type="button"
+                onClick={() => setSelectedDemo(null)}
                 style={{
                   padding: "7px 16px",
-                  borderRadius: "8px",
-                  background: "var(--surface-hover)",
+                  borderRadius: 8,
                   border: "1px solid var(--border)",
+                  background: "var(--surface-hover)",
                   color: "var(--text-secondary)",
-                  fontSize: "12px",
+                  fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
               >
-                Cancel
+                Đóng
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Information Modal for Pending Events */}
       {infoEvent && (
         <PendingEventInfoModal
-          event={infoEvent}
+          event={coerceRaceEvent(infoEvent)}
           open={!!infoEvent}
           onOpenChange={(open) => {
             if (!open) setInfoEvent(null);
           }}
         />
       )}
+    </div>
+  );
+}
 
-    </main>
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-page flex items-center justify-center text-slate-400">
+          <div className="auth-bg" />
+          <div className="auth-overlay" />
+          <div className="relative z-10 flex items-center gap-2">
+            <Loader2 className="animate-spin text-orange-500" size={24} />
+            <span>Đang tải…</span>
+          </div>
+        </div>
+      }
+    >
+      <LoginHomeInner />
+    </Suspense>
   );
 }

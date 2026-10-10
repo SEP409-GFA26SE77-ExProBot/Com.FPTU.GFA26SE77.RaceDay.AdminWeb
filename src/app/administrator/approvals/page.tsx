@@ -1,43 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import { SectionHeader, Card, Badge, Btn, Button } from "@/components/ui";
+import { useCallback, useEffect, useState } from "react";
+import { SectionHeader, Card, Badge, Button } from "@/components/ui";
 import { RouteTab } from "@/context/ActiveTabContext";
-import PendingEventInfoModal, { EventItemType } from "@/components/PendingEventInfoModal";
-import eventsData from "@/events.json";
-import { Info, CheckCircle2, XCircle, Building2, Calendar, FileText, Check, X } from "lucide-react";
+import PendingEventInfoModal from "@/components/PendingEventInfoModal";
+import { RaceEventDto } from "@/dto/event.dto";
+import {
+  listPendingEvents,
+  approveEvent,
+  rejectEvent,
+} from "@/api/admin-events";
+import { getApiErrorMessage } from "@/lib/error";
+import { logout } from "@/api/auth";
+import {
+  Info,
+  CheckCircle2,
+  XCircle,
+  Calendar,
+  RefreshCw,
+  LogOut,
+} from "lucide-react";
 
 const C = "#8B5CF6";
-const CR = "139,92,246";
+
+function distanceLabel(ev: RaceEventDto) {
+  const ds = ev.distances || [];
+  if (!ds.length) return "—";
+  return ds
+    .map((d) => d.name || `${d.distanceKm}K`)
+    .slice(0, 4)
+    .join(", ");
+}
 
 export default function AdministratorApprovalsPage() {
-  const [eventsList, setEventsList] = useState(() => {
-    // Filter pending events from events.json, or augment with pending mock events
-    const pendingFromData = eventsData.filter((e) => e.status === "pending");
-    return pendingFromData.length > 0
-      ? pendingFromData
-      : [eventsData[0]];
-  });
+  const [eventsList, setEventsList] = useState<RaceEventDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<RaceEventDto | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const [selectedEventForModal, setSelectedEventForModal] = useState<EventItemType | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await listPendingEvents();
+      setEventsList(list);
+    } catch (e) {
+      setError(
+        getApiErrorMessage(e, "Không tải được danh sách chờ duyệt.")
+      );
+      setEventsList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const organizers = [
-    { name: "VietTrail Corp.", email: "admin@viettrail.vn", submitted: "Sep 22", docs: "complete", events: 0 },
-    { name: "Mountain Run Vietnam", email: "contact@mrv.vn", submitted: "Sep 21", docs: "complete", events: 2 },
-  ];
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  const handleOpenInfo = (ev: EventItemType) => {
-    setSelectedEventForModal(ev);
-    setIsModalOpen(true);
+  const handleOpenInfo = (ev: RaceEventDto) => {
+    setSelected(ev);
+    setModalOpen(true);
   };
 
-  const handleApprove = (ev: EventItemType) => {
-    setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
+  const handleApprove = async (
+    ev: RaceEventDto,
+    openRegistration: boolean
+  ) => {
+    setBusyId(ev.id);
+    setError(null);
+    try {
+      await approveEvent(ev.id, openRegistration);
+      setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
+      setModalOpen(false);
+      setSelected(null);
+    } catch (e) {
+      setError(getApiErrorMessage(e, "Duyệt giải thất bại."));
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const handleReject = (ev: EventItemType) => {
-    setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
+  const handleReject = async (ev: RaceEventDto, reason: string) => {
+    setBusyId(ev.id);
+    setError(null);
+    try {
+      await rejectEvent(ev.id, reason);
+      setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
+      setModalOpen(false);
+      setSelected(null);
+    } catch (e) {
+      setError(getApiErrorMessage(e, "Từ chối giải thất bại."));
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (
@@ -45,60 +103,101 @@ export default function AdministratorApprovalsPage() {
       <div className="animate-slide-up">
         <SectionHeader
           id="FR-ADM-01"
-          title="Approve Organizers & Events"
-          desc="Review and approve new Organizer accounts and event applications before they go live on the platform."
+          title="Duyệt giải chạy"
+          desc="Hồ sơ từ User FE (CreateRaceEvent). Duyệt mặc định = Sắp mở (approved); tick mở ĐK = registration-open."
           color={C}
         />
 
-        {/* Pending Organizers */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
-            <Building2 size={14} strokeWidth={1.75} />
-            <span>Pending Organizer Accounts ({organizers.length})</span>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] text-muted-foreground">
+            Request qua <code>@/api/admin-events</code> → axios + cookie{" "}
+            <code>access_token</code> (cùng pattern User FE).
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void load()}
+              disabled={loading}
+              className="gap-1"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+              />
+              Tải lại
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => void logout()}
+              className="gap-1 text-muted-foreground"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Đăng xuất
+            </Button>
           </div>
-          {organizers.map((org) => (
-            <Card key={org.email} style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "10px" }}>
-              <div style={{ width: "42px", height: "42px", borderRadius: "11px", background: `rgba(${CR},0.12)`, border: `1px solid rgba(${CR},0.25)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Building2 size={20} strokeWidth={1.75} style={{ color: C }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)" }}>{org.name}</div>
-                <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{org.email} · Submitted {org.submitted} · {org.events} prior events</div>
-              </div>
-              <Badge label={org.docs === "complete" ? "Docs Complete" : "Missing Docs"} type={org.docs === "complete" ? "green" : "amber"} />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <Btn label="View Docs" color={C} colorRgb={CR} />
-                <Btn label="Approve" primary color={C} colorRgb={CR} />
-                <Btn label="Reject" danger color={C} colorRgb={CR} />
-              </div>
-            </Card>
-          ))}
         </div>
 
-        {/* Pending Events Table */}
-        <div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <Calendar size={14} strokeWidth={1.75} />
-              <span>Pending Events ({eventsList.length})</span>
-            </div>
-            {eventsList.length > 0 && (
-              <span className="text-[11px] font-normal text-muted-foreground">
-                Click &quot;Information&quot; to review route map &amp; checkpoints before approval
-              </span>
-            )}
+        {error ? (
+          <div className="mb-4 rounded-xl border border-red-500/25 bg-red-500/5 px-4 py-3 text-sm text-red-600">
+            {error}
           </div>
+        ) : null}
+
+        <div>
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+              marginBottom: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <Calendar size={14} strokeWidth={1.75} />
+            <span>Giải chờ duyệt ({eventsList.length})</span>
+          </div>
+
           <Card>
-            {eventsList.length === 0 ? (
+            {loading ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                No pending events awaiting review. All applications are reconciled.
+                Đang tải hồ sơ chờ duyệt…
+              </div>
+            ) : eventsList.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Không có giải PendingApproval.
               </div>
             ) : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    {["Event Name", "Organizer", "Date & Location", "Distances", "Expected Runners", "Status", "Review Actions"].map((h) => (
-                      <th key={h} style={{ textAlign: "left", padding: "10px 12px", fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    {[
+                      "Tên giải",
+                      "Đơn vị",
+                      "Ngày · Địa điểm",
+                      "Cự ly",
+                      "Quy mô",
+                      "Trạng thái",
+                      "Thao tác",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          textAlign: "left",
+                          padding: "10px 12px",
+                          fontSize: "11px",
+                          color: "var(--text-muted)",
+                          fontWeight: 600,
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
                         {h}
                       </th>
                     ))}
@@ -106,65 +205,122 @@ export default function AdministratorApprovalsPage() {
                 </thead>
                 <tbody>
                   {eventsList.map((ev) => (
-                    <tr key={ev.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                      <td style={{ padding: "12px", fontSize: "13px", color: "var(--text-primary)", fontWeight: 700 }}>
-                        <span>{ev.name}</span>
+                    <tr
+                      key={ev.id}
+                      style={{ borderBottom: "1px solid var(--border)" }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "13px",
+                          fontWeight: 700,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        <div>{ev.name}</div>
+                        {ev.tagline ? (
+                          <div className="text-[11px] font-normal text-muted-foreground line-clamp-1">
+                            {ev.tagline}
+                          </div>
+                        ) : null}
                       </td>
-                      <td style={{ padding: "12px", fontSize: "12px", color: "var(--text-secondary)" }}>
-                        {ev.organizer.name}
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "12px",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        {ev.organizer?.name || "—"}
                       </td>
-                      <td style={{ padding: "12px", fontSize: "12px", color: "var(--text-muted)" }}>
-                        <div>{ev.date}</div>
-                        <div className="text-[11px] text-muted-foreground">{ev.location}</div>
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "12px",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        <div>
+                          {ev.date}
+                          {ev.startTime ? ` · ${ev.startTime}` : ""}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {ev.location}
+                        </div>
                       </td>
                       <td style={{ padding: "12px" }}>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {ev.distances.map((d) => (
-                            <Badge key={d.type} type="cyan" className="text-[10px]">
-                              {d.type}
+                        <div className="flex gap-1.5 flex-wrap max-w-[180px]">
+                          {(ev.distances || []).slice(0, 3).map((d, i) => (
+                            <Badge
+                              key={d.id || `${d.name}-${i}`}
+                              type="cyan"
+                              className="text-[10px]"
+                            >
+                              {d.name || `${d.distanceKm}K`}
                             </Badge>
                           ))}
                         </div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[180px]">
+                          {distanceLabel(ev)}
+                        </div>
                       </td>
-                      <td style={{ padding: "12px", fontSize: "13px", color: "var(--text-primary)", fontWeight: 600 }}>
-                        {ev.totalRunners.toLocaleString("en-US")}
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {(ev.totalRunners ?? 0).toLocaleString("vi-VN")}
                       </td>
                       <td style={{ padding: "12px" }}>
-                        <Badge label="Pending Review" type="amber" className="text-[10px]" />
+                        <Badge
+                          label="Chờ duyệt"
+                          type="amber"
+                          className="text-[10px]"
+                        />
                       </td>
                       <td style={{ padding: "12px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          {/* Dedicated Information Button */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            flexWrap: "wrap",
+                          }}
+                        >
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             onClick={() => handleOpenInfo(ev)}
-                            className="h-7 px-2.5 text-xs font-semibold border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-400 gap-1"
+                            className="h-7 px-2.5 text-xs font-semibold border-amber-500/40 bg-amber-500/10 text-amber-500 gap-1"
                           >
                             <Info className="h-3.5 w-3.5" />
-                            Information
+                            Hồ sơ
                           </Button>
-
                           <Button
                             type="button"
                             size="sm"
-                            onClick={() => handleApprove(ev)}
+                            disabled={busyId === ev.id}
+                            onClick={() => void handleApprove(ev, false)}
                             className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                            title="Duyệt → approved (Sắp mở)"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            Approve
+                            Duyệt
                           </Button>
-
                           <Button
                             type="button"
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleReject(ev)}
+                            disabled={busyId === ev.id}
+                            onClick={() => handleOpenInfo(ev)}
                             className="h-7 px-2.5 text-xs font-semibold gap-1"
                           >
                             <XCircle className="h-3.5 w-3.5" />
-                            Reject
+                            Từ chối
                           </Button>
                         </div>
                       </td>
@@ -176,14 +332,14 @@ export default function AdministratorApprovalsPage() {
           </Card>
         </div>
 
-        {/* Pending Event Information & Route Preview Modal */}
-        {selectedEventForModal && (
+        {selected && (
           <PendingEventInfoModal
-            event={selectedEventForModal}
-            open={isModalOpen}
-            onOpenChange={setIsModalOpen}
+            event={selected}
+            open={modalOpen}
+            onOpenChange={setModalOpen}
             onApprove={handleApprove}
             onReject={handleReject}
+            busy={busyId === selected.id}
           />
         )}
       </div>

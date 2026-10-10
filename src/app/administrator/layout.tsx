@@ -1,7 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { Loader2 } from "lucide-react";
 import DashboardShell, { NavItem, StatItem } from "@/components/DashboardShell";
 import { ActiveTabProvider } from "@/context/ActiveTabContext";
+import { isAdminRole } from "@/lib/role";
 
 const C = "#8B5CF6";
 const CR = "139,92,246";
@@ -22,7 +27,35 @@ const stats: StatItem[] = [
   { label: "Monthly Revenue", value: "$84.2K", change: "11%", positive: true, icon: "💰" },
 ];
 
-export default function AdministratorLayout({ children }: { children: React.ReactNode }) {
+export default function AdministratorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const token = Cookies.get("access_token");
+    const role = Cookies.get("role");
+    if (!token || !isAdminRole(role)) {
+      router.replace(
+        `/?from=${encodeURIComponent("/administrator")}`
+      );
+      return;
+    }
+    setReady(true);
+  }, [router]);
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin text-violet-500" />
+        Đang kiểm tra phiên Admin…
+      </div>
+    );
+  }
+
   return (
     <ActiveTabProvider defaultTab="approvals">
       <DashboardShell
