@@ -12,11 +12,14 @@ const C = "#8B5CF6";
 const CR = "139,92,246";
 
 const navItems: NavItem[] = [
-  { id: "approvals", label: "Approvals", icon: "✅", badge: 5 },
-  { id: "users", label: "User Management", icon: "👥" },
-  { id: "reconciliation", label: "Data Reconciliation", icon: "🔎", badge: 8 },
-  { id: "audit", label: "Audit Trail", icon: "📋" },
-  { id: "stats", label: "Platform Statistics", icon: "📊" },
+  { id: "approvals", label: "Duyệt giải", icon: "✅" },
+  { id: "payouts", label: "Giải ngân", icon: "💸" },
+  { id: "finance", label: "Tài chính", icon: "💰" },
+  { id: "settings", label: "Cấu hình phí", icon: "⚙️" },
+  { id: "users", label: "Người dùng", icon: "👥" },
+  { id: "reconciliation", label: "Đối soát dữ liệu", icon: "🔎" },
+  { id: "audit", label: "Nhật ký", icon: "📋" },
+  { id: "stats", label: "Thống kê", icon: "📊" },
 ];
 
 const stats: StatItem[] = [

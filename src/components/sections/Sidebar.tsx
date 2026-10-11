@@ -34,6 +34,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  Banknote,
+  PiggyBank,
+  Settings,
 } from "lucide-react";
 
 export interface SidebarProps {
@@ -89,6 +92,12 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Truck {...iconProps} />;
     case "approvals":
       return <FileCheck {...iconProps} />;
+    case "payouts":
+      return <Banknote {...iconProps} />;
+    case "finance":
+      return <PiggyBank {...iconProps} />;
+    case "settings":
+      return <Settings {...iconProps} />;
     case "users":
       return <Users {...iconProps} />;
     case "reconciliation":
