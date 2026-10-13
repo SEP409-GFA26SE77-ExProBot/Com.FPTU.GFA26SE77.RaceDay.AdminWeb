@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
+import { clearAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
@@ -154,6 +156,7 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const contextTab = useActiveTab().activeTab;
 
   // Internal collapse state if not controlled externally
@@ -257,8 +260,8 @@ export default function Sidebar({
         }}
       >
         <Link
-          href="/"
-          title="Back to Role Selection"
+          href={basePath}
+          title="Dashboard"
           style={{
             width: "38px",
             height: "38px",
@@ -480,31 +483,39 @@ export default function Sidebar({
               </span>
             </div>
 
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={() => {
+                clearAuth();
+                router.push("/login");
+              }}
               style={{
+                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "6px",
-                padding: "6px",
+                padding: "8px",
                 borderRadius: "8px",
-                fontSize: "11px",
-                color: "var(--text-secondary)",
-                textDecoration: "none",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#EF4444",
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                cursor: "pointer",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--text-primary)";
-                e.currentTarget.style.background = "var(--surface-hover)";
+                e.currentTarget.style.background = "rgba(239,68,68,0.18)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--text-secondary)";
-                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
               }}
             >
-              <span>⇄</span> Change Role
-            </Link>
+              <span>🚪</span> Đăng xuất
+            </button>
           </div>
         )}
       </div>

@@ -46,8 +46,8 @@ export default function AdministratorStatsPage() {
               <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: k.color, marginTop: "4px" }} className="animate-glow-pulse" />
             </div>
             <div style={{ fontSize: "26px", fontWeight: 900, color: k.color, letterSpacing: "-0.03em", marginBottom: "3px" }}>{k.value}</div>
-            <div style={{ fontSize: "12px", color: "#fff", fontWeight: 600, marginBottom: "2px" }}>{k.label}</div>
-            <div style={{ fontSize: "11px", color: "#334155" }}>{k.sub}</div>
+            <div style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: 600, marginBottom: "2px" }}>{k.label}</div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{k.sub}</div>
           </Card>
         ))}
       </div>
@@ -55,7 +55,7 @@ export default function AdministratorStatsPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "16px" }}>
         {/* Monthly bar chart */}
         <Card>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
             📈 Monthly Events (last 12 months)
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "140px" }}>
@@ -75,7 +75,7 @@ export default function AdministratorStatsPage() {
                     }}
                   />
                 </div>
-                <span style={{ fontSize: "9px", color: "#334155", whiteSpace: "nowrap" }}>{months[i]}</span>
+                <span style={{ fontSize: "9px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{months[i]}</span>
               </div>
             ))}
           </div>
@@ -83,18 +83,18 @@ export default function AdministratorStatsPage() {
 
         {/* User breakdown */}
         <Card>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
             👥 Users by Role
           </div>
           {roles.map((r) => (
             <div key={r.role} style={{ marginBottom: "12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
-                <span style={{ color: "#94A3B8" }}>{r.role}</span>
+                <span style={{ color: "var(--text-secondary)" }}>{r.role}</span>
                 <span style={{ color: r.color, fontWeight: 700 }}>
-                  {r.count.toLocaleString("en-US")} <span style={{ color: "#334155", fontWeight: 400 }}>({r.pct}%)</span>
+                  {r.count.toLocaleString("en-US")} <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({r.pct}%)</span>
                 </span>
               </div>
-              <div style={{ height: "5px", borderRadius: "2.5px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+              <div style={{ height: "5px", borderRadius: "2.5px", background: "var(--border)", overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${r.pct}%`, background: r.color, borderRadius: "2.5px", minWidth: "4px" }} />
               </div>
             </div>
@@ -102,9 +102,9 @@ export default function AdministratorStatsPage() {
 
           {/* Transaction volume */}
           <div style={{ marginTop: "16px", padding: "12px", background: `rgba(${CR},0.06)`, border: `1px solid rgba(${CR},0.18)`, borderRadius: "10px", textAlign: "center" }}>
-            <div style={{ fontSize: "11px", color: "#475569", marginBottom: "4px" }}>Cumulative Revenue</div>
+            <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "4px" }}>Cumulative Revenue</div>
             <div style={{ fontSize: "22px", fontWeight: 800, color: C }}>$1.24M</div>
-            <div style={{ fontSize: "11px", color: "#334155" }}>since platform launch</div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>since platform launch</div>
           </div>
         </Card>
       </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import eventsData from "@/events.json";
+import { adminEventApi, getPublicEvents, getPendingEvents } from "@/app/api";
+import type { EventListItemDto } from "@/dtos";
 import Sidebar from "./sections/Sidebar";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import { ThemeToggle } from "./ui/ThemeToggle";
@@ -54,23 +55,46 @@ export default function DashboardShell({
   const [active, setActive] = useState(navItems[0]?.id ?? "");
   const [collapsed, setCollapsed] = useState(false);
   const [isEventMenuOpen, setIsEventMenuOpen] = useState(false);
-  const [currentEvent, setCurrentEvent] = useState<(typeof eventsData)[0]>(eventsData[0]);
+  const [eventsList, setEventsList] = useState<EventListItemDto[]>([]);
+  const [currentEvent, setCurrentEvent] = useState<EventListItemDto | null>(null);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("raceday_selected_event");
-        if (stored) {
-          setCurrentEvent(JSON.parse(stored));
-        } else {
-          // Check query param
-          const url = new URL(window.location.href);
-          const evId = url.searchParams.get("eventId");
-          const found = eventsData.find((e) => e.id === evId);
-          if (found) setCurrentEvent(found);
+    async function fetchEvents() {
+      try {
+        const publicEvts = await getPublicEvents().catch(() => []);
+        let pendingEvts: EventListItemDto[] = [];
+        try {
+          pendingEvts = await getPendingEvents();
+        } catch { }
+
+        const combinedMap = new Map<string, EventListItemDto>();
+        publicEvts.forEach((e) => combinedMap.set(e.id, e));
+        pendingEvts.forEach((e) => combinedMap.set(e.id, e));
+        const allEvts = Array.from(combinedMap.values());
+
+        setEventsList(allEvts);
+
+        if (allEvts.length > 0) {
+          const stored = localStorage.getItem("raceday_selected_event");
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              const matched = allEvts.find((e) => e.id === parsed.id) || allEvts[0];
+              setCurrentEvent(matched);
+            } catch {
+              setCurrentEvent(allEvts[0]);
+            }
+          } else {
+            setCurrentEvent(allEvts[0]);
+            localStorage.setItem("raceday_selected_event", JSON.stringify(allEvts[0]));
+            localStorage.setItem("raceday_selected_event_id", allEvts[0].id);
+          }
         }
+      } catch (err) {
+        console.error("Failed to load real events from API", err);
       }
-    } catch {}
+    }
+    fetchEvents();
   }, []);
 
   const currentActiveId = useMemo(() => {
@@ -187,8 +211,8 @@ export default function DashboardShell({
                   <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
                     Switch Active Event
                   </div>
-                  {eventsData.map((eItem) => {
-                    const isSelected = (currentEvent?.id ?? "evt-dalat-2026") === eItem.id;
+                  {eventsList.map((eItem) => {
+                    const isSelected = currentEvent?.id === eItem.id;
                     return (
                       <div
                         key={eItem.id}
@@ -200,7 +224,7 @@ export default function DashboardShell({
                               localStorage.setItem("raceday_selected_event_id", eItem.id);
                               localStorage.setItem("raceday_selected_event", JSON.stringify(eItem));
                             }
-                          } catch {}
+                          } catch { }
                           // Update URL param
                           const url = new URL(window.location.href);
                           url.searchParams.set("eventId", eItem.id);
@@ -230,7 +254,7 @@ export default function DashboardShell({
                             {eItem.name}
                           </div>
                           <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
-                            {eItem.location} · {eItem.totalRunners.toLocaleString("en-US")} runners
+                            {eItem.location} · {(eItem.totalRunners || 0).toLocaleString("en-US")} VĐV
                           </div>
                         </div>
                         {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: roleColor }} />}

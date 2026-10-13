@@ -1,3 +1,13 @@
+export enum Role {
+    ADMIN = 'ADMIN',
+    PHOTOGRAPHER = 'PHOTOGRAPHER',
+    RUNNER = 'RUNNER',
+    ORGANIZER = 'ORGANIZER',
+    STAFF = 'STAFF',
+    VOLUNTEER = 'VOLUNTEER',
+    COORDINATOR = 'COORDINATOR',
+}
+
 export interface NavItemConfig {
   id: string;
   label: string;

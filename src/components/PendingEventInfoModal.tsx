@@ -57,13 +57,16 @@ const CP_TYPE_MAP: Record<string, Checkpoint["type"]> = {
 };
 
 interface PendingEventInfoModalProps {
-  event?: EventItemType | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  event?: any;
   eventId?: string;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onApprove?: (event: EventItemType) => void;
-  onReject?: (event: EventItemType) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onApprove?: (event: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onReject?: (event: any) => void;
 }
 
 export function PendingEventInfoModal({
