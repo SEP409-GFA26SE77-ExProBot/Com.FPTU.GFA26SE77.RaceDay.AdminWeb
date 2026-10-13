@@ -15,7 +15,7 @@ export type Checkpoint = {
   latitude: number;
   longitude: number;
   distanceFromStart?: number;
-  type?: "WATER" | "MEDICAL" | "TIMING" | "CHECKPOINT";
+  type?: "WATER" | "MEDICAL" | "TIMING" | "CHECKPOINT" | "AID";
   description?: string;
 };
 

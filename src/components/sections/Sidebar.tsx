@@ -36,6 +36,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
+  Banknote,
+  PiggyBank,
+  Settings,
 } from "lucide-react";
 
 export interface SidebarProps {
@@ -53,6 +56,8 @@ export interface SidebarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onSelectTab?: (tabId: string) => void;
+  /** Ẩn Live Sync / Change Role (admin thật). */
+  hideDemoFooter?: boolean;
   style?: React.CSSProperties;
   className?: string;
 }
@@ -91,6 +96,12 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Truck {...iconProps} />;
     case "approvals":
       return <FileCheck {...iconProps} />;
+    case "payouts":
+      return <Banknote {...iconProps} />;
+    case "finance":
+      return <PiggyBank {...iconProps} />;
+    case "settings":
+      return <Settings {...iconProps} />;
     case "users":
       return <Users {...iconProps} />;
     case "reconciliation":
@@ -152,6 +163,7 @@ export default function Sidebar({
   collapsed: controlledCollapsed,
   onToggleCollapse,
   onSelectTab,
+  hideDemoFooter = false,
   style,
   className,
 }: SidebarProps) {
@@ -447,6 +459,19 @@ export default function Sidebar({
           >
             <ChevronRight size={16} strokeWidth={1.75} />
           </button>
+        ) : hideDemoFooter ? (
+          <div
+            style={{
+              padding: "8px 10px",
+              borderRadius: "8px",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              textAlign: "center",
+            }}
+          >
+            RaceDay Admin
+          </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <div
