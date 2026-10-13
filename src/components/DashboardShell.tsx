@@ -32,6 +32,8 @@ export interface DashboardShellProps {
   roleColorRgb?: string; // e.g. "6,182,212"
   navItems?: NavItem[];
   stats?: StatItem[];
+  /** Ẩn dropdown giải mock (admin duyệt hồ sơ — không cần switch event demo). */
+  hideEventSwitcher?: boolean;
   basePath?: string;
   tab?: string;
   children: ReactNode | ((activeSection: string, setSection: (s: string) => void) => ReactNode);
@@ -45,6 +47,7 @@ export default function DashboardShell({
   roleColorRgb = "245,158,11",
   navItems = [],
   stats,
+  hideEventSwitcher = false,
   basePath,
   tab,
   children,
@@ -112,6 +115,7 @@ export default function DashboardShell({
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((prev) => !prev)}
         onSelectTab={(newTab) => setActive(newTab)}
+        hideDemoFooter={hideEventSwitcher}
       />
 
       {/* ── Main area ─────────────────────────────────── */}
@@ -141,105 +145,104 @@ export default function DashboardShell({
               </span>
             </div>
 
-            {/* Active Event Indicator with Switcher */}
-            <div style={{ position: "relative" }}>
-              <button
-                onClick={() => setIsEventMenuOpen(!isEventMenuOpen)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "7px",
-                  padding: "5px 10px",
-                  borderRadius: "8px",
-                  background: `rgba(${roleColorRgb},0.08)`,
-                  border: `1px solid rgba(${roleColorRgb},0.25)`,
-                  color: "var(--text-primary)",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                }}
-              >
-                <Calendar size={14} strokeWidth={1.75} style={{ color: roleColor }} />
-                <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {currentEvent?.name ?? "Da Lat Ultra Trail 2026"}
-                </span>
-                <ChevronDown size={13} strokeWidth={1.75} style={{ color: roleColor }} />
-              </button>
-
-              {/* Event Switcher Dropdown */}
-              {isEventMenuOpen && (
-                <div
+            {!hideEventSwitcher ? (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setIsEventMenuOpen(!isEventMenuOpen)}
                   style={{
-                    position: "absolute",
-                    top: "calc(100% + 8px)",
-                    left: 0,
-                    width: "320px",
-                    background: "var(--modal-bg)",
-                    border: "1px solid var(--border-strong)",
-                    borderRadius: "14px",
-                    boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
-                    padding: "8px",
-                    zIndex: 999,
-                    backdropFilter: "blur(20px)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "5px 10px",
+                    borderRadius: "8px",
+                    background: `rgba(${roleColorRgb},0.08)`,
+                    border: `1px solid rgba(${roleColorRgb},0.25)`,
+                    color: "var(--text-primary)",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
                   }}
                 >
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
-                    Switch Active Event
-                  </div>
-                  {eventsData.map((eItem) => {
-                    const isSelected = (currentEvent?.id ?? "evt-dalat-2026") === eItem.id;
-                    return (
-                      <div
-                        key={eItem.id}
-                        onClick={() => {
-                          setCurrentEvent(eItem);
-                          setIsEventMenuOpen(false);
-                          try {
-                            if (typeof window !== "undefined") {
-                              localStorage.setItem("raceday_selected_event_id", eItem.id);
-                              localStorage.setItem("raceday_selected_event", JSON.stringify(eItem));
-                            }
-                          } catch {}
-                          // Update URL param
-                          const url = new URL(window.location.href);
-                          url.searchParams.set("eventId", eItem.id);
-                          window.history.replaceState({}, "", url.toString());
-                          window.dispatchEvent(new Event("raceday_event_changed"));
-                        }}
-                        style={{
-                          padding: "8px 10px",
-                          borderRadius: "8px",
-                          background: isSelected ? `rgba(${roleColorRgb},0.12)` : "transparent",
-                          border: isSelected ? `1px solid rgba(${roleColorRgb},0.3)` : "1px solid transparent",
-                          cursor: "pointer",
-                          marginBottom: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = "var(--surface-hover)";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = "transparent";
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: "12px", fontWeight: 700, color: isSelected ? roleColor : "var(--text-primary)" }}>
-                            {eItem.name}
+                  <Calendar size={14} strokeWidth={1.75} style={{ color: roleColor }} />
+                  <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {currentEvent?.name ?? "Da Lat Ultra Trail 2026"}
+                  </span>
+                  <ChevronDown size={13} strokeWidth={1.75} style={{ color: roleColor }} />
+                </button>
+
+                {isEventMenuOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      left: 0,
+                      width: "320px",
+                      background: "var(--modal-bg)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "14px",
+                      boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
+                      padding: "8px",
+                      zIndex: 999,
+                      backdropFilter: "blur(20px)",
+                    }}
+                  >
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", padding: "6px 10px 8px" }}>
+                      Switch Active Event
+                    </div>
+                    {eventsData.map((eItem) => {
+                      const isSelected = (currentEvent?.id ?? "evt-dalat-2026") === eItem.id;
+                      return (
+                        <div
+                          key={eItem.id}
+                          onClick={() => {
+                            setCurrentEvent(eItem);
+                            setIsEventMenuOpen(false);
+                            try {
+                              if (typeof window !== "undefined") {
+                                localStorage.setItem("raceday_selected_event_id", eItem.id);
+                                localStorage.setItem("raceday_selected_event", JSON.stringify(eItem));
+                              }
+                            } catch {}
+                            const url = new URL(window.location.href);
+                            url.searchParams.set("eventId", eItem.id);
+                            window.history.replaceState({}, "", url.toString());
+                            window.dispatchEvent(new Event("raceday_event_changed"));
+                          }}
+                          style={{
+                            padding: "8px 10px",
+                            borderRadius: "8px",
+                            background: isSelected ? `rgba(${roleColorRgb},0.12)` : "transparent",
+                            border: isSelected ? `1px solid rgba(${roleColorRgb},0.3)` : "1px solid transparent",
+                            cursor: "pointer",
+                            marginBottom: "4px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) e.currentTarget.style.background = "var(--surface-hover)";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontSize: "12px", fontWeight: 700, color: isSelected ? roleColor : "var(--text-primary)" }}>
+                              {eItem.name}
+                            </div>
+                            <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                              {eItem.location} · {eItem.totalRunners.toLocaleString("en-US")} runners
+                            </div>
                           </div>
-                          <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
-                            {eItem.location} · {eItem.totalRunners.toLocaleString("en-US")} runners
-                          </div>
+                          {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: roleColor }} />}
                         </div>
-                        {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: roleColor }} />}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
 
           {/* Theme Toggle Button */}

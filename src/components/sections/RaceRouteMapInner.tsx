@@ -58,11 +58,13 @@ function createFinishIcon(): L.DivIcon {
   });
 }
 
+/** Khớp palette organizer: CP cam, tiếp tế nâu, start/finish riêng. */
 const CP_TYPE_COLORS: Record<string, string> = {
   WATER: "#3B82F6",
   MEDICAL: "#EF4444",
-  TIMING: "#F59E0B",
-  CHECKPOINT: "#8B5CF6",
+  TIMING: "#c2410c",
+  CHECKPOINT: "#c2410c",
+  AID: "#a16207",
 };
 
 function createCheckpointIcon(index: number, type?: string): L.DivIcon {
@@ -86,10 +88,11 @@ function createCheckpointIcon(index: number, type?: string): L.DivIcon {
 
 // ─── Type labels for popups ─────────────────────────────────────────────────
 const CP_TYPE_LABELS: Record<string, string> = {
-  WATER: "💧 Water Station",
-  MEDICAL: "🏥 Medical Post",
-  TIMING: "⏱ Timing Mat",
-  CHECKPOINT: "📍 Checkpoint",
+  WATER: "Trạm nước",
+  MEDICAL: "Trạm y tế",
+  TIMING: "Checkpoint (timing)",
+  CHECKPOINT: "Checkpoint (timing)",
+  AID: "Điểm tiếp tế",
 };
 
 // ─── Sub‑component: fits map bounds on mount / data change ──────────────────

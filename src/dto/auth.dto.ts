@@ -18,6 +18,7 @@ export const LoginResponseSchema = z.object({
   accessToken: z.string().optional(),
   expiredTime: z.number().optional(),
   role: z.string().optional(),
+  mustChangePassword: z.boolean().optional(),
 });
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;

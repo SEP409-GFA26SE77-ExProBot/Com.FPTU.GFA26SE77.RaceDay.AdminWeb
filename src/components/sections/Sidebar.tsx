@@ -54,6 +54,8 @@ export interface SidebarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onSelectTab?: (tabId: string) => void;
+  /** Ẩn Live Sync / Change Role (admin thật). */
+  hideDemoFooter?: boolean;
   style?: React.CSSProperties;
   className?: string;
 }
@@ -159,6 +161,7 @@ export default function Sidebar({
   collapsed: controlledCollapsed,
   onToggleCollapse,
   onSelectTab,
+  hideDemoFooter = false,
   style,
   className,
 }: SidebarProps) {
@@ -453,6 +456,19 @@ export default function Sidebar({
           >
             <ChevronRight size={16} strokeWidth={1.75} />
           </button>
+        ) : hideDemoFooter ? (
+          <div
+            style={{
+              padding: "8px 10px",
+              borderRadius: "8px",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              textAlign: "center",
+            }}
+          >
+            RaceDay Admin
+          </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <div

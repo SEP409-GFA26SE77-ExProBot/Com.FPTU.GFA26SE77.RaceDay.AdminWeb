@@ -1,27 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { SectionHeader, Card, Badge, Button } from "@/components/ui";
 import { RouteTab } from "@/context/ActiveTabContext";
-import PendingEventInfoModal from "@/components/PendingEventInfoModal";
 import { RaceEventDto } from "@/dto/event.dto";
 import {
   listPendingEvents,
   approveEvent,
-  rejectEvent,
 } from "@/api/admin-events";
 import { getApiErrorMessage } from "@/lib/error";
-import { logout } from "@/api/auth";
+import {
+  buildOrganizerSetupChecklist,
+  checklistReady,
+} from "@/lib/organizer-setup-checklist";
 import {
   Info,
   CheckCircle2,
-  XCircle,
   Calendar,
   RefreshCw,
-  LogOut,
+  Circle,
 } from "lucide-react";
 
-const C = "#8B5CF6";
+const C = "#f97316";
 
 function distanceLabel(ev: RaceEventDto) {
   const ds = ev.distances || [];
@@ -37,8 +38,6 @@ export default function AdministratorApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<RaceEventDto | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,39 +59,14 @@ export default function AdministratorApprovalsPage() {
     void load();
   }, [load]);
 
-  const handleOpenInfo = (ev: RaceEventDto) => {
-    setSelected(ev);
-    setModalOpen(true);
-  };
-
-  const handleApprove = async (
-    ev: RaceEventDto,
-    openRegistration: boolean
-  ) => {
+  const handleApproveQuick = async (ev: RaceEventDto) => {
     setBusyId(ev.id);
     setError(null);
     try {
-      await approveEvent(ev.id, openRegistration);
+      await approveEvent(ev.id, false);
       setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
-      setModalOpen(false);
-      setSelected(null);
     } catch (e) {
       setError(getApiErrorMessage(e, "Duyệt giải thất bại."));
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const handleReject = async (ev: RaceEventDto, reason: string) => {
-    setBusyId(ev.id);
-    setError(null);
-    try {
-      await rejectEvent(ev.id, reason);
-      setEventsList((prev) => prev.filter((item) => item.id !== ev.id));
-      setModalOpen(false);
-      setSelected(null);
-    } catch (e) {
-      setError(getApiErrorMessage(e, "Từ chối giải thất bại."));
     } finally {
       setBusyId(null);
     }
@@ -101,43 +75,26 @@ export default function AdministratorApprovalsPage() {
   return (
     <RouteTab tab="approvals">
       <div className="animate-slide-up">
-        <SectionHeader
-          id="FR-ADM-01"
-          title="Duyệt giải chạy"
-          desc="Hồ sơ từ User FE (CreateRaceEvent). Duyệt mặc định = Sắp mở (approved); tick mở ĐK = registration-open."
-          color={C}
-        />
-
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] text-muted-foreground">
-            Request qua <code>@/api/admin-events</code> → axios + cookie{" "}
-            <code>access_token</code> (cùng pattern User FE).
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => void load()}
-              disabled={loading}
-              className="gap-1"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
-              />
-              Tải lại
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => void logout()}
-              className="gap-1 text-muted-foreground"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Đăng xuất
-            </Button>
-          </div>
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <SectionHeader
+            id="Duyệt giải"
+            title="Hồ sơ chờ duyệt"
+            desc="Hồ sơ organizer gửi duyệt. Mở chi tiết để xem checklist setup (cự ly, tài liệu, bản đồ…) rồi duyệt hoặc từ chối."
+            color={C}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void load()}
+            disabled={loading}
+            className="gap-1 border-slate-200 bg-white text-slate-700 hover:border-orange-400 hover:text-orange-600"
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+            />
+            Tải lại
+          </Button>
         </div>
 
         {error ? (
@@ -147,31 +104,29 @@ export default function AdministratorApprovalsPage() {
         ) : null}
 
         <div>
-          <div
-            style={{
-              fontSize: "12px",
-              fontWeight: 700,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              marginBottom: "12px",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <Calendar size={14} strokeWidth={1.75} />
+          <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Calendar size={14} strokeWidth={1.75} className="text-orange-500" />
             <span>Giải chờ duyệt ({eventsList.length})</span>
           </div>
 
-          <Card>
+          <Card style={{ padding: 0, overflow: "hidden" }}>
             {loading ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
+              <div className="py-10 text-center text-sm text-muted-foreground">
                 Đang tải hồ sơ chờ duyệt…
               </div>
             ) : eventsList.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                Không có giải PendingApproval.
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/15 text-xl">
+                  ✅
+                </div>
+                <p className="text-sm font-bold text-foreground">
+                  Không có giải đang chờ duyệt
+                </p>
+                <p className="max-w-md text-xs text-muted-foreground leading-relaxed">
+                  Khi organizer bấm <strong>Gửi admin duyệt giải</strong> (User
+                  FE), hồ sơ sẽ hiện ở đây. Bấm <strong>Xem xét duyệt</strong>{" "}
+                  để mở panel checklist chi tiết (cự ly, tài liệu, bản đồ…).
+                </p>
               </div>
             ) : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -182,8 +137,7 @@ export default function AdministratorApprovalsPage() {
                       "Đơn vị",
                       "Ngày · Địa điểm",
                       "Cự ly",
-                      "Quy mô",
-                      "Trạng thái",
+                      "Checklist",
                       "Thao tác",
                     ].map((h) => (
                       <th
@@ -204,144 +158,122 @@ export default function AdministratorApprovalsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {eventsList.map((ev) => (
-                    <tr
-                      key={ev.id}
-                      style={{ borderBottom: "1px solid var(--border)" }}
-                    >
-                      <td
-                        style={{
-                          padding: "12px",
-                          fontSize: "13px",
-                          fontWeight: 700,
-                          color: "var(--text-primary)",
-                        }}
+                  {eventsList.map((ev) => {
+                    const checks = buildOrganizerSetupChecklist(ev);
+                    const required = checks.filter((c) => c.required);
+                    const okCount = required.filter((c) => c.ok).length;
+                    const ready = checklistReady(checks);
+                    return (
+                      <tr
+                        key={ev.id}
+                        style={{ borderBottom: "1px solid var(--border)" }}
                       >
-                        <div>{ev.name}</div>
-                        {ev.tagline ? (
-                          <div className="text-[11px] font-normal text-muted-foreground line-clamp-1">
-                            {ev.tagline}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          fontSize: "12px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        {ev.organizer?.name || "—"}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          fontSize: "12px",
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        <div>
-                          {ev.date}
-                          {ev.startTime ? ` · ${ev.startTime}` : ""}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {ev.location}
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        <div className="flex gap-1.5 flex-wrap max-w-[180px]">
-                          {(ev.distances || []).slice(0, 3).map((d, i) => (
-                            <Badge
-                              key={d.id || `${d.name}-${i}`}
-                              type="cyan"
-                              className="text-[10px]"
-                            >
-                              {d.name || `${d.distanceKm}K`}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[180px]">
-                          {distanceLabel(ev)}
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {(ev.totalRunners ?? 0).toLocaleString("vi-VN")}
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        <Badge
-                          label="Chờ duyệt"
-                          type="amber"
-                          className="text-[10px]"
-                        />
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        <div
+                        <td
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            flexWrap: "wrap",
+                            padding: "12px",
+                            fontSize: "13px",
+                            fontWeight: 700,
+                            color: "var(--text-primary)",
                           }}
                         >
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenInfo(ev)}
-                            className="h-7 px-2.5 text-xs font-semibold border-amber-500/40 bg-amber-500/10 text-amber-500 gap-1"
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                            Hồ sơ
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            disabled={busyId === ev.id}
-                            onClick={() => void handleApprove(ev, false)}
-                            className="h-7 px-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-                            title="Duyệt → approved (Sắp mở)"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Duyệt
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            disabled={busyId === ev.id}
-                            onClick={() => handleOpenInfo(ev)}
-                            className="h-7 px-2.5 text-xs font-semibold gap-1"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            Từ chối
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          <div>{ev.name}</div>
+                          {ev.tagline ? (
+                            <div className="text-[11px] font-normal text-muted-foreground line-clamp-1">
+                              {ev.tagline}
+                            </div>
+                          ) : null}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "12px",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          {ev.organizer?.name || "—"}
+                        </td>
+                        <td
+                          style={{
+                            padding: "12px",
+                            fontSize: "12px",
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          <div>
+                            {ev.date}
+                            {ev.startTime ? ` · ${ev.startTime}` : ""}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {ev.location}
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          <div className="flex max-w-[180px] flex-wrap gap-1.5">
+                            {(ev.distances || []).slice(0, 3).map((d, i) => (
+                              <Badge
+                                key={d.id || `${d.name}-${i}`}
+                                type="cyan"
+                                className="text-[10px]"
+                              >
+                                {d.name || `${d.distanceKm}K`}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="mt-0.5 max-w-[180px] truncate text-[10px] text-muted-foreground">
+                            {distanceLabel(ev)}
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          <div className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                            {ready ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            ) : (
+                              <Circle className="h-3.5 w-3.5 text-amber-500" />
+                            )}
+                            <span
+                              className={
+                                ready ? "text-emerald-700" : "text-amber-700"
+                              }
+                            >
+                              {okCount}/{required.length}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              className="h-7 gap-1 border-orange-500/40 bg-orange-500/10 px-2.5 text-xs font-semibold text-orange-600"
+                            >
+                              <Link href={`/administrator/approvals/${ev.id}`}>
+                                <Info className="h-3.5 w-3.5" />
+                                Xem xét duyệt
+                              </Link>
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={busyId === ev.id}
+                              onClick={() => void handleApproveQuick(ev)}
+                              className="h-7 gap-1 bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                              title="Duyệt nhanh — giải ở trạng thái Sắp mở"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Duyệt nhanh
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
           </Card>
         </div>
-
-        {selected && (
-          <PendingEventInfoModal
-            event={selected}
-            open={modalOpen}
-            onOpenChange={setModalOpen}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            busy={busyId === selected.id}
-          />
-        )}
       </div>
     </RouteTab>
   );

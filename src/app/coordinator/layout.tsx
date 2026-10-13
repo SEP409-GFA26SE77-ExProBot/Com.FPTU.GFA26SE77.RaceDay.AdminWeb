@@ -1,44 +1,27 @@
 "use client";
 
-import DashboardShell, { NavItem, StatItem } from "@/components/DashboardShell";
+import OpsShell from "@/components/OpsShell";
 import { ActiveTabProvider } from "@/context/ActiveTabContext";
+import { COORDINATOR_NAV } from "@/config/ops-nav";
 
-const C = "#F59E0B";
-const CR = "245,158,11";
-
-const navItems: NavItem[] = [
-  { id: "map", label: "Live Map", icon: "🗺️", badge: "2 SOS" },
-  { id: "scanner", label: "QR / RFID Scanner", icon: "📡", badge: "LIVE" },
-  { id: "medical", label: "Medical Teams", icon: "🚑", badge: 2 },
-  { id: "cutoff", label: "Route & Cut-off", icon: "⏱️" },
-  { id: "inventory", label: "Aid Stations", icon: "🏕️", badge: "⚠️ 1" },
-  { id: "contingency", label: "Contingency Plans", icon: "🔴" },
-  { id: "broom", label: "Broom Wagon", icon: "🚐" },
-];
-
-const stats: StatItem[] = [
-  { label: "Active Runners", value: "1,024", change: "38", positive: false, icon: "🏃" },
-  { label: "SOS Alerts", value: "2", icon: "🆘" },
-  { label: "On Route", value: "91.2%", icon: "✅" },
-  { label: "Aid Stations", value: "6/6", icon: "🏕️" },
-  { label: "DNF so far", value: "42", change: "8", positive: false, icon: "🚩" },
-];
-
-export default function CoordinatorLayout({ children }: { children: React.ReactNode }) {
+export default function CoordinatorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ActiveTabProvider defaultTab="map">
-      <DashboardShell
-        role="Race-Day Coordinator"
-        roleAbbr="OPS"
-        roleIcon="🗺️"
-        roleColor={C}
-        roleColorRgb={CR}
-        basePath="/coordinator"
-        navItems={navItems}
-        stats={stats}
-      >
-        {children}
-      </DashboardShell>
+      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
+        <OpsShell
+          groups={COORDINATOR_NAV.groups}
+          homeHref={COORDINATOR_NAV.homeHref}
+          breadcrumbLabel={COORDINATOR_NAV.breadcrumbLabel}
+          footerLabel={COORDINATOR_NAV.footerLabel}
+          footerIcon={COORDINATOR_NAV.footerIcon}
+        >
+          {children}
+        </OpsShell>
+      </div>
     </ActiveTabProvider>
   );
 }

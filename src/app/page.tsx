@@ -89,6 +89,8 @@ function LoginHomeInner() {
   const [infoEvent, setInfoEvent] = useState<(typeof eventsData)[0] | null>(
     null
   );
+  const [mustChangePasswordHint, setMustChangePasswordHint] = useState(false);
+  const [postLoginHref, setPostLoginHref] = useState("/administrator");
 
   useEffect(() => {
     const token = Cookies.get("access_token");
@@ -118,21 +120,38 @@ function LoginHomeInner() {
         username: form.username.trim(),
         password: form.password,
       });
-      const role = Cookies.get("role") || res.role || "";
-      if (!isAdminRole(role)) {
+      const role = (Cookies.get("role") || res.role || "").toUpperCase();
+      let href = "/administrator";
+      if (isAdminRole(role)) {
+        setStoredRole("administrator");
+        href = fromPath.startsWith("/administrator")
+          ? fromPath
+          : "/administrator";
+      } else if (role === "COORDINATOR") {
+        setStoredRole("coordinator");
+        href = "/coordinator";
+      } else if (role === "PHOTOGRAPHER") {
+        setStoredRole("photographer");
+        href = "/photographer";
+      } else if (role === "VOLUNTEER") {
+        setStoredRole("volunteer");
+        href = "/volunteer";
+      } else {
         Cookies.remove("access_token");
         Cookies.remove("role");
         Cookies.remove("username");
         Cookies.remove("user_id");
         setError(
-          "Tài khoản này không có quyền Administrator. Dùng admin / MatKhau@123."
+          "Tài khoản không thuộc Admin / Coordinator / Photographer / Volunteer."
         );
         return;
       }
-      setStoredRole("administrator");
-      router.push(
-        fromPath.startsWith("/administrator") ? fromPath : "/administrator"
-      );
+      if (res.mustChangePassword) {
+        setPostLoginHref(href);
+        setMustChangePasswordHint(true);
+        return;
+      }
+      router.push(href);
     } catch (err) {
       setError(
         getApiErrorMessage(
@@ -539,6 +558,39 @@ function LoginHomeInner() {
           }}
         />
       )}
+
+      {mustChangePasswordHint ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-orange-500/30 bg-[var(--surface)] p-5 shadow-2xl">
+            <p className="text-xs font-bold uppercase tracking-widest text-orange-500">
+              Kích hoạt thành công
+            </p>
+            <h2 className="mt-1 text-lg font-extrabold">
+              Nên đổi mật khẩu mặc định
+            </h2>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+              Tài khoản nhân sự đã kích hoạt (không phải đăng ký). Mật khẩu được
+              cấp qua email — hãy đổi sớm trong phần đổi mật khẩu của hệ thống.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-bold"
+                onClick={() => {
+                  setMustChangePasswordHint(false);
+                  router.push(postLoginHref);
+                }}
+              >
+                Tiếp tục
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

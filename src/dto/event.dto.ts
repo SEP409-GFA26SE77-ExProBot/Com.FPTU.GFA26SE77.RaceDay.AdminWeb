@@ -93,6 +93,30 @@ export interface WeatherDto {
   humidity?: string;
 }
 
+/** ticketPricing JSON — khớp User FE hồ sơ cự ly */
+export interface TicketPricingDto {
+  phases?: Array<{
+    key?: string;
+    name?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    pricesByDistanceName?: Record<string, number>;
+  }>;
+  byDistanceName?: Record<
+    string,
+    {
+      basePrice?: number;
+      phases?: Array<{
+        key?: string;
+        name?: string;
+        dateFrom?: string;
+        dateTo?: string;
+        price?: number;
+      }>;
+    }
+  >;
+}
+
 export interface RaceEventDto {
   id: string;
   name: string;
@@ -101,6 +125,7 @@ export interface RaceEventDto {
   location: string;
   coordinates?: GeoPointDto | null;
   date: string;
+  endDate?: string | null;
   startTime?: string | null;
   description?: string | null;
   status: string;
@@ -111,7 +136,11 @@ export interface RaceEventDto {
   distances: DistanceDto[];
   documents?: EventDocumentDto[] | null;
   rules?: EventRulesDto | Record<string, unknown> | null;
+  ticketPricing?: TicketPricingDto | Record<string, unknown> | null;
   rejectionReason?: string | null;
+  registrationOpensAtUtc?: string | null;
+  registrationClosesAtUtc?: string | null;
+  packagePurchaseId?: string | null;
   createdAtUtc?: string;
   updatedAtUtc?: string;
 }

@@ -11,13 +11,12 @@ export function Card({ children, style, className }: CardProps) {
     <div
       className={className}
       style={{
-        background: "var(--surface, rgba(255,255,255,0.03))",
-        border: "1px solid var(--border, rgba(255,255,255,0.07))",
+        background: "var(--surface, #ffffff)",
+        border: "1px solid var(--border, rgba(15,23,42,0.08))",
         borderRadius: "14px",
         padding: "20px",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        color: "var(--text-primary, #ffffff)",
+        boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+        color: "var(--text-primary, #0f172a)",
         ...style,
       }}
     >

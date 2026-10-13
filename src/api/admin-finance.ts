@@ -1,6 +1,6 @@
 /**
  * Admin escrow / payout / fee settings.
- * MOCK mặc định: NEXT_PUBLIC_FINANCE_USE_MOCK !== "false"
+ * Mặc định gọi BE thật. Bật mock chỉ khi NEXT_PUBLIC_FINANCE_USE_MOCK=true
  */
 import api from "@/config/axios";
 import type {
@@ -12,7 +12,7 @@ import type {
 const FINANCE_API = "api/v1/finance/admin";
 
 export const FINANCE_USE_MOCK =
-  process.env.NEXT_PUBLIC_FINANCE_USE_MOCK !== "false";
+  process.env.NEXT_PUBLIC_FINANCE_USE_MOCK === "true";
 
 const LS_PAYOUTS = "raceday.admin.payouts.v1";
 const LS_SETTINGS = "raceday.admin.fee-settings.v1";
