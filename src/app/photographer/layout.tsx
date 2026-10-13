@@ -1,27 +1,34 @@
-"use client";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
-import OpsShell from "@/components/OpsShell";
-import { ActiveTabProvider } from "@/context/ActiveTabContext";
-import { PHOTOGRAPHER_NAV } from "@/config/ops-nav";
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
 
-export default function PhotographerLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const metadata: Metadata = {
+  title: "RaceDay Admin Portal | Operations Dashboard",
+  description:
+    "Unified operations dashboard for RaceDay race management — Photographer, Volunteer, Coordinator, and Administrator roles.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ActiveTabProvider defaultTab="assignments">
-      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
-        <OpsShell
-          groups={PHOTOGRAPHER_NAV.groups}
-          homeHref={PHOTOGRAPHER_NAV.homeHref}
-          breadcrumbLabel={PHOTOGRAPHER_NAV.breadcrumbLabel}
-          footerLabel={PHOTOGRAPHER_NAV.footerLabel}
-          footerIcon={PHOTOGRAPHER_NAV.footerIcon}
+    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col antialiased bg-background text-foreground" suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
         >
           {children}
-        </OpsShell>
-      </div>
-    </ActiveTabProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
