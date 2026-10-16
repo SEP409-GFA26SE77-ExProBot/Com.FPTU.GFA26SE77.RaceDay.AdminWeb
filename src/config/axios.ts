@@ -13,7 +13,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
-      const token = Cookies.get("access_token");
+      const token = Cookies.get("accessToken");
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -42,12 +42,12 @@ api.interceptors.response.use(
         case 422:
           break;
         case 401:
-          Cookies.remove("access_token");
+          Cookies.remove("accessToken");
           Cookies.remove("role");
           if (typeof window !== "undefined") {
             const path = window.location.pathname;
             if (path !== "/" && !path.startsWith("/login")) {
-              window.location.href = `/?from=${encodeURIComponent(path)}`;
+              window.location.href = `/login?from=${encodeURIComponent(path)}`;
             }
           }
           break;

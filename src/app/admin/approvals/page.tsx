@@ -248,7 +248,7 @@ export default function AdministratorApprovalsPage() {
                               asChild
                               className="h-7 gap-1 border-orange-500/40 bg-orange-500/10 px-2.5 text-xs font-semibold text-orange-600"
                             >
-                              <Link href={`/administrator/approvals/${ev.id}`}>
+                              <Link href={`/approvals/${ev.id}`}>
                                 <Info className="h-3.5 w-3.5" />
                                 Xem xét duyệt
                               </Link>
