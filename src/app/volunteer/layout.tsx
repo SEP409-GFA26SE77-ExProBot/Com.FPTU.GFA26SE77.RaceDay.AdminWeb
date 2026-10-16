@@ -11,7 +11,7 @@ export default function VolunteerLayout({
 }) {
   return (
     <ActiveTabProvider defaultTab="scanner">
-      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
+      <div className="min-h-screen">
         <OpsShell
           groups={VOLUNTEER_NAV.groups}
           homeHref={VOLUNTEER_NAV.homeHref}

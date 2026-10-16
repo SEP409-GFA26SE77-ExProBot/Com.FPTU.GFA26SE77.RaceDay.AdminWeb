@@ -30,33 +30,33 @@ export default function AdministratorAuditPage() {
       />
       <Card>
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-          <input placeholder="🔍 Search by user, action, or BIB…" style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px" }} />
-          <select style={{ padding: "9px 14px", borderRadius: "9px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px", cursor: "pointer" }}>
+          <input placeholder="🔍 Search by user, action, or BIB…" style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px" }} />
+          <select style={{ padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px", cursor: "pointer" }}>
             {["All Categories", "Timing", "Status", "Manual", "User", "Event", "Content"].map((c) => (
-              <option key={c} style={{ background: "#0B0A14" }}>{c}</option>
+              <option key={c} style={{ background: "var(--card)", color: "var(--text-primary)" }}>{c}</option>
             ))}
           </select>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
           {entries.map((e, i) => (
-            <div key={i} style={{ display: "flex", gap: "16px", padding: "13px 0", borderBottom: i < entries.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", alignItems: "flex-start" }}>
-              <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#334155", flexShrink: 0, paddingTop: "2px", width: "70px" }}>{e.time}</span>
+            <div key={i} style={{ display: "flex", gap: "16px", padding: "13px 0", borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none", alignItems: "flex-start" }}>
+              <span style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--text-secondary)", flexShrink: 0, paddingTop: "2px", width: "70px" }}>{e.time}</span>
               <span style={{ fontSize: "16px", flexShrink: 0 }}>{catIcon(e.category)}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{e.action}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>{e.action}</span>
                   <Badge label={e.category} type={catColor(e.category)} />
                 </div>
-                <div style={{ fontSize: "12px", color: "#475569" }}>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
                   Target: <span style={{ color: C }}>{e.target}</span>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
                 <span style={{ fontSize: "11px", fontFamily: "monospace", padding: "2px 6px", borderRadius: "4px", background: "rgba(239,68,68,0.10)", color: "#F87171" }}>{e.old}</span>
-                <span style={{ fontSize: "11px", color: "#334155" }}>→</span>
+                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>→</span>
                 <span style={{ fontSize: "11px", fontFamily: "monospace", padding: "2px 6px", borderRadius: "4px", background: "rgba(16,185,129,0.10)", color: "#10B981" }}>{e.next}</span>
               </div>
-              <span style={{ fontSize: "11px", color: "#334155", flexShrink: 0, width: "96px", textAlign: "right" }}>{e.user}</span>
+              <span style={{ fontSize: "11px", color: "var(--text-secondary)", flexShrink: 0, width: "96px", textAlign: "right" }}>{e.user}</span>
             </div>
           ))}
         </div>

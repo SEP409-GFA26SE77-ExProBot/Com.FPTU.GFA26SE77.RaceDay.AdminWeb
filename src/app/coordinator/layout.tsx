@@ -11,7 +11,7 @@ export default function CoordinatorLayout({
 }) {
   return (
     <ActiveTabProvider defaultTab="map">
-      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
+      <div className="min-h-screen">
         <OpsShell
           groups={COORDINATOR_NAV.groups}
           homeHref={COORDINATOR_NAV.homeHref}

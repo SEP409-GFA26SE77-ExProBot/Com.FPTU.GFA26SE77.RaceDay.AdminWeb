@@ -117,7 +117,7 @@ export default function OpsShell({
     `group flex items-center rounded-xl text-sm font-medium transition-colors ${
       active
         ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-950/20"
-        : "text-slate-400 hover:bg-white/[0.07] hover:text-white"
+        : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
     } ${
       collapsed
         ? "gap-3 px-3 py-3 lg:justify-center lg:px-0 lg:py-3"
@@ -125,9 +125,9 @@ export default function OpsShell({
     }`;
 
   return (
-    <div className="h-dvh overflow-hidden bg-[#f7f5f1] text-slate-950">
+    <div className="h-dvh overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#121827] text-white shadow-2xl shadow-slate-950/10 transition-[width,transform] duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[var(--border)] bg-[var(--sidebar-bg)] text-[var(--text-primary)] shadow-2xl shadow-slate-950/10 transition-[width,transform] duration-300 lg:translate-x-0 ${
           collapsed ? "w-[272px] lg:w-[72px]" : "w-[272px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -157,7 +157,7 @@ export default function OpsShell({
           <button
             type="button"
             onClick={closeMobile}
-            className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
+            className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] lg:hidden"
             aria-label="Đóng menu"
           >
             <X className="h-5 w-5" />
@@ -190,7 +190,7 @@ export default function OpsShell({
                       }));
                     }
                   }}
-                  className={`flex w-full items-center gap-1 px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 transition-colors hover:text-slate-300 ${
+                  className={`flex w-full items-center gap-1 px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)] ${
                     collapsed ? "lg:justify-center lg:px-0" : ""
                   }`}
                 >
@@ -237,7 +237,7 @@ export default function OpsShell({
           }`}
         >
           <div
-            className={`flex items-center rounded-xl text-sm font-semibold text-slate-400 ${
+            className={`flex items-center rounded-xl text-sm font-semibold text-[var(--text-secondary)] ${
               collapsed
                 ? "gap-3 px-3 py-3 lg:justify-center lg:px-0"
                 : "gap-3 px-3 py-3"
@@ -265,12 +265,12 @@ export default function OpsShell({
           collapsed ? "lg:pl-[72px]" : "lg:pl-[272px]"
         }`}
       >
-        <header className="z-40 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8">
+        <header className="z-40 flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--header-bg)] px-5 text-[var(--text-primary)] backdrop-blur-md sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700 lg:hidden"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text-secondary)] lg:hidden"
               aria-label="Mở menu"
             >
               <Menu className="h-5 w-5" />
@@ -278,7 +278,7 @@ export default function OpsShell({
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
-              className="hidden rounded-xl border border-slate-200 bg-white p-2 text-slate-600 hover:text-orange-600 lg:block"
+              className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text-secondary)] hover:text-orange-600 lg:block"
               aria-label="Thu gọn sidebar"
             >
               {collapsed ? (
@@ -291,7 +291,7 @@ export default function OpsShell({
               <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em]">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
                 <span className="text-orange-600">{breadcrumbLabel}</span>
-                <span className="font-semibold normal-case tracking-normal text-slate-400">
+                <span className="font-semibold normal-case tracking-normal text-[var(--text-secondary)]">
                   / {activeLeaf?.label || ""}
                 </span>
               </p>
@@ -304,25 +304,25 @@ export default function OpsShell({
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((p) => !p)}
-                className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-3 text-sm shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50"
+                className="flex items-center gap-2.5 rounded-full border border-[var(--border)] bg-[var(--surface)] py-1.5 pl-2 pr-3 text-sm shadow-xs transition-all hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 text-xs font-bold text-white">
                   {initial}
                 </div>
-                <span className="hidden max-w-[120px] truncate font-medium text-slate-900 sm:inline">
+                <span className="hidden max-w-[120px] truncate font-medium text-[var(--text-primary)] sm:inline">
                   {username}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 text-slate-400 transition-transform ${
+                  className={`h-4 w-4 text-[var(--text-secondary)] transition-transform ${
                     userMenuOpen ? "rotate-180" : ""
                   }`}
                 />
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                  <div className="border-b border-slate-100 px-3 py-2">
-                    <p className="text-xs text-slate-500">Đã đăng nhập</p>
-                    <p className="truncate text-sm font-semibold text-slate-900">
+                <div className="absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-[var(--border)] bg-[var(--modal-bg)] p-1.5 shadow-xl ring-1 ring-black/5">
+                  <div className="border-b border-[var(--border)] px-3 py-2">
+                    <p className="text-xs text-[var(--text-secondary)]">Đã đăng nhập</p>
+                    <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                       {username}
                     </p>
                   </div>

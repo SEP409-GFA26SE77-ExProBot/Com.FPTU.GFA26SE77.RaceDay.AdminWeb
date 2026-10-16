@@ -11,7 +11,7 @@ export default function AdministratorLayout({
 }) {
   return (
     <ActiveTabProvider defaultTab="approvals">
-      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
+      <div className="min-h-screen">
         <OpsShell
           groups={ADMINISTRATOR_NAV.groups}
           homeHref={ADMINISTRATOR_NAV.homeHref}

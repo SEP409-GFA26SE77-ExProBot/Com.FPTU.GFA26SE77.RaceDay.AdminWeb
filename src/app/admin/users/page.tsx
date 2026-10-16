@@ -32,19 +32,19 @@ export default function AdministratorUsersPage() {
         color={C}
       />
       <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-        <input placeholder="🔍 Search users…" style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px" }} />
-        <select style={{ padding: "9px 14px", borderRadius: "9px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px", cursor: "pointer" }}>
+        <input placeholder="🔍 Search users…" style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px" }} />
+        <select style={{ padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px", cursor: "pointer" }}>
           {["All Roles", "Photographer", "Volunteer", "Organizer", "Runner", "Administrator"].map((r) => (
-            <option key={r} style={{ background: "#0B0A14" }}>{r}</option>
+            <option key={r} style={{ background: "var(--card)", color: "var(--text-primary)" }}>{r}</option>
           ))}
         </select>
       </div>
       <Card style={{ marginBottom: "20px" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
               {["Name", "Email", "Role", "Status", "Joined", "Actions"].map((h) => (
-                <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "#334155", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "var(--text-secondary)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   {h}
                 </th>
               ))}
@@ -52,12 +52,12 @@ export default function AdministratorUsersPage() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.email} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <tr key={u.email} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "10px", fontSize: "13px", fontWeight: 600, color: "var(--text-primary)" }}>{u.name}</td>
                 <td style={{ padding: "10px", fontSize: "12px", color: "var(--text-secondary)" }}>{u.email}</td>
                 <td style={{ padding: "10px" }}><Badge label={u.role} type={roleColor(u.role)} /></td>
                 <td style={{ padding: "10px" }}><Badge label={u.status} type={u.status === "active" ? "green" : "rose"} /></td>
-                <td style={{ padding: "10px", fontSize: "12px", color: "#334155" }}>{u.joined}</td>
+                <td style={{ padding: "10px", fontSize: "12px", color: "var(--text-secondary)" }}>{u.joined}</td>
                 <td style={{ padding: "10px" }}>
                   <div style={{ display: "flex", gap: "6px" }}>
                     <Btn label="Edit" small color={C} colorRgb={CR} />
@@ -70,7 +70,7 @@ export default function AdministratorUsersPage() {
         </table>
       </Card>
 
-      <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px" }}>
+      <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px" }}>
         🛡️ Content Moderation Queue
       </div>
       {moderation.map((m) => (
@@ -79,8 +79,8 @@ export default function AdministratorUsersPage() {
             {m.type === "Comment" ? "💬" : m.type === "Photo" ? "🖼️" : "⚖️"}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#fff", marginBottom: "2px" }}>[{m.type}] {m.content}</div>
-            <div style={{ fontSize: "11px", color: "#334155" }}>Reported by {m.reporter} · {m.id}</div>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "2px" }}>[{m.type}] {m.content}</div>
+            <div style={{ fontSize: "11px", color: "var(--text-secondary)" }}>Reported by {m.reporter} · {m.id}</div>
           </div>
           <Badge label={m.status} type={m.status === "pending" ? "amber" : "violet"} />
           <div style={{ display: "flex", gap: "6px" }}>
