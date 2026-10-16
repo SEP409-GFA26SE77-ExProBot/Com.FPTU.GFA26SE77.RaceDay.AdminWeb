@@ -249,7 +249,7 @@ export default function AdminEventReviewPage() {
     setError(null);
     try {
       await approveEvent(event.id, false);
-      router.push("/administrator/approvals");
+      router.push("/approvals");
     } catch (e) {
       setError(getApiErrorMessage(e, "Duyệt giải thất bại."));
     } finally {
@@ -271,7 +271,7 @@ export default function AdminEventReviewPage() {
     setError(null);
     try {
       await rejectEvent(event.id, rejectReason.trim());
-      router.push("/administrator/approvals");
+      router.push("/approvals");
     } catch (e) {
       setError(getApiErrorMessage(e, "Từ chối giải thất bại."));
     } finally {
@@ -295,7 +295,7 @@ export default function AdminEventReviewPage() {
       <RouteTab tab="approvals">
         <div className="space-y-4">
           <Link
-            href="/administrator/approvals"
+            href="/approvals"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:underline"
           >
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
@@ -315,7 +315,7 @@ export default function AdminEventReviewPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <Link
-              href="/administrator/approvals"
+              href="/approvals"
               className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-orange-600 hover:underline"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Duyệt giải

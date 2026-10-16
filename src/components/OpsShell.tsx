@@ -24,6 +24,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { ThemeToggle } from "./ui";
 
 export type OpsIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -68,7 +69,7 @@ export default function OpsShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(groups.map((g) => [g.heading, true]))
+    Object.fromEntries(groups.map((g) => [g.heading, true])),
   );
   const userMenuRef = useRef<HTMLDivElement>(null);
   // Cookie chỉ có trên client — đọc sau mount để tránh hydration U≠V
@@ -80,8 +81,7 @@ export default function OpsShell({
 
   const initial = username.charAt(0).toUpperCase() || "U";
 
-  const atHome =
-    pathname === homeHref || pathname === `${homeHref}/`;
+  const atHome = pathname === homeHref || pathname === `${homeHref}/`;
   const homeLeaf = groups[0]?.items[0] ?? null;
 
   const activeLeaf = useMemo(() => {
@@ -298,42 +298,45 @@ export default function OpsShell({
             </div>
           </div>
 
-          <div className="relative" ref={userMenuRef}>
-            <button
-              type="button"
-              onClick={() => setUserMenuOpen((p) => !p)}
-              className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-3 text-sm shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 text-xs font-bold text-white">
-                {initial}
-              </div>
-              <span className="hidden max-w-[120px] truncate font-medium text-slate-900 sm:inline">
-                {username}
-              </span>
-              <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform ${
-                  userMenuOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            {userMenuOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                <div className="border-b border-slate-100 px-3 py-2">
-                  <p className="text-xs text-slate-500">Đã đăng nhập</p>
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {username}
-                  </p>
+          <div className="flex items-center gap-3">
+            <ThemeToggle size="md" />
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((p) => !p)}
+                className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-3 text-sm shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 text-xs font-bold text-white">
+                  {initial}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Đăng xuất
-                </button>
-              </div>
-            )}
+                <span className="hidden max-w-[120px] truncate font-medium text-slate-900 sm:inline">
+                  {username}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-slate-400 transition-transform ${
+                    userMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
+                  <div className="border-b border-slate-100 px-3 py-2">
+                    <p className="text-xs text-slate-500">Đã đăng nhập</p>
+                    <p className="truncate text-sm font-semibold text-slate-900">
+                      {username}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void logout()}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
