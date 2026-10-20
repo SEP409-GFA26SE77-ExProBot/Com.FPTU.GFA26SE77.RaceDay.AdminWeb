@@ -19,6 +19,24 @@ export function extractRoleFromToken(token?: string): string | undefined {
   }
 }
 
+const CLAIM_NAMEID =
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
+
+/** UserId từ JWT (sub / nameidentifier). */
+export function extractUserIdFromToken(token?: string): string | undefined {
+  if (!token) return undefined;
+  try {
+    const payload = parseJwt(token);
+    if (!payload) return undefined;
+    const id =
+      payload.sub ||
+      (payload as Record<string, unknown>)[CLAIM_NAMEID];
+    return typeof id === "string" && id.trim() ? id.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function extractExpirationFromToken(token?: string): number | undefined {
   if (!token) return undefined;
   try {
