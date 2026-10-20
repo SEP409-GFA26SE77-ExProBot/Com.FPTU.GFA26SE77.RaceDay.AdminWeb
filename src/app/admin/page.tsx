@@ -1,6 +1,6 @@
 "use client";
 
-import AdministratorApprovalsPage from "./pending/page";
+import AdministratorApprovalsPage from "./approvals/page";
 
 export default function AdministratorPage() {
   return <AdministratorApprovalsPage />;
