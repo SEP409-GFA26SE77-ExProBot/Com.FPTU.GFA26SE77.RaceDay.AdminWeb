@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -14,31 +15,37 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import RaceRouteMap, { Coordinate, Checkpoint } from "@/components/sections/RaceRouteMap";
-import {
-  RaceEventDto,
-  parseEventRules,
-} from "@/dto/event.dto";
-import { mediaOpenUrl } from "@/lib/media-url";
+import eventsData from "@/events.json";
 import {
   MapPin,
   Calendar,
   Users,
+  Mountain,
   Info,
   CheckCircle2,
+  AlertCircle,
   Building2,
   Mail,
   Phone,
-  Globe,
-  Navigation,
-  FileText,
-  ShieldCheck,
-  Landmark,
+  CloudSun,
   Clock,
-  ExternalLink,
+  Navigation,
+  Droplets,
+  HeartPulse,
+  Coffee,
+  Flag,
+  Trophy,
+  Timer,
+  FileText,
+  Ticket,
+  CreditCard,
+  Shirt,
+  Tag,
+  Landmark,
+  Globe,
 } from "lucide-react";
 
-/** @deprecated alias — dùng RaceEventDto từ API */
-export type EventItemType = RaceEventDto;
+export type EventItemType = (typeof eventsData)[number];
 
 const CP_TYPE_MAP: Record<string, Checkpoint["type"]> = {
   water: "WATER",
@@ -49,142 +56,125 @@ const CP_TYPE_MAP: Record<string, Checkpoint["type"]> = {
   finish: "CHECKPOINT",
 };
 
-function formatMoney(n?: number | null, currency = "VND") {
-  if (n == null || Number.isNaN(n)) return "—";
-  return `${new Intl.NumberFormat("vi-VN").format(n)}${currency === "VND" ? "đ" : ` ${currency}`}`;
-}
-
-function statusLabel(status: string) {
-  const s = (status || "").toLowerCase().replace(/_/g, "-");
-  if (s === "pending" || s === "pending-approval") return "Chờ duyệt";
-  if (s === "approved") return "Đã duyệt (Sắp mở ĐK)";
-  if (s === "registration-open") return "Đang mở ĐK";
-  return status.toUpperCase();
-}
-
 interface PendingEventInfoModalProps {
-  event?: RaceEventDto | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  event?: any;
+  eventId?: string;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** openRegistration: true = public ĐK ngay; false = chỉ approved (Sắp mở) */
-  onApprove?: (event: RaceEventDto, openRegistration: boolean) => void | Promise<void>;
-  onReject?: (event: RaceEventDto, reason: string) => void | Promise<void>;
-  busy?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onApprove?: (event: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onReject?: (event: any) => void;
 }
 
 export function PendingEventInfoModal({
   event: propEvent,
+  eventId,
   trigger,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
   onApprove,
   onReject,
-  busy = false,
 }: PendingEventInfoModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = setControlledOpen || setInternalOpen;
 
-  const [openRegistration, setOpenRegistration] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [showReject, setShowReject] = useState(false);
+  // Resolve event from prop or eventId or fallback to first pending event
+  const event: EventItemType = useMemo(() => {
+    if (propEvent) return propEvent;
+    if (eventId) {
+      const found = eventsData.find((e) => e.id === eventId);
+      if (found) return found;
+    }
+    const pendingFallback = eventsData.find((e) => e.status === "pending");
+    return pendingFallback || eventsData[0];
+  }, [propEvent, eventId]);
 
-  const event = propEvent;
   const distances = event?.distances || [];
-  const rules = parseEventRules(event?.rules);
-  const docs = event?.documents || [];
-  const bank = event?.organizer?.beneficiaryAccount;
-
-  const [selectedDistanceKey, setSelectedDistanceKey] = useState<string>("");
-
-  const distanceKey = (d: (typeof distances)[0], i: number) =>
-    d.id || `${d.type}-${d.name}-${i}`;
-
-  const activeKey =
-    selectedDistanceKey ||
-    (distances[0] ? distanceKey(distances[0], 0) : "");
+  const [selectedDistanceType, setSelectedDistanceType] = useState<string>(
+    distances[0]?.type || "5K"
+  );
 
   const activeDistance = useMemo(() => {
-    const idx = distances.findIndex((d, i) => distanceKey(d, i) === activeKey);
-    return distances[idx >= 0 ? idx : 0];
-  }, [distances, activeKey]);
+    return (
+      distances.find((d) => d.type === selectedDistanceType) || distances[0]
+    );
+  }, [distances, selectedDistanceType]);
 
+  // Convert distance coordinates to RaceRouteMap format
   const route: Coordinate[] = useMemo(() => {
-    const line = activeDistance?.leafletPolyline;
-    if (!Array.isArray(line) || !line.length) return [];
-    return line
-      .filter((p) => Array.isArray(p) && p.length >= 2)
-      .map((point) => ({
-        lat: Number(point[0]),
-        lng: Number(point[1]),
-      }));
+    if (!activeDistance?.leafletPolyline) return [];
+    return activeDistance.leafletPolyline.map((point) => ({
+      lat: point[0],
+      lng: point[1],
+    }));
   }, [activeDistance]);
 
   const startPoint: Coordinate = useMemo(() => {
     return {
-      lat:
-        activeDistance?.startLocation?.lat ??
-        event?.coordinates?.lat ??
-        10.7769,
-      lng:
-        activeDistance?.startLocation?.lng ??
-        event?.coordinates?.lng ??
-        106.7009,
+      lat: activeDistance?.startLocation?.lat || event.coordinates.lat,
+      lng: activeDistance?.startLocation?.lng || event.coordinates.lng,
     };
   }, [activeDistance, event]);
 
   const finishPoint: Coordinate = useMemo(() => {
     return {
-      lat:
-        activeDistance?.finishLocation?.lat ??
-        event?.coordinates?.lat ??
-        10.7769,
-      lng:
-        activeDistance?.finishLocation?.lng ??
-        event?.coordinates?.lng ??
-        106.7009,
+      lat: activeDistance?.finishLocation?.lat || event.coordinates.lat,
+      lng: activeDistance?.finishLocation?.lng || event.coordinates.lng,
     };
   }, [activeDistance, event]);
 
   const checkpoints: Checkpoint[] = useMemo(() => {
-    const list = activeDistance?.checkpoints;
-    if (!Array.isArray(list)) return [];
-    return list
+    if (!activeDistance?.checkpoints) return [];
+    return activeDistance.checkpoints
       .filter((cp) => cp.type !== "start" && cp.type !== "finish")
       .map((cp) => ({
         id: cp.id,
         name: cp.name,
         latitude: cp.lat,
         longitude: cp.lng,
-        distanceFromStart: (cp.km || 0) * 1000,
+        distanceFromStart: cp.km * 1000,
         type: CP_TYPE_MAP[cp.type] ?? "CHECKPOINT",
-        description: cp.cutoff
-          ? `Cutoff: ${cp.cutoff}`
-          : undefined,
+        description: `Cutoff: ${cp.cutoff} · Elevation: ${cp.elevation}m`,
       }));
   }, [activeDistance]);
-
-  if (!event) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {trigger ? (
         <DialogTrigger asChild>{trigger}</DialogTrigger>
-      ) : null}
+      ) : (
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs font-semibold border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/50"
+          >
+            <Info className="h-3.5 w-3.5" />
+            Information
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0 border-border bg-background/95 backdrop-blur-2xl">
+        {/* Top Accent Gradient Bar */}
         <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-purple-500 to-cyan-500" />
 
         <div className="p-6 space-y-6">
+          {/* Header */}
           <DialogHeader className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
                   <Badge variant="pending" className="text-[11px] font-bold">
-                    {statusLabel(event.status)}
+                    {event.status === "pending"
+                      ? "PENDING APPROVAL"
+                      : event.status.toUpperCase()}
                   </Badge>
-                  <span className="text-xs text-muted-foreground font-mono truncate max-w-[220px]">
+                  <span className="text-xs text-foreground/70 font-mono">
                     {event.id}
                   </span>
                 </div>
@@ -193,417 +183,549 @@ export function PendingEventInfoModal({
                 </DialogTitle>
               </div>
             </div>
-            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-              {event.tagline || event.description || "Hồ sơ giải từ User FE (CreateRaceEvent)."}
+
+            <DialogDescription className="text-sm text-foreground/90 leading-relaxed font-normal">
+              {event.tagline}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Thông tin chung — field FE nộp */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-muted/40 border border-border">
-            <Fact
-              icon={<MapPin className="h-4 w-4 text-cyan-500 shrink-0" />}
-              label="Địa điểm"
-              value={event.location || "—"}
-            />
-            <Fact
-              icon={<Calendar className="h-4 w-4 text-purple-500 shrink-0" />}
-              label="Ngày đua"
-              value={event.date || "—"}
-            />
-            <Fact
-              icon={<Clock className="h-4 w-4 text-amber-500 shrink-0" />}
-              label="Giờ xuất phát"
-              value={event.startTime || "—"}
-            />
-            <Fact
-              icon={<Users className="h-4 w-4 text-emerald-500 shrink-0" />}
-              label="Quy mô (totalRunners)"
-              value={`${(event.totalRunners ?? 0).toLocaleString("vi-VN")} VĐV`}
-            />
-          </div>
-
-          {event.description ? (
-            <div className="p-3.5 rounded-xl border border-border bg-card/40 text-sm text-muted-foreground whitespace-pre-wrap">
-              {event.description}
-            </div>
-          ) : null}
-
-          {event.bannerImage ? (
-            <div className="rounded-xl overflow-hidden border border-border max-h-40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={event.bannerImage}
-                alt=""
-                className="w-full h-40 object-cover"
-              />
-            </div>
-          ) : null}
-
-          {/* Đơn vị tổ chức + TK giải ngân */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-purple-400" />
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Đơn vị tổ chức
-              </span>
-            </div>
-            <div className="text-sm font-bold text-foreground">
-              {event.organizer?.name || "—"}
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Mail className="h-3 w-3" /> {event.organizer?.email || "—"}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {event.organizer?.phone || "—"}
-              </span>
-              {event.organizer?.website ? (
-                <span className="inline-flex items-center gap-1">
-                  <Globe className="h-3 w-3" /> {event.organizer.website}
-                </span>
-              ) : null}
-            </div>
-            {event.organizer?.legalEntity ? (
-              <p className="text-xs text-muted-foreground">
-                Pháp nhân:{" "}
-                <span className="font-semibold text-foreground">
-                  {event.organizer.legalEntity}
-                </span>
-              </p>
-            ) : null}
-
-            {bank && (bank.accountNumber || bank.bankName) ? (
-              <div className="mt-2 rounded-lg border border-border bg-muted/30 p-3 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-muted-foreground">
-                  <Landmark className="h-3.5 w-3.5" />
-                  TK giải ngân BTC
+          {/* Key Facts Summary Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-muted/50 border border-border">
+            <div className="flex items-center gap-2.5">
+              <MapPin className="h-4 w-4 text-foreground/70 shrink-0" />
+              <div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Location</div>
+                <div className="text-xs font-semibold text-foreground truncate max-w-[140px]" title={event.location}>
+                  {event.location}
                 </div>
-                <p className="text-xs text-foreground">
-                  {bank.accountHolder || "—"} · {bank.accountNumber || "—"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {bank.bankName || "—"}
-                  {bank.branch ? ` · ${bank.branch}` : ""}
-                </p>
-                {bank.transferNote ? (
-                  <p className="text-[11px] text-muted-foreground italic">
-                    {bank.transferNote}
-                  </p>
-                ) : null}
               </div>
-            ) : null}
-          </div>
-
-          {/* Cự ly — name / type / km / capacity / price (FE submit) */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-cyan-400" />
-              <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                Cự ly đăng ký ({distances.length})
-              </h4>
             </div>
 
-            {distances.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Không có cự ly.</p>
-            ) : (
+            <div className="flex items-center gap-2.5">
+              <Calendar className="h-4 w-4 text-foreground/70 shrink-0" />
+              <div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Date</div>
+                <div className="text-xs font-semibold text-foreground">{event.date}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Users className="h-4 w-4 text-foreground/70 shrink-0" />
+              <div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Runners Cap</div>
+                <div className="text-xs font-semibold text-foreground">
+                  {event.totalRunners.toLocaleString("en-US")} Runners
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <CloudSun className="h-4 w-4 text-foreground/70 shrink-0" />
+              <div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Forecast</div>
+                <div className="text-xs font-semibold text-foreground">
+                  {event.weather.temp} · {event.weather.condition}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Organizer & Official Permit Strip */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Organizer Card */}
+            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-2 flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-foreground/70" />
+                    <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      Organizer Application
+                    </span>
+                  </div>
+                  <Badge
+                    variant={event.organizer.verified ? "success" : "pending"}
+                    className="text-[10px]"
+                  >
+                    {event.organizer.verified ? "Verified Organizer" : "Pending Verification"}
+                  </Badge>
+                </div>
+
+                <div>
+                  <div className="text-sm font-bold text-foreground">{event.organizer.name}</div>
+                  <div className="flex flex-col gap-1 text-xs text-foreground/80 mt-1.5">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Mail className="h-3 w-3 text-foreground/70" /> {event.organizer.email}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Phone className="h-3 w-3 text-foreground/70" /> {event.organizer.phone}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Authority Registration Permit Card */}
+            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-2.5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-foreground/70" />
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Official Permit Document
+                  </span>
+                </div>
+                <Badge variant="success" className="text-[10px]">
+                  Authority Approved
+                </Badge>
+              </div>
+
+              {("permitDocument" in event && event.permitDocument) ? (
+                <div className="space-y-2 text-xs">
+                  <div className="font-semibold text-foreground flex items-center justify-between">
+                    <span className="truncate max-w-[200px]" title={event.permitDocument.fileName}>
+                      {event.permitDocument.fileName}
+                    </span>
+                    <span className="text-[11px] text-foreground/70 font-mono">
+                      {event.permitDocument.fileSize}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-foreground/85 leading-snug">
+                    <div><span className="font-semibold text-foreground">Issuing Authority:</span> {event.permitDocument.issuingAuthority}</div>
+                    <div><span className="font-semibold text-foreground">Permit Code:</span> <code className="font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-foreground">{event.permitDocument.permitNumber}</code></div>
+                    <div><span className="font-semibold text-foreground">Issued:</span> {event.permitDocument.issueDate} · <span className="font-semibold text-foreground">Valid Until:</span> {event.permitDocument.validUntil}</div>
+                  </div>
+                  <div className="pt-1">
+                    <a
+                      href={event.permitDocument.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90 font-semibold text-xs transition-opacity shadow-sm"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      View Approved Permit (PDF)
+                      <span className="text-[10px] opacity-80">↗</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs text-foreground/80">
+                  Standard provincial tournament permit approved.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Rules, Anti-Cheating & Rewards Sections */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Race Rules & Anti-Cheating Penalties */}
+            {("rules" in event && event.rules) && (
+              <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-foreground/70" />
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Rules & Anti-Cheating Penalties
+                  </h4>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                    <div className="font-bold text-foreground mb-1 text-[11px] uppercase tracking-wide">
+                      General Competition Rules
+                    </div>
+                    <p className="text-foreground/90 leading-relaxed font-normal">
+                      {event.rules.generalRules}
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                    <div className="font-bold text-foreground mb-1 text-[11px] uppercase tracking-wide">
+                      Mandatory Safety Gear
+                    </div>
+                    <p className="text-foreground/90 leading-relaxed font-normal">
+                      {event.rules.mandatoryEquipment}
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                    <div className="font-bold text-foreground mb-1 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
+                      <AlertCircle className="h-3.5 w-3.5 text-foreground shrink-0" />
+                      <span>Cheating Penalties & Disqualification (DQ)</span>
+                    </div>
+                    <p className="text-foreground/90 leading-relaxed text-[11px] font-normal">
+                      {event.rules.cheatingAndPenalties}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rewards & Prize Pool */}
+            {("rewards" in event && event.rewards) && (
+              <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-foreground/70" />
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      Prize Pool & Rewards
+                    </h4>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold text-foreground border-border">
+                    Prize Pool: {event.rewards.prizePool}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-2.5 rounded-lg bg-muted/40 border border-border space-y-1.5">
+                    <div className="font-bold text-[11px] uppercase tracking-wide text-foreground">
+                      Podium Placements
+                    </div>
+                    <div className="space-y-1">
+                      {event.rewards.podium.map((pod: any, idx: number) => (
+                        <div key={idx} className="flex items-start justify-between gap-2 text-[11px] py-0.5 border-b border-border/50 last:border-0">
+                          <span className="font-bold text-foreground shrink-0">{pod.place}</span>
+                          <span className="text-right text-foreground/90">{pod.prize}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                    <div className="font-bold text-[11px] uppercase tracking-wide text-foreground mb-1">
+                      Finisher Package & Perks
+                    </div>
+                    <p className="text-foreground/90 leading-relaxed text-[11px]">
+                      {event.rewards.finisherRewards}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Ticket Pricing Section */}
+          {("ticketPricing" in event && event.ticketPricing) && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-4 w-4 text-foreground/70" />
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Registration Fees by Phase</h4>
+              </div>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-muted/80 dark:bg-muted/60 border-b border-border">
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Phase</th>
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Period</th>
+                      {Object.keys(event.ticketPricing.phases[0]?.prices ?? {}).map((dist) => (
+                        <th key={dist} className="text-right px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">{dist}</th>
+                      ))}
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {event.ticketPricing.phases.map((phase: any, idx: number) => (
+                      <tr key={idx} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
+                        <td className="px-3 py-2.5 font-bold text-foreground">{phase.phase}</td>
+                        <td className="px-3 py-2.5 text-foreground/80 font-mono text-[11px]">{phase.period}</td>
+                        {Object.values(phase.prices as Record<string, number>).map((price, pi) => (
+                          <td key={pi} className="px-3 py-2.5 text-right font-bold text-foreground">
+                            {(price as number).toLocaleString('vi-VN')}₫
+                          </td>
+                        ))}
+                        <td className="px-3 py-2.5 text-foreground/80 text-[11px] max-w-[180px]">{phase.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {event.ticketPricing.groupDiscount?.eligible && (
+                <div className="p-3 rounded-xl border border-border bg-muted/30 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-foreground/70" />
+                    <span className="text-[11px] font-bold text-foreground uppercase tracking-wide">Group Discount Policy</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {event.ticketPricing.groupDiscount.tiers.map((tier: any, i: number) => (
+                      <span key={i} className="text-[11px] px-2 py-1 rounded-lg bg-muted border border-border text-foreground font-medium">
+                        {tier.label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-foreground/85 leading-relaxed">{event.ticketPricing.groupDiscount.conditions}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Merchandise: Shirt, BIB, Medal */}
+          {("merchandise" in event && event.merchandise) && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Shirt className="h-4 w-4 text-foreground/70" />
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Race Kit & Merchandise Design</h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Running Shirt */}
+                <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
+                  <div className="relative w-full h-36 bg-muted/40">
+                    <Image
+                      src={event.merchandise.runningShirt.sizeChartImage}
+                      alt="Running Shirt Size Chart"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="p-2.5 space-y-1">
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Official Shirt</div>
+                    <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.runningShirt.description}</p>
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {event.merchandise.runningShirt.sizes.map((sz: string) => (
+                        <span key={sz} className="text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border text-foreground font-mono">{sz}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* BIB */}
+                <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
+                  <div className="relative w-full h-36 bg-muted/40">
+                    <Image
+                      src={event.merchandise.bib.designImage}
+                      alt="Race BIB Design"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="p-2.5 space-y-1">
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Race BIB Design</div>
+                    <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.bib.description}</p>
+                    <p className="text-[10px] text-foreground/70 leading-snug">{event.merchandise.bib.note}</p>
+                  </div>
+                </div>
+                {/* Medal */}
+                <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
+                  <div className="relative w-full h-36 bg-muted/40">
+                    <Image
+                      src={event.merchandise.medal.designImage}
+                      alt="Finisher Medal Design"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="p-2.5 space-y-1">
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Finisher Medal</div>
+                    <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.medal.description}</p>
+                    <p className="text-[10px] text-foreground/70 leading-snug">{event.merchandise.medal.note}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Organizer Bank / Beneficiary Account */}
+          {("organizer" in event && (event.organizer as any).beneficiaryAccount) && (
+            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
+              <div className="flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-foreground/70" />
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Beneficiary / Payment Account Details</h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                {[
+                  { label: "Account Holder", value: (event.organizer as any).beneficiaryAccount.accountHolder, mono: false, highlight: true },
+                  { label: "Bank Name", value: (event.organizer as any).beneficiaryAccount.bankName, mono: false, highlight: false },
+                  { label: "Account Number", value: (event.organizer as any).beneficiaryAccount.accountNumber, mono: true, highlight: true },
+                  { label: "Branch", value: (event.organizer as any).beneficiaryAccount.branch, mono: false, highlight: false },
+                  { label: "SWIFT / BIC", value: (event.organizer as any).beneficiaryAccount.swiftCode, mono: true, highlight: false },
+                  { label: "Transfer Note Format", value: (event.organizer as any).beneficiaryAccount.transferNote, mono: true, highlight: false },
+                ].map((row) => (
+                  <div key={row.label} className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-bold text-foreground/70 tracking-wide">{row.label}</span>
+                    <span className={`leading-snug text-foreground ${row.mono ? 'font-mono text-[11px]' : 'text-[12px]'} ${row.highlight ? 'font-bold' : 'font-medium'}`}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {(event.organizer as any).legalEntity && (
+                <div className="text-[11px] text-foreground/80 border-t border-border pt-2 font-medium">
+                  Registered Legal Entity: <span className="text-foreground font-bold">{(event.organizer as any).legalEntity}</span>
+                  {(event.organizer as any).website && (
+                    <> · <a href={(event.organizer as any).website} target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold hover:underline inline-flex items-center gap-1">
+                      <Globe className="h-3 w-3" />{(event.organizer as any).website}
+                    </a></>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Distance Selection Tabs & Preview Map */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Navigation className="h-4 w-4 text-foreground/70" />
+                <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                  Course Route Preview & Checkpoints
+                </h4>
+              </div>
+            </div>
+
+            {distances.length > 0 && (
               <Tabs
-                value={activeKey}
-                onValueChange={setSelectedDistanceKey}
+                value={selectedDistanceType}
+                onValueChange={(val) => setSelectedDistanceType(val)}
                 className="w-full"
               >
-                <TabsList className="w-full justify-start overflow-x-auto bg-muted/60 p-1 rounded-xl h-auto flex-wrap">
-                  {distances.map((dist, i) => (
+                <TabsList className="w-full justify-start overflow-x-auto bg-muted/60 p-1 rounded-xl">
+                  {distances.map((dist) => (
                     <TabsTrigger
-                      key={distanceKey(dist, i)}
-                      value={distanceKey(dist, i)}
+                      key={dist.type}
+                      value={dist.type}
                       className="text-xs font-semibold gap-1.5 data-[state=active]:bg-card"
                     >
                       <span
                         className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: dist.color || "#f97316" }}
+                        style={{ backgroundColor: dist.color }}
                       />
-                      {dist.name || dist.type} ({dist.distanceKm} km)
+                      {dist.type} ({dist.distanceKm}km)
                     </TabsTrigger>
                   ))}
                 </TabsList>
 
-                {distances.map((dist, i) => (
-                  <TabsContent
-                    key={distanceKey(dist, i)}
-                    value={distanceKey(dist, i)}
-                    className="space-y-4 pt-2"
-                  >
+                {distances.map((dist) => (
+                  <TabsContent key={dist.type} value={dist.type} className="space-y-4 pt-2">
+                    {/* Distance Detail Metrics */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      <Metric label="Tên hạng mục" value={dist.name || "—"} />
-                      <Metric label="Loại (type)" value={dist.type || "—"} />
-                      <Metric
-                        label="Cự ly"
-                        value={`${dist.distanceKm ?? "—"} km`}
-                      />
-                      <Metric
-                        label="Slot / Giá"
-                        value={`${(dist.capacity ?? 0).toLocaleString("vi-VN")} · ${formatMoney(dist.price, dist.currency || "VND")}`}
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Total Distance</div>
+                        <div className="text-lg font-black text-foreground">{dist.distanceKm} km</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Elevation Gain</div>
+                        <div className="text-lg font-black text-foreground">+{dist.elevationGainM} m</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Elevation Range</div>
+                        <div className="text-sm font-bold text-foreground mt-1">
+                          {dist.minElevationM}m → {dist.maxElevationM}m
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Checkpoints</div>
+                        <div className="text-lg font-black text-foreground">{dist.checkpoints.length} Stations</div>
+                      </div>
+                    </div>
+
+                    {/* Preview Map Section */}
+                    <div className="rounded-xl overflow-hidden border border-border shadow-lg relative">
+                      <div className="absolute top-3 left-3 z-[1000] bg-background/85 backdrop-blur-md px-3 py-1 rounded-lg border border-border text-xs font-semibold text-foreground flex items-center gap-1.5 shadow-md">
+                        <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: dist.color }} />
+                        {dist.name}
+                      </div>
+                      <RaceRouteMap
+                        route={route}
+                        startPoint={startPoint}
+                        finishPoint={finishPoint}
+                        checkpoints={checkpoints}
+                        height="320px"
+                        routeColor={dist.color}
                       />
                     </div>
 
-                    {route.length > 1 ? (
-                      <div className="rounded-xl overflow-hidden border border-border shadow-lg relative">
-                        <RaceRouteMap
-                          route={route}
-                          startPoint={startPoint}
-                          finishPoint={finishPoint}
-                          checkpoints={checkpoints}
-                          height="280px"
-                          routeColor={dist.color || "#f97316"}
-                        />
+                    {/* Checkpoint Breakdown List */}
+                    <div className="p-3.5 rounded-xl border border-border bg-card/40 space-y-2">
+                      <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
+                        Official Checkpoints Timeline
                       </div>
-                    ) : (
-                      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-xs text-muted-foreground">
-                        FE User hiện nộp cự ly không kèm polyline/checkpoint chi tiết —
-                        chỉ có điểm start/finish mặc định theo địa điểm giải.
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {dist.checkpoints.map((cp) => (
+                          <div
+                            key={cp.id}
+                            className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border text-xs"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className="p-1.5 rounded-md bg-background border border-border flex items-center justify-center">
+                                {cp.type === "water" ? (
+                                  <Droplets size={14} strokeWidth={1.75} className="text-foreground" />
+                                ) : cp.type === "medical" ? (
+                                  <HeartPulse size={14} strokeWidth={1.75} className="text-foreground" />
+                                ) : cp.type === "aid" ? (
+                                  <Coffee size={14} strokeWidth={1.75} className="text-foreground" />
+                                ) : cp.type === "start" ? (
+                                  <Flag size={14} strokeWidth={1.75} className="text-foreground" />
+                                ) : cp.type === "finish" ? (
+                                  <Trophy size={14} strokeWidth={1.75} className="text-foreground" />
+                                ) : (
+                                  <Timer size={14} strokeWidth={1.75} className="text-foreground" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-semibold text-foreground">{cp.name}</div>
+                                <div className="text-[10px] text-foreground/70">
+                                  KM {cp.km} · Alt: {cp.elevation}m
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] font-bold text-foreground bg-muted border border-border px-1.5 py-0.5 rounded">
+                                Cutoff: {cp.cutoff}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
                   </TabsContent>
                 ))}
               </Tabs>
             )}
           </div>
-
-          {/* Hồ sơ bắt buộc */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-amber-500" />
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Hồ sơ đính kèm ({docs.length})
-              </span>
-            </div>
-            {docs.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Chưa có document.</p>
-            ) : (
-              <ul className="space-y-2">
-                {docs.map((d) => (
-                  <li
-                    key={d.documentKey}
-                    className="flex items-center justify-between gap-2 text-xs rounded-lg border border-border bg-muted/20 px-3 py-2"
-                  >
-                    <div>
-                      <p className="font-semibold text-foreground">{d.title}</p>
-                      <p className="text-muted-foreground">
-                        {d.documentKey}
-                        {d.required ? " · bắt buộc" : ""}
-                        {d.fileName ? ` · ${d.fileName}` : ""}
-                      </p>
-                    </div>
-                    {d.fileUrl ? (
-                      <a
-                        href={mediaOpenUrl(d.fileUrl)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 font-semibold text-purple-500 hover:underline shrink-0"
-                        title={mediaOpenUrl(d.fileUrl)}
-                      >
-                        Mở <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">Không URL</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Điều kiện an toàn + liên hệ — rules từ FE */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                An toàn & đầu mối
-              </span>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-2 text-xs">
-              <Mini label="Liên hệ cơ quan chức năng" value={rules.authorityContact} />
-              <Mini label="Đối tác y tế" value={rules.medicalPartner} />
-              <Mini label="Chốt an ninh" value={String(rules.securityPosts ?? "")} />
-              <Mini label="Trạm hỗ trợ" value={String(rules.aidStations ?? "")} />
-              <Mini label="Người liên hệ" value={rules.contactName} />
-            </div>
-            {Array.isArray(rules.safetyChecklist) && rules.safetyChecklist.length > 0 ? (
-              <ul className="space-y-1.5 mt-2">
-                {rules.safetyChecklist.map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 text-xs text-muted-foreground"
-                  >
-                    <CheckCircle2
-                      className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${
-                        item.checked ? "text-emerald-500" : "text-muted-foreground/40"
-                      }`}
-                    />
-                    <span className={item.checked ? "text-foreground" : ""}>
-                      {item.label || `Điều kiện ${i + 1}`}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {rules.settlementNote ? (
-              <p className="text-[11px] text-muted-foreground italic border-t border-border pt-2">
-                {rules.settlementNote}
-              </p>
-            ) : null}
-          </div>
-
-          {/* Duyệt: giải thích public vs sắp mở */}
-          {onApprove ? (
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-2">
-              <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                Khi duyệt giải
-              </p>
-              <label className="flex items-start gap-2.5 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mt-1"
-                  checked={openRegistration}
-                  onChange={(e) => setOpenRegistration(e.target.checked)}
-                  disabled={busy}
-                />
-                <span>
-                  <span className="font-semibold text-foreground">
-                    Mở đăng ký ngay (public ĐK)
-                  </span>
-                  <span className="block text-xs text-muted-foreground mt-0.5">
-                    Bật → status <code>registration-open</code> (User FE: Đang mở).
-                    Tắt (mặc định) → <code>approved</code> (User FE: Sắp mở). API
-                    không tự mở ĐK nếu không gửi{" "}
-                    <code>openRegistration: true</code>.
-                  </span>
-                </span>
-              </label>
-            </div>
-          ) : null}
-
-          {showReject ? (
-            <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-4 space-y-2">
-              <p className="text-xs font-bold text-red-600 uppercase">Lý do từ chối</p>
-              <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                rows={3}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                placeholder="Nhập lý do (bắt buộc)…"
-                disabled={busy}
-              />
-            </div>
-          ) : null}
         </div>
 
-        <DialogFooter className="p-4 px-6 border-t border-border bg-muted/20 flex flex-row items-center justify-between sm:justify-between gap-2">
+        {/* Modal Footer with shadcn Buttons */}
+        <DialogFooter className="p-4 px-6 border-t border-border bg-muted/20 flex flex-row items-center justify-between sm:justify-between">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => setIsOpen(false)}
-            disabled={busy}
             className="text-muted-foreground hover:text-foreground"
           >
-            Đóng
+            Close
           </Button>
 
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="flex items-center gap-2">
             {onReject && (
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
-                disabled={busy}
-                onClick={async () => {
-                  if (!showReject) {
-                    setShowReject(true);
-                    return;
-                  }
-                  if (!rejectReason.trim()) return;
-                  await onReject(event, rejectReason.trim());
+                onClick={() => {
+                  onReject(event);
                   setIsOpen(false);
-                  setShowReject(false);
-                  setRejectReason("");
                 }}
               >
-                {showReject ? "Xác nhận từ chối" : "Từ chối"}
+                Reject Application
               </Button>
             )}
             {onApprove && (
               <Button
                 type="button"
                 size="sm"
-                disabled={busy}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5"
-                onClick={async () => {
-                  await onApprove(event, openRegistration);
+                onClick={() => {
+                  onApprove(event);
                   setIsOpen(false);
-                  setOpenRegistration(false);
                 }}
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {openRegistration ? "Duyệt & mở ĐK" : "Duyệt (Sắp mở)"}
+                Approve Event
               </Button>
             )}
           </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function Fact({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-2.5 min-w-0">
-      {icon}
-      <div className="min-w-0">
-        <div className="text-[10px] uppercase font-bold text-muted-foreground">
-          {label}
-        </div>
-        <div
-          className="text-xs font-semibold text-foreground truncate"
-          title={value}
-        >
-          {value}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-3 rounded-lg bg-card border border-border">
-      <div className="text-[10px] text-muted-foreground uppercase font-bold">
-        {label}
-      </div>
-      <div className="text-sm font-bold text-foreground mt-0.5 break-words">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function Mini({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 px-2.5 py-2">
-      <p className="text-[10px] uppercase font-bold text-muted-foreground">
-        {label}
-      </p>
-      <p className="font-semibold text-foreground mt-0.5">{value}</p>
-    </div>
   );
 }
 
