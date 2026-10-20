@@ -184,7 +184,7 @@ export default function Sidebar({
     // Derive from pathname
     if (pathname.startsWith("/coordinator")) return "coordinator";
     if (pathname.startsWith("/volunteer")) return "volunteer";
-    if (pathname.startsWith("/administrator")) return "administrator";
+    if (pathname.startsWith("/admin")) return "administrator";
     if (pathname.startsWith("/photographer")) return "photographer";
     return "coordinator";
   });
@@ -547,4 +547,3 @@ export default function Sidebar({
     </aside>
   );
 }
-

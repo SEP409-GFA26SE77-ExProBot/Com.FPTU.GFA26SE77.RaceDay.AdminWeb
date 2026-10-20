@@ -1,109 +1,122 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { extractRoleFromToken } from "./lib/jwt";
+import { mapAppRole } from "./lib/role";
 
-// Public paths that do not require authentication
 const PUBLIC_PATHS = ["/login"];
+const SHARED_PATHS = ["/profile", "/forbidden"];
 
-const ALLOWED_ROLES = ["admin", "administrator", "volunteer", "coordinator", "photographer"];
+const ROLE_PREFIX: Record<string, string> = {
+  ADMIN: "/admin",
+  VOLUNTEER: "/volunteer",
+  COORDINATOR: "/coordinator",
+  PHOTOGRAPHER: "/photographer",
+};
 
-/**
- * Extract role claim from JWT token payload string in Edge environment.
- */
-function extractRoleFromTokenString(token?: string | null): string | null {
-  if (!token || typeof token !== "string") return null;
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonStr = atob(base64);
-    const payload = JSON.parse(jsonStr);
+const ROLE_ROUTES: Record<string, string[]> = {
+  ADMIN: [
+    "approvals",
+    "payouts",
+    "finance",
+    "settings",
+    "package-durations",
+    "package-capacities",
+    "promos",
+    "users",
+    "reconciliation",
+    "audit",
+    "stats",
+  ],
+  VOLUNTEER: ["scanner", "manual", "issues", "status"],
+  COORDINATOR: [
+    "map",
+    "scanner",
+    "medical",
+    "cutoff",
+    "inventory",
+    "contingency",
+    "broom",
+  ],
+  PHOTOGRAPHER: [
+    "assignments",
+    "upload",
+    "ocr",
+    "corrections",
+    "analytics",
+    "publish",
+    "requests",
+  ],
+};
 
-    if (!payload || typeof payload !== "object") return null;
+const isPublic = (pathname: string) =>
+  PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-    const rawRole =
-      payload?.role ||
-      payload?.Role ||
-      payload?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
-      payload?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"];
+const matches = (pathname: string, base: string) =>
+  pathname === base || pathname.startsWith(`${base}/`);
 
-    return rawRole ? String(rawRole).toLowerCase() : null;
-  } catch {
-    return null;
-  }
-}
+const firstSegment = (pathname: string) => pathname.split("/")[1] ?? "";
 
-/**
- * Resolve target route from role.
- */
-function getTargetRoute(role?: string | null): string {
-  const r = (role || "").toLowerCase();
-  if (r === "admin" || r === "administrator") return "/administrator";
-  if (r === "coordinator") return "/coordinator";
-  if (r === "photographer") return "/photographer";
-  if (r === "volunteer") return "/volunteer";
-  return "/administrator";
-}
+const forbidden = (req: NextRequest) =>
+  NextResponse.redirect(new URL("/forbidden", req.url));
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search  } = request.nextUrl;
+  const token = request.cookies.get("accessToken")?.value;
 
-  // Skip static assets and system files
+  if (!token) {
+    if (isPublic(pathname)) return NextResponse.next(); // tránh vòng lặp redirect
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const rawRole = request.cookies.get("role")?.value;
+  const tokenRole = extractRoleFromToken(token);
+  // USER (IAM) / trống → RUNNER
+  const role = token ? mapAppRole(rawRole || tokenRole) : "";
+  const prefix = ROLE_PREFIX[role.toLocaleUpperCase()];
+
+  if (!prefix) {
+    const res = NextResponse.redirect(new URL("/login", request.url));
+    res.cookies.delete("accessToken");
+    res.cookies.delete("role");
+    return res;
+  }
+
+  // Đã login mà vào login → về "/"
+  if (pathname === "/login") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  for (const [r, p] of Object.entries(ROLE_PREFIX)) {
+    if (matches(pathname, p)) {
+      if (r !== role) return forbidden(request); // role khác → /forbidden
+      const clean = pathname.slice(p.length) || "/";
+      return NextResponse.redirect(new URL(clean + search, request.url));
+    }
+  }
+
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/static") ||
-    pathname.endsWith(".ico") ||
-    pathname.endsWith(".png") ||
-    pathname.endsWith(".jpg") ||
-    pathname.endsWith(".jpeg") ||
-    pathname.endsWith(".svg") ||
-    pathname.endsWith(".webp")
+    SHARED_PATHS.some((p) => matches(pathname, p))
   ) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("raceday_access_token")?.value;
-  const cookieRole = request.cookies.get("raceday_role")?.value;
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-
-  // If user is NOT logged in and attempting to access a protected route or /
-  if (!token && !isPublicPath) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("redirect", pathname);
-    }
-    return NextResponse.redirect(loginUrl);
+  // 6. URL gọn thuộc về role khác (volunteer gõ /finance) → /forbidden
+  const seg = firstSegment(pathname);
+  if (seg) {
+    const ownedByMe = ROLE_ROUTES[role]?.includes(seg);
+    const ownedByOther = Object.entries(ROLE_ROUTES).some(
+      ([r, segs]) => r !== role && segs.includes(seg),
+    );
+    if (!ownedByMe && ownedByOther) return forbidden(request);
   }
 
-  // If user IS logged in
-  if (token) {
-    const roleFromToken = extractRoleFromTokenString(token);
-    const effectiveRole = (roleFromToken || cookieRole || "").toLowerCase();
-
-    // Verify if role is in ALLOWED_ROLES (Admin, Volunteer, Coordinator, Photographer)
-    if (!ALLOWED_ROLES.includes(effectiveRole)) {
-      const response = NextResponse.redirect(new URL("/login?error=403", request.url));
-      response.cookies.delete("raceday_access_token");
-      response.cookies.delete("raceday_role");
-      return response;
-    }
-
-    const targetRoute = getTargetRoute(effectiveRole);
-
-    // Redirect root "/" or "/login" directly to their role-specific screen
-    if (pathname === "/" || pathname === "/login") {
-      return NextResponse.redirect(new URL(targetRoute, request.url));
-    }
-  }
-
-  return NextResponse.next();
+  // 7. Còn lại: rewrite vào thư mục của role
+  //    Route không ai sở hữu sẽ tự ra 404 đúng nghĩa
+  const target = pathname === "/" ? prefix : `${prefix}${pathname}`;
+  return NextResponse.rewrite(new URL(target + search, request.url));
 }
 
-// Keep middleware export for compatibility if needed
-export const middleware = proxy;
-
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

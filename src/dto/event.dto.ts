@@ -141,6 +141,10 @@ export interface RaceEventDto {
   registrationOpensAtUtc?: string | null;
   registrationClosesAtUtc?: string | null;
   packagePurchaseId?: string | null;
+  /** Optional — User FE cấu hình BIB theo giải; Admin chỉ đọc nếu có */
+  bibPrefix?: string | null;
+  bibRangeStart?: number | null;
+  bibRangeEnd?: number | null;
   createdAtUtc?: string;
   updatedAtUtc?: string;
 }

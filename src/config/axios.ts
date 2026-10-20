@@ -1,58 +1,71 @@
-import axios from "axios";
-import { getToken, clearAuth, isAllowedRole, extractRoleFromToken } from "@/lib/auth";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { BASE_URL } from "./global-config";
+import Cookies from "js-cookie";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
-export const BASE_ENDPOINT = "/api/v1"
-
-export const axiosInstance = axios.create({
+const api = axios.create({
   baseURL: BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000,
 });
 
-// Request Interceptor: Attach Bearer token & verify allowed role
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = getToken();
-    if (token) {
-      const role = extractRoleFromToken(token);
-      if (role && !isAllowedRole(role)) {
-        clearAuth();
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login?error=403";
-        }
-        return Promise.reject(new Error("Lỗi 403: Tài khoản không có quyền truy cập."));
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    if (typeof window !== "undefined") {
+      const token = Cookies.get("accessToken");
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
-      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle status errors
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
+api.interceptors.response.use(
+  (response) => response.data,
+  (error: AxiosError) => {
     if (error.response) {
       const status = error.response.status;
-      if (status === 401) {
-        clearAuth();
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login";
-        }
-      } else if (status === 403) {
-        clearAuth();
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login?error=403";
-        }
+      const resData = error.response.data as
+        | { error?: string; message?: string; title?: string }
+        | undefined;
+      const errorMsg =
+        resData?.error ||
+        resData?.message ||
+        resData?.title ||
+        (typeof resData === "string" ? resData : "");
+
+      switch (status) {
+        case 400:
+        case 422:
+          break;
+        case 401:
+          Cookies.remove("accessToken");
+          Cookies.remove("role");
+          if (typeof window !== "undefined") {
+            const path = window.location.pathname;
+            if (path !== "/" && !path.startsWith("/login")) {
+              window.location.href = `/login?from=${encodeURIComponent(path)}`;
+            }
+          }
+          break;
+        case 403:
+          console.error("Không có quyền truy cập.");
+          break;
+        case 500:
+          console.error("Lỗi máy chủ nội bộ (500):", errorMsg);
+          break;
+        default:
+          console.warn(`Lỗi API [${status}]:`, errorMsg || error.message);
       }
+    } else if (error.request) {
+      console.error("Không nhận được phản hồi từ server (Network Error)");
     }
+
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export default api;

@@ -11,7 +11,7 @@ export default function PhotographerLayout({
 }) {
   return (
     <ActiveTabProvider defaultTab="assignments">
-      <div className="light min-h-screen bg-[#f7f5f1]" data-theme="light">
+      <div className="min-h-screen">
         <OpsShell
           groups={PHOTOGRAPHER_NAV.groups}
           homeHref={PHOTOGRAPHER_NAV.homeHref}
