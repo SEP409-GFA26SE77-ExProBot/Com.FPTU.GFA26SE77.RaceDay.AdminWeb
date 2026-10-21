@@ -1,85 +1,139 @@
 "use client";
 
-import { SectionHeader, Card } from "@/components/ui";
+import { useCallback, useEffect, useState } from "react";
+import { BarChart3, Loader2 } from "lucide-react";
 import { RouteTab } from "@/context/ActiveTabContext";
+import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
+import { usePhotographerEvent } from "@/hooks/usePhotographerEvent";
+import { listPhotographerPhotos } from "@/api/photo";
+import { getApiErrorMessage } from "@/lib/error";
 
-const C = "#06B6D4";
-const CR = "6,182,212";
+type Stats = {
+  pending: number;
+  matched: number;
+  review: number;
+};
 
 export default function PhotographerAnalyticsPage() {
-  const events = [
-    { name: "Dalat Ultra Trail 2026", views: 14820, downloads: 3241, photos: 892 },
-    { name: "HCM City Night Run", views: 8430, downloads: 1802, photos: 441 },
-    { name: "Hanoi Spring 5K", views: 3210, downloads: 670, photos: 188 },
-  ];
-  const topPhotos = [
-    { file: "IMG_1042.jpg", views: 1204, downloads: 312 },
-    { file: "IMG_0881.jpg", views: 988, downloads: 244 },
-    { file: "IMG_2201.jpg", views: 742, downloads: 198 },
-    { file: "IMG_0993.jpg", views: 610, downloads: 155 },
-  ];
+  const { assignment, eventId, loading, error, reload } = usePhotographerEvent();
+  const [stats, setStats] = useState<Stats>({ pending: 0, matched: 0, review: 0 });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const refresh = useCallback(async (eid: string) => {
+    if (!eid) {
+      setStats({ pending: 0, matched: 0, review: 0 });
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const [p, m, r] = await Promise.all([
+        listPhotographerPhotos(eid, "pending", 1, 1),
+        listPhotographerPhotos(eid, "matched", 1, 1),
+        listPhotographerPhotos(eid, "review", 1, 1),
+      ]);
+      setStats({ pending: p.total, matched: m.total, review: r.total });
+    } catch (e) {
+      setErr(getApiErrorMessage(e, "Không tải thống kê."));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (eventId) void refresh(eventId);
+  }, [eventId, refresh]);
+
+  const total = stats.pending + stats.matched + stats.review;
+  const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
 
   return (
     <RouteTab tab="analytics">
-      <div className="animate-slide-up">
-      <SectionHeader
-        id="FR-PHO-05"
-        title="Photo Analytics"
-        desc="Track view and download counts for your photos across all events."
-        color={C}
-      />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "16px", marginBottom: "20px" }}>
-        {events.map((ev) => (
-          <Card key={ev.name}>
-            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "14px", marginBottom: "12px" }}>{ev.name}</div>
-            {[
-              { label: "👁️ Views", value: ev.views.toLocaleString("en-US"), max: 20000 },
-              { label: "⬇️ Downloads", value: ev.downloads.toLocaleString("en-US"), max: 5000 },
-              { label: "📷 Photos", value: ev.photos.toLocaleString("en-US"), max: 1000 },
-            ].map((m) => (
-              <div key={m.label} style={{ marginBottom: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#475569", marginBottom: "4px" }}>
-                  <span>{m.label}</span>
-                  <span style={{ color: C, fontWeight: 700 }}>{m.value}</span>
-                </div>
-                <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${(parseInt(m.value.replace(/,/g, "")) / m.max) * 100}%`,
-                      background: `rgba(${CR},0.7)`,
-                      borderRadius: "2px",
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </Card>
-        ))}
-      </div>
-      <Card>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "14px" }}>
-          🏆 Top Photos
+      <div className="mx-auto max-w-5xl space-y-5 px-1 py-2 animate-slide-up">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-cyan-600">
+            FR-PHO-05 · Pipeline
+          </p>
+          <h1 className="mt-1 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900">
+            <BarChart3 className="h-7 w-7 text-cyan-500" />
+            Thống kê ảnh
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Theo pipeline OCR của giải đang gán (chưa có API view/download).
+          </p>
         </div>
-        {topPhotos.map((p, i) => (
-          <div
-            key={p.file}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "10px 0",
-              borderBottom: i < topPhotos.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-            }}
-          >
-            <span style={{ fontSize: "20px", fontWeight: 900, color: "#1E293B", width: "24px", textAlign: "center" }}>#{i + 1}</span>
-            <span style={{ flex: 1, fontSize: "13px", color: "#94A3B8" }}>{p.file}</span>
-            <span style={{ fontSize: "12px", color: "#475569" }}>👁️ {p.views.toLocaleString("en-US")}</span>
-            <span style={{ fontSize: "12px", color: "#475569" }}>⬇️ {p.downloads.toLocaleString("en-US")}</span>
-          </div>
-        ))}
-      </Card>
-    </div>
+
+        <AssignmentBanner
+          assignment={assignment}
+          loading={loading}
+          error={error}
+          onRefresh={() => {
+            void reload();
+            if (eventId) void refresh(eventId);
+          }}
+        />
+
+        {err ? (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+            {err}
+          </p>
+        ) : null}
+
+        <div className="relative grid gap-4 sm:grid-cols-3">
+          {busy ? (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60">
+              <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+            </div>
+          ) : null}
+          {[
+            {
+              label: "Chờ OCR",
+              value: stats.pending,
+              bar: pct(stats.pending),
+              color: "bg-amber-400",
+            },
+            {
+              label: "Đã khớp",
+              value: stats.matched,
+              bar: pct(stats.matched),
+              color: "bg-emerald-400",
+            },
+            {
+              label: "Cần sửa",
+              value: stats.review,
+              bar: pct(stats.review),
+              color: "bg-rose-400",
+            },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+              <p className="text-3xl font-extrabold tracking-tight text-slate-900">
+                {s.value}
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-400">
+                {s.label}
+              </p>
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={`h-full rounded-full ${s.color}`}
+                  style={{ width: `${s.bar}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-cyan-50 to-white p-5 shadow-sm">
+          <p className="text-sm font-bold text-slate-800">Tổng trong pipeline</p>
+          <p className="mt-1 text-4xl font-black text-cyan-700">{total}</p>
+          <p className="mt-2 text-xs text-slate-500">
+            {assignment?.eventName || "—"}
+          </p>
+        </div>
+      </div>
     </RouteTab>
   );
 }

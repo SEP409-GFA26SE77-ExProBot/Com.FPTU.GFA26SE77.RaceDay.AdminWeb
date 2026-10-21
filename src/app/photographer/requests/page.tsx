@@ -1,68 +1,199 @@
 "use client";
 
-import { SectionHeader, Card, Badge, Btn } from "@/components/ui";
+import { useCallback, useEffect, useState } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Inbox,
+  Loader2,
+} from "lucide-react";
 import { RouteTab } from "@/context/ActiveTabContext";
-
-const C = "#06B6D4";
+import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
+import { usePhotographerEvent } from "@/hooks/usePhotographerEvent";
+import {
+  approveDispute,
+  listOpenEventDisputes,
+  rejectDispute,
+  type PhotoDisputeDto,
+} from "@/api/photo";
+import { getApiErrorMessage } from "@/lib/error";
 
 export default function PhotographerRequestsPage() {
-  const reqs = [
-    { id: "REQ-001", photo: "IMG_3821.jpg", type: "Remove", runner: "BIB #A0042", reason: "Privacy concern", status: "pending" },
-    { id: "REQ-002", photo: "IMG_3822.jpg", type: "Edit", runner: "BIB #B0117", reason: "Wrong BIB tagged", status: "resolved" },
-    { id: "REQ-003", photo: "IMG_3823.jpg", type: "Hide", runner: "BIB #A0289", reason: "Unflattering image", status: "pending" },
-    { id: "REQ-004", photo: "IMG_3824.jpg", type: "Remove", runner: "BIB #C0055", reason: "Duplicate photo", status: "pending" },
-    { id: "REQ-005", photo: "IMG_3825.jpg", type: "Edit", runner: "BIB #A0110", reason: "BIB correction", status: "resolved" },
-  ];
+  const { assignment, eventId, loading, error, reload } = usePhotographerEvent();
+  const [items, setItems] = useState<PhotoDisputeDto[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [actingId, setActingId] = useState<string | null>(null);
+  const [rejectDraft, setRejectDraft] = useState<Record<string, string>>({});
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  const typeColor = (t: string) => (t === "Remove" ? "rose" : t === "Hide" ? "amber" : "cyan");
+  const refresh = useCallback(async (eid: string) => {
+    if (!eid) {
+      setItems([]);
+      return;
+    }
+    setLoadingList(true);
+    setErr(null);
+    try {
+      setItems(await listOpenEventDisputes(eid));
+    } catch (e) {
+      setErr(getApiErrorMessage(e, "Không tải khiếu nại."));
+    } finally {
+      setLoadingList(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (eventId) void refresh(eventId);
+  }, [eventId, refresh]);
+
+  const onApprove = async (id: string) => {
+    if (!eventId) return;
+    setActingId(id);
+    setMsg(null);
+    setErr(null);
+    try {
+      await approveDispute(eventId, id);
+      setMsg("Đã duyệt — ảnh về NeedsReview.");
+      await refresh(eventId);
+    } catch (e) {
+      setErr(getApiErrorMessage(e, "Duyệt thất bại."));
+    } finally {
+      setActingId(null);
+    }
+  };
+
+  const onReject = async (id: string) => {
+    if (!eventId) return;
+    const reason = (rejectDraft[id] || "").trim();
+    if (!reason) {
+      setErr("Nhập lý do từ chối.");
+      return;
+    }
+    setActingId(id);
+    setMsg(null);
+    setErr(null);
+    try {
+      await rejectDispute(eventId, id, reason);
+      setMsg("Đã từ chối khiếu nại.");
+      await refresh(eventId);
+    } catch (e) {
+      setErr(getApiErrorMessage(e, "Từ chối thất bại."));
+    } finally {
+      setActingId(null);
+    }
+  };
 
   return (
     <RouteTab tab="requests">
-      <div className="animate-slide-up">
-      <SectionHeader
-        id="FR-PHO-07"
-        title="Edit / Hide / Remove Requests"
-        desc="Process photo modification requests from runners, subject to the Organizer's content policy."
-        color={C}
-      />
-      <Card>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              {["ID", "Photo", "Type", "Runner", "Reason", "Status", "Actions"].map((h) => (
-                <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "#334155", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  {h}
-                </th>
+      <div className="mx-auto max-w-5xl space-y-5 px-1 py-2 animate-slide-up">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-cyan-600">
+            FR-PHO-07 · Disputes
+          </p>
+          <h1 className="mt-1 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900">
+            <Inbox className="h-7 w-7 text-cyan-500" />
+            Khiếu nại ảnh
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Runner báo sai BIB / ảnh — duyệt để đưa ảnh vào hàng sửa, hoặc từ
+            chối kèm lý do.
+          </p>
+        </div>
+
+        <AssignmentBanner
+          assignment={assignment}
+          loading={loading}
+          error={error}
+          onRefresh={() => {
+            void reload();
+            if (eventId) void refresh(eventId);
+          }}
+        />
+
+        {msg ? (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            <CheckCircle2 className="h-4 w-4" /> {msg}
+          </div>
+        ) : null}
+        {err ? (
+          <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+            <AlertCircle className="h-4 w-4" /> {err}
+          </div>
+        ) : null}
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-extrabold text-slate-900">
+              Open ({items.length})
+            </h2>
+            {loadingList ? (
+              <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
+            ) : null}
+          </div>
+
+          {!items.length ? (
+            <p className="py-8 text-center text-sm text-slate-500">
+              Không có khiếu nại mở.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {items.map((d) => (
+                <li
+                  key={d.id}
+                  className="rounded-xl border border-slate-100 bg-slate-50/70 p-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-mono text-xs text-slate-400">
+                        {d.id.slice(0, 8)}… · photo {d.photoId.slice(0, 8)}…
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {d.reason}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {new Date(d.createdAtUtc).toLocaleString("vi-VN")}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                      {d.status}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={actingId === d.id}
+                      onClick={() => void onApprove(d.id)}
+                      className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-500 disabled:opacity-50"
+                    >
+                      Duyệt
+                    </button>
+                    <input
+                      value={rejectDraft[d.id] ?? ""}
+                      onChange={(e) =>
+                        setRejectDraft((m) => ({
+                          ...m,
+                          [d.id]: e.target.value,
+                        }))
+                      }
+                      placeholder="Lý do từ chối…"
+                      className="min-w-[180px] flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-cyan-400"
+                    />
+                    <button
+                      type="button"
+                      disabled={actingId === d.id}
+                      onClick={() => void onReject(d.id)}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Từ chối
+                    </button>
+                  </div>
+                </li>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {reqs.map((r) => (
-              <tr key={r.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <td style={{ padding: "10px", fontSize: "12px", color: "#475569", fontFamily: "monospace" }}>{r.id}</td>
-                <td style={{ padding: "10px", fontSize: "13px", color: "#94A3B8" }}>{r.photo}</td>
-                <td style={{ padding: "10px" }}>
-                  <Badge label={r.type} type={typeColor(r.type) as "rose" | "amber" | "cyan"} />
-                </td>
-                <td style={{ padding: "10px", fontSize: "13px", color: C, fontWeight: 600 }}>{r.runner}</td>
-                <td style={{ padding: "10px", fontSize: "12px", color: "#475569", maxWidth: "160px" }}>{r.reason}</td>
-                <td style={{ padding: "10px" }}>
-                  <Badge label={r.status} type={r.status === "resolved" ? "green" : "gray"} />
-                </td>
-                <td style={{ padding: "10px", display: "flex", gap: "6px" }}>
-                  {r.status === "pending" && (
-                    <>
-                      <Btn label="Approve" primary color={C} />
-                      <Btn label="Reject" />
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
-    </div>
+            </ul>
+          )}
+        </div>
+      </div>
     </RouteTab>
   );
 }

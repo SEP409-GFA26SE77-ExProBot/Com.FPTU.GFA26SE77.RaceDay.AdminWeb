@@ -1,75 +1,126 @@
 "use client";
 
-import { SectionHeader, Card, Btn } from "@/components/ui";
+import { useCallback, useEffect, useState } from "react";
+import { CheckCircle2, Loader2, Rocket } from "lucide-react";
 import { RouteTab } from "@/context/ActiveTabContext";
+import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
+import { usePhotographerEvent } from "@/hooks/usePhotographerEvent";
+import {
+  listPhotographerPhotos,
+  primaryBib,
+  type PhotoListItemDto,
+} from "@/api/photo";
+import { mediaOpenUrl } from "@/lib/media-url";
+import { getApiErrorMessage } from "@/lib/error";
 
-const C = "#06B6D4";
-const CR = "6,182,212";
-
+/**
+ * Không có API "publish" riêng — ảnh matched / manual_corrected đã search được.
+ * Màn này = gallery ảnh đã khớp.
+ */
 export default function PhotographerPublishPage() {
-  const pending = [
-    { count: 48, event: "Dalat Ultra Trail 2026", zone: "CP3", date: "2h ago" },
-    { count: 21, event: "Dalat Ultra Trail 2026", zone: "Finish", date: "3h ago" },
-    { count: 14, event: "HCM City Night Run", zone: "KM21", date: "1d ago" },
-  ];
+  const { assignment, eventId, loading, error, reload } = usePhotographerEvent();
+  const [items, setItems] = useState<PhotoListItemDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const refresh = useCallback(async (eid: string) => {
+    if (!eid) {
+      setItems([]);
+      setTotal(0);
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const page = await listPhotographerPhotos(eid, "matched", 1, 60);
+      setItems(page.items);
+      setTotal(page.total);
+    } catch (e) {
+      setErr(getApiErrorMessage(e, "Không tải ảnh matched."));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (eventId) void refresh(eventId);
+  }, [eventId, refresh]);
 
   return (
     <RouteTab tab="publish">
-      <div className="animate-slide-up">
-      <SectionHeader
-        id="FR-PHO-06"
-        title="Publish Photos"
-        desc="Confirm and publish tagged photos so runners can search by BIB number. Unpublished photos are only visible to you."
-        color={C}
-      />
-      {pending.map((batch, i) => (
-        <Card key={i} style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
-          <div
-            style={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "12px",
-              background: `rgba(${CR},0.12)`,
-              border: `1px solid rgba(${CR},0.22)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontSize: "18px", fontWeight: 800, color: C }}>{batch.count}</span>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "14px", marginBottom: "2px" }}>
-              {batch.event} — {batch.zone}
-            </div>
-            <div style={{ fontSize: "12px", color: "#475569" }}>
-              {batch.count} photos ready · uploaded {batch.date}
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Btn label="Preview" />
-            <Btn label="Publish All" primary color={C} colorRgb={CR} />
-          </div>
-        </Card>
-      ))}
-      <div style={{ textAlign: "center", marginTop: "24px" }}>
-        <button
-          style={{
-            padding: "10px 28px",
-            borderRadius: "10px",
-            background: `rgba(${CR},0.18)`,
-            border: `1px solid rgba(${CR},0.3)`,
-            color: C,
-            fontWeight: 700,
-            fontSize: "14px",
-            cursor: "pointer",
+      <div className="mx-auto max-w-5xl space-y-5 px-1 py-2 animate-slide-up">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-cyan-600">
+            FR-PHO-06 · Matched
+          </p>
+          <h1 className="mt-1 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900">
+            <Rocket className="h-7 w-7 text-cyan-500" />
+            Ảnh đã khớp
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Ảnh matched / đã sửa tay — runner tìm theo BIB được ngay (không cần
+            bước publish riêng).
+          </p>
+        </div>
+
+        <AssignmentBanner
+          assignment={assignment}
+          loading={loading}
+          error={error}
+          onRefresh={() => {
+            void reload();
+            if (eventId) void refresh(eventId);
           }}
-        >
-          🚀 Publish All Pending (83 photos)
-        </button>
+        />
+
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {total} ảnh sẵn sàng tìm kiếm
+          {busy ? <Loader2 className="ml-auto h-4 w-4 animate-spin" /> : null}
+        </div>
+
+        {err ? (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+            {err}
+          </p>
+        ) : null}
+
+        {!items.length && !busy ? (
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center text-sm text-slate-500">
+            Chưa có ảnh matched. Upload → chạy OCR trước.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {items.map((p) => (
+              <a
+                key={p.id}
+                href={mediaOpenUrl(p.url)}
+                target="_blank"
+                rel="noreferrer"
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={mediaOpenUrl(p.url)}
+                    alt=""
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="px-2.5 py-2">
+                  <p className="font-mono text-sm font-bold text-cyan-700">
+                    {primaryBib(p)}
+                  </p>
+                  <p className="truncate text-[11px] text-slate-400">
+                    {p.zone || "—"}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
     </RouteTab>
   );
 }

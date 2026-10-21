@@ -9,7 +9,6 @@ import {
   Clock,
   FileCheck,
   Flag,
-  FolderOpen,
   HeartPulse,
   ImagePlus,
   Keyboard,
@@ -183,12 +182,6 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
       heading: "Công việc",
       items: [
         {
-          id: "assignments",
-          label: "Phân công giải",
-          href: "/assignments",
-          icon: FolderOpen,
-        },
-        {
           id: "upload",
           label: "Tải ảnh lên",
           href: "/upload",
@@ -219,13 +212,13 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
         },
         {
           id: "publish",
-          label: "Xuất bản ảnh",
+          label: "Ảnh đã khớp",
           href: "/publish",
           icon: Rocket,
         },
         {
           id: "requests",
-          label: "Yêu cầu chỉnh / ẩn",
+          label: "Khiếu nại ảnh",
           href: "/requests",
           icon: ImagePlus,
         },
