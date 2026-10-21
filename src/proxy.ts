@@ -37,7 +37,6 @@ const ROLE_ROUTES: Record<string, string[]> = {
     "broom",
   ],
   PHOTOGRAPHER: [
-    "assignments",
     "upload",
     "ocr",
     "corrections",

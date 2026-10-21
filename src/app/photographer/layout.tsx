@@ -10,7 +10,7 @@ export default function PhotographerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ActiveTabProvider defaultTab="assignments">
+    <ActiveTabProvider defaultTab="upload">
       <div className="min-h-screen">
         <OpsShell
           groups={PHOTOGRAPHER_NAV.groups}
