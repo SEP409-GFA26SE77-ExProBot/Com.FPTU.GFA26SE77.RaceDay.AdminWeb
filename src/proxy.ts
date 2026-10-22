@@ -3,7 +3,7 @@ import { extractRoleFromToken } from "./lib/jwt";
 import { mapAppRole } from "./lib/role";
 
 const PUBLIC_PATHS = ["/login"];
-const SHARED_PATHS = ["/profile", "/forbidden"];
+const SHARED_PATHS = ["/profile", "/forbidden", "/change-password"];
 
 const ROLE_PREFIX: Record<string, string> = {
   ADMIN: "/admin",

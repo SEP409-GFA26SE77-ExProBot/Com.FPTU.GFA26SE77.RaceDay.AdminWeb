@@ -58,14 +58,15 @@ export default function VolunteerStatusPage() {
               Runner BIB
             </label>
             <input
+              className="runner-status-field"
               placeholder="Search by BIB or name…"
               style={{
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: "8px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
+                background: "var(--input)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--text-primary)",
                 fontSize: "13px",
               }}
             />
@@ -115,15 +116,16 @@ export default function VolunteerStatusPage() {
               Notes
             </label>
             <textarea
+              className="runner-status-field"
               placeholder="Reason / checkpoint location…"
               rows={2}
               style={{
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: "8px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
+                background: "var(--input)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--text-primary)",
                 fontSize: "13px",
                 resize: "none",
               }}

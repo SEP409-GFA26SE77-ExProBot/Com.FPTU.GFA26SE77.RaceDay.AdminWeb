@@ -54,14 +54,15 @@ export default function VolunteerIssuesPage() {
                 {f.label}
               </label>
               <input
+                className="runner-status-field"
                 placeholder={f.placeholder}
                 style={{
                   width: "100%",
                   padding: "9px 12px",
                   borderRadius: "8px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  color: "#fff",
+                  background: "var(--input)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text-primary)",
                   fontSize: "13px",
                 }}
               />
@@ -82,21 +83,22 @@ export default function VolunteerIssuesPage() {
               Issue Type
             </label>
             <select
+              className="runner-status-field"
               style={{
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: "8px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
+                background: "var(--input)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--text-primary)",
                 fontSize: "13px",
                 cursor: "pointer",
               }}
             >
-              <option style={{ background: "#0B0A14" }}>Lost QR Code</option>
-              <option style={{ background: "#0B0A14" }}>BIB Reissue Required</option>
-              <option style={{ background: "#0B0A14" }}>Medical Assistance</option>
-              <option style={{ background: "#0B0A14" }}>Other</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Lost QR Code</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>BIB Reissue Required</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Medical Assistance</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Other</option>
             </select>
           </div>
           <div style={{ marginBottom: "14px" }}>
@@ -114,15 +116,16 @@ export default function VolunteerIssuesPage() {
               Notes
             </label>
             <textarea
+              className="runner-status-field"
               placeholder="Describe the issue…"
               rows={3}
               style={{
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: "8px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
+                background: "var(--input)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--text-primary)",
                 fontSize: "13px",
                 resize: "vertical",
               }}
@@ -170,7 +173,7 @@ export default function VolunteerIssuesPage() {
                     style={{
                       fontSize: "15px",
                       fontWeight: 700,
-                      color: "#fff",
+                      color: "var(--text-primary, #0f172a)",
                       marginTop: "2px",
                     }}
                   >

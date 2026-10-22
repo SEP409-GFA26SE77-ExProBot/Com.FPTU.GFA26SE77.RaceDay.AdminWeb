@@ -1,53 +1,63 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SectionHeader, Card, Badge, Btn } from "@/components/ui";
 import RaceRouteMap from "@/components/sections/RaceRouteMap";
-import type { Coordinate, Checkpoint } from "@/components/sections/RaceRouteMap";
+import type { Checkpoint } from "@/components/sections/RaceRouteMap";
 import { RouteTab } from "@/context/ActiveTabContext";
-import eventsData from "@/events.json";
+import { getCoordinatorMapEvent } from "@/api/coordinator-map";
+import { mapCoordinatorEvent } from "@/lib/coordinator-map.mapper";
+import type { CoordinatorMapEvent } from "@/dto/coordinator-map.dto";
 
-// ─── Map checkpoint types from events.json → RaceRouteMap types ─────────────
-const CP_TYPE_MAP: Record<string, Checkpoint["type"]> = {
+const CP_TYPE_MAP: Record<string, NonNullable<Checkpoint["type"]>> = {
   water: "WATER",
   medical: "MEDICAL",
-  aid: "WATER",
+  aid: "AID",
   cutoff: "TIMING",
+  checkpoint: "CHECKPOINT",
   start: "CHECKPOINT",
   finish: "CHECKPOINT",
+  cp: "TIMING",
 };
 
-// ─── Derive the active event (first "live" event, or first overall) ─────────
-const activeEvent =
-  eventsData.find((e) => e.status === "live") ?? eventsData[0];
-
-type DistanceEntry = (typeof activeEvent.distances)[number];
-
 export default function CoordinatorMapPage() {
-  const distances = activeEvent.distances;
-  const [selectedDistId, setSelectedDistId] = useState(distances[0].type);
+  const [event, setEvent] = useState<CoordinatorMapEvent | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedDistId, setSelectedDistId] = useState("");
+  const [activeAlert, setActiveAlert] = useState<string | null>("SOS-001");
 
-  const selectedDist: DistanceEntry = useMemo(
-    () => distances.find((d) => d.type === selectedDistId) ?? distances[0],
-    [distances, selectedDistId]
+  useEffect(() => {
+    let active = true;
+    getCoordinatorMapEvent()
+      .then((dto) => {
+        if (!active) return;
+        const mapped = mapCoordinatorEvent(dto);
+        setEvent(mapped);
+        setSelectedDistId(mapped.distances[0]?.id ?? "");
+      })
+      .catch(() => {
+        if (active) setLoadError("Unable to load the race map. Check the map API configuration and try again.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedDist = useMemo(
+    () => event?.distances.find((distance) => distance.id === selectedDistId) ?? event?.distances[0],
+    [event, selectedDistId]
   );
 
-  // ── Convert events.json data → RaceRouteMapProps ─────────────────────────
-  const route: Coordinate[] = selectedDist.leafletPolyline.map(
-    (point) => ({ lat: point[0], lng: point[1] })
-  );
+  if (!event || !selectedDist) {
+    return (
+      <RouteTab tab="map">
+        <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-8 text-sm text-slate-300">
+          {loadError ?? "Loading race map…"}
+        </div>
+      </RouteTab>
+    );
+  }
 
-  const startPoint: Coordinate = {
-    lat: selectedDist.startLocation.lat,
-    lng: selectedDist.startLocation.lng,
-  };
-
-  const finishPoint: Coordinate = {
-    lat: selectedDist.finishLocation.lat,
-    lng: selectedDist.finishLocation.lng,
-  };
-
-  // Filter out start/finish from checkpoints (they already have dedicated markers)
   const checkpoints: Checkpoint[] = selectedDist.checkpoints
     .filter((cp) => cp.type !== "start" && cp.type !== "finish")
     .map((cp) => ({
@@ -55,391 +65,111 @@ export default function CoordinatorMapPage() {
       name: cp.name,
       latitude: cp.lat,
       longitude: cp.lng,
-      distanceFromStart: cp.km * 1000, // km → meters
-      type: CP_TYPE_MAP[cp.type] ?? "CHECKPOINT",
-      description: `Cutoff: ${cp.cutoff} · Elevation: ${cp.elevation}m`,
+      distanceFromStart: cp.km * 1000,
+      type: CP_TYPE_MAP[cp.type.toLowerCase()] ?? "CHECKPOINT",
+      description: [cp.cutoff ? `Cutoff: ${cp.cutoff}` : "", cp.elevation != null ? `Elevation: ${cp.elevation}m` : ""]
+        .filter(Boolean)
+        .join(" · "),
     }));
 
-  // ── Alert data (same as before) ──────────────────────────────────────────
   const alerts = [
-    {
-      id: "SOS-001",
-      bib: "A0301",
-      name: "Pham Van X",
-      loc: `KM 28.4 – ${selectedDist.name}`,
-      time: "09:22",
-      type: "SOS",
-      severity: "rose" as const,
-      dist: selectedDist.type,
-    },
-    {
-      id: "DEV-007",
-      bib: "B0089",
-      name: "Le Thi Y",
-      loc: `KM 6.2 – Off route 180m`,
-      time: "09:18",
-      type: "DEVIATION",
-      severity: "amber" as const,
-      dist: selectedDist.type,
-    },
+    { id: "SOS-001", bib: "A0301", name: "Pham Van X", loc: `KM 28.4 – ${selectedDist.name}`, time: "09:22", type: "SOS", severity: "rose" as const, dist: selectedDist.type },
+    { id: "DEV-007", bib: "B0089", name: "Le Thi Y", loc: "KM 6.2 – Off route 180m", time: "09:18", type: "DEVIATION", severity: "amber" as const, dist: selectedDist.type },
   ];
-
-  const [activeAlert, setActiveAlert] = useState<string | null>("SOS-001");
 
   return (
     <RouteTab tab="map">
       <div className="animate-slide-up">
         <SectionHeader
           id="FR-OPS-01"
-          title={`Race Route Map — ${activeEvent.name}`}
-          desc={`Interactive GPS route map for ${activeEvent.location}. Select a distance category to view route, checkpoints, water stations, and medical posts.`}
+          title={`Race Route Map — ${event.name}`}
+          desc={`Interactive course map for ${event.location}. Select a distance to view its route, checkpoints, water stations, and medical posts.`}
           color="#F59E0B"
         />
 
-        {/* ── Distance selector tabs ────────────────────────────────────── */}
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            marginBottom: "18px",
-            flexWrap: "wrap",
-          }}
-        >
-          {distances.map((d) => {
-            const isActive = d.type === selectedDistId;
+        <div className="mb-4 flex flex-wrap gap-2">
+          {event.distances.map((distance) => {
+            const isActive = distance.id === selectedDist.id;
             return (
               <button
-                key={d.type}
-                onClick={() => setSelectedDistId(d.type)}
+                key={distance.id}
+                onClick={() => setSelectedDistId(distance.id)}
+                className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition"
                 style={{
-                  padding: "8px 18px",
-                  borderRadius: "10px",
-                  border: `1.5px solid ${isActive ? d.color : "rgba(255,255,255,0.1)"}`,
-                  background: isActive
-                    ? `${d.color}18`
-                    : "rgba(255,255,255,0.03)",
-                  color: isActive ? d.color : "rgba(255,255,255,0.5)",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
+                  borderColor: isActive ? distance.color : "rgba(255,255,255,0.1)",
+                  background: isActive ? `${distance.color}18` : "rgba(255,255,255,0.03)",
+                  color: isActive ? distance.color : "rgba(255,255,255,0.55)",
                 }}
               >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: d.color,
-                    opacity: isActive ? 1 : 0.4,
-                  }}
-                />
-                {d.type} — {d.name}
+                <span className="h-2 w-2 rounded-full" style={{ background: distance.color, opacity: isActive ? 1 : 0.45 }} />
+                {distance.type} — {distance.name}
               </button>
             );
           })}
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 340px",
-            gap: "18px",
-            alignItems: "start",
-          }}
-        >
-          {/* ── Leaflet Race Route Map ──────────────────────────────────── */}
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
           <RaceRouteMap
-            route={route}
-            startPoint={startPoint}
-            finishPoint={finishPoint}
+            route={selectedDist.route}
+            startPoint={selectedDist.startPoint}
+            finishPoint={selectedDist.finishPoint}
             checkpoints={checkpoints}
-            height="580px"
+            height="min(68vh, 680px)"
             routeColor={selectedDist.color}
           />
 
-          {/* ── Sidebar ────────────────────────────────────────────────── */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "14px" }}
-          >
-            {/* Course Info Card */}
+          <div className="flex flex-col gap-3">
             <Card>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "14px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#64748B",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                  }}
-                >
-                  📍 Course Details
-                </div>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Course details</div>
                 <Badge label={selectedDist.type} type="violet" />
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "10px",
-                }}
-              >
-                <InfoCell
-                  value={`${selectedDist.distanceKm} km`}
-                  label="Total Distance"
-                  color={selectedDist.color}
-                />
-                <InfoCell
-                  value={`+${selectedDist.elevationGainM}m`}
-                  label="Elevation Gain"
-                  color="#06B6D4"
-                />
-                <InfoCell
-                  value={String(selectedDist.checkpoints.length)}
-                  label="Checkpoints"
-                  color="#F59E0B"
-                />
-                <InfoCell
-                  value={selectedDist.runnersCount.toLocaleString("en-US")}
-                  label="Registered"
-                  color="#10B981"
-                />
+              <div className="grid grid-cols-2 gap-2.5">
+                <InfoCell value={`${selectedDist.distanceKm} km`} label="Total distance" color={selectedDist.color} />
+                <InfoCell value={`+${selectedDist.elevationGainM}m`} label="Elevation gain" color="#06B6D4" />
+                <InfoCell value={String(selectedDist.checkpoints.length)} label="Course points" color="#F59E0B" />
+                <InfoCell value={selectedDist.runnersCount.toLocaleString("en-US")} label="Registered" color="#10B981" />
               </div>
-              {/* Elevation range */}
-              <div
-                style={{
-                  marginTop: "12px",
-                  padding: "10px",
-                  background: "rgba(255,255,255,0.02)",
-                  borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  fontSize: "12px",
-                  color: "#94A3B8",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-                <span>
-                  Min:{" "}
-                  <strong style={{ color: "#fff" }}>
-                    {selectedDist.minElevationM}m
-                  </strong>
-                </span>
-                <span>
-                  Max:{" "}
-                  <strong style={{ color: "#fff" }}>
-                    {selectedDist.maxElevationM}m
-                  </strong>
-                </span>
+              <div className="mt-3 flex justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-xs text-slate-400">
+                <span>Min: <strong className="text-white">{selectedDist.minElevationM}m</strong></span>
+                <span>Max: <strong className="text-white">{selectedDist.maxElevationM}m</strong></span>
               </div>
             </Card>
 
-            {/* Checkpoints list */}
             <Card>
-              <div
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  color: "#64748B",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
-                  marginBottom: "12px",
-                }}
-              >
-                🏁 Checkpoints ({selectedDist.checkpoints.length})
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                  maxHeight: "220px",
-                  overflowY: "auto",
-                }}
-              >
-                {selectedDist.checkpoints.map((cp, i) => (
-                  <div
-                    key={cp.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "8px 10px",
-                      borderRadius: "8px",
-                      background: "rgba(255,255,255,0.02)",
-                      border: "1px solid rgba(255,255,255,0.05)",
-                      fontSize: "12px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius:
-                          cp.type === "start" || cp.type === "finish"
-                            ? "50%"
-                            : "6px",
-                        background:
-                          cp.type === "start"
-                            ? "#10B981"
-                            : cp.type === "finish"
-                            ? "#EF4444"
-                            : cp.type === "water" || cp.type === "aid"
-                            ? "#3B82F6"
-                            : cp.type === "medical"
-                            ? "#EF4444"
-                            : "#F59E0B",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontWeight: 800,
-                        fontSize: "10px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {cp.type === "start"
-                        ? "S"
-                        : cp.type === "finish"
-                        ? "F"
-                        : i}
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">Checkpoints ({selectedDist.checkpoints.length})</div>
+              <div className="max-h-56 space-y-1.5 overflow-y-auto">
+                {selectedDist.checkpoints.map((cp, index) => (
+                  <div key={cp.id} className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-2 text-xs">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-extrabold text-white" style={{ background: checkpointColor(cp.type) }}>
+                      {cp.type === "start" ? "S" : cp.type === "finish" ? "F" : index}
                     </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          color: "#fff",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {cp.name}
-                      </div>
-                      <div style={{ color: "#64748B", fontSize: "11px" }}>
-                        KM {cp.km} · {cp.elevation}m · ⏱ {cp.cutoff}
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold text-white">{cp.name}</div>
+                      <div className="text-[11px] text-slate-500">KM {cp.km} · {cp.elevation ?? "—"}m{cp.cutoff ? ` · ${cp.cutoff}` : ""}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </Card>
 
-            {/* Active Incidents Card */}
             <Card>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "14px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#64748B",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                  }}
-                >
-                  🚨 Priority Alerts (2)
-                </div>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Priority alerts ({alerts.length})</div>
                 <Badge label="LIVE GPS" type="rose" />
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                {alerts.map((a) => {
-                  const isSelected = activeAlert === a.id;
+              <div className="flex flex-col gap-2.5">
+                {alerts.map((alert) => {
+                  const isSelected = activeAlert === alert.id;
+                  const alertColor = alert.severity === "rose" ? "#EF4444" : "#F59E0B";
                   return (
-                    <div
-                      key={a.id}
-                      onClick={() => setActiveAlert(a.id)}
-                      style={{
-                        padding: "12px",
-                        borderRadius: "10px",
-                        background:
-                          a.severity === "rose"
-                            ? "rgba(239,68,68,0.06)"
-                            : "rgba(245,158,11,0.06)",
-                        border: `1px solid ${
-                          isSelected
-                            ? a.severity === "rose"
-                              ? "#EF4444"
-                              : "#F59E0B"
-                            : a.severity === "rose"
-                            ? "rgba(239,68,68,0.2)"
-                            : "rgba(245,158,11,0.2)"
-                        }`,
-                        cursor: "pointer",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        <Badge label={a.type} type={a.severity} />
-                        <span style={{ fontSize: "11px", color: "#64748B" }}>
-                          {a.time}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: 700,
-                          color: "#fff",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        BIB {a.bib} · {a.name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          color: "#94A3B8",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        📍 {a.loc}{" "}
-                        <span style={{ color: "#F59E0B" }}>({a.dist})</span>
-                      </div>
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        <Btn
-                          label="Dispatch 🚑"
-                          primary
-                          small
-                          color="#F59E0B"
-                          colorRgb="245,158,11"
-                        />
-                        <Btn
-                          label="Radio Contact"
-                          small
-                          color="#F59E0B"
-                          colorRgb="245,158,11"
-                        />
+                    <div key={alert.id} onClick={() => setActiveAlert(alert.id)} className="cursor-pointer rounded-xl border p-3 transition" style={{ background: `${alertColor}0a`, borderColor: isSelected ? alertColor : `${alertColor}44` }}>
+                      <div className="mb-1.5 flex items-center justify-between"><Badge label={alert.type} type={alert.severity} /><span className="text-[11px] text-slate-500">{alert.time}</span></div>
+                      <div className="mb-1 text-sm font-bold text-white">BIB {alert.bib} · {alert.name}</div>
+                      <div className="mb-2.5 text-[11px] text-slate-400">📍 {alert.loc} <span style={{ color: "#F59E0B" }}>({alert.dist})</span></div>
+                      <div className="flex gap-1.5">
+                        <Btn label="Dispatch 🚑" primary small color="#F59E0B" colorRgb="245,158,11" />
+                        <Btn label="Radio contact" small color="#F59E0B" colorRgb="245,158,11" />
                       </div>
                     </div>
                   );
@@ -453,27 +183,19 @@ export default function CoordinatorMapPage() {
   );
 }
 
-// ─── Small info cell used in the sidebar ────────────────────────────────────
-function InfoCell({
-  value,
-  label,
-  color,
-}: {
-  value: string;
-  label: string;
-  color: string;
-}) {
+function checkpointColor(type: string) {
+  if (type === "start") return "#10B981";
+  if (type === "finish" || type === "medical") return "#EF4444";
+  if (type === "water") return "#3B82F6";
+  if (type === "aid") return "#A16207";
+  return "#F59E0B";
+}
+
+function InfoCell({ value, label, color }: { value: string; label: string; color: string }) {
   return (
-    <div
-      style={{
-        padding: "10px",
-        background: "rgba(255,255,255,0.02)",
-        borderRadius: "8px",
-        border: "1px solid rgba(255,255,255,0.05)",
-      }}
-    >
-      <div style={{ fontSize: "20px", fontWeight: 900, color }}>{value}</div>
-      <div style={{ fontSize: "10px", color: "#64748B" }}>{label}</div>
+    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+      <div className="text-xl font-black" style={{ color }}>{value}</div>
+      <div className="text-[10px] text-slate-500">{label}</div>
     </div>
   );
 }
