@@ -6,6 +6,16 @@ import { extractExpirationFromToken, extractRoleFromToken } from "@/lib/jwt";
 
 const PUBLIC_API = "api/v1/iam";
 
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+/** POST /api/v1/iam/auth/change-password */
+export async function changePassword(data: ChangePasswordDto): Promise<void> {
+  await api.post<void>(`${PUBLIC_API}/auth/change-password`, data);
+}
+
 /** POST /api/v1/iam/auth/login — stores accessToken / role / username / user_id cookies */
 export async function login(data: LoginDto): Promise<LoginResponse> {
   const loginPayload = {

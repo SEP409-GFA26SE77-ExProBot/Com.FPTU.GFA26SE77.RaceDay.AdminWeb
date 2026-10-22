@@ -17,6 +17,7 @@ import { useActiveTab } from "@/context/ActiveTabContext";
 import {
   ChevronDown,
   Flag,
+  KeyRound,
   LogOut,
   Menu,
   PanelLeftClose,
@@ -326,6 +327,14 @@ export default function OpsShell({
                       {username}
                     </p>
                   </div>
+                  <Link
+                    href="/change-password"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)]"
+                  >
+                    <KeyRound className="h-4 w-4" />
+                    Đổi mật khẩu
+                  </Link>
                   <button
                     type="button"
                     onClick={() => void logout()}
