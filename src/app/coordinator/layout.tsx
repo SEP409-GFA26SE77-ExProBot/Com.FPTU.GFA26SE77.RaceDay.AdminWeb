@@ -1,27 +1,8 @@
-"use client";
+import type { ReactNode } from "react";
+import { requireServerUser } from "@/lib/require-server-user";
+import RoleWorkspace from "@/components/RoleWorkspace";
 
-import OpsShell from "@/components/OpsShell";
-import { ActiveTabProvider } from "@/context/ActiveTabContext";
-import { COORDINATOR_NAV } from "@/config/ops-nav";
-
-export default function CoordinatorLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <ActiveTabProvider defaultTab="map">
-      <div className="min-h-screen">
-        <OpsShell
-          groups={COORDINATOR_NAV.groups}
-          homeHref={COORDINATOR_NAV.homeHref}
-          breadcrumbLabel={COORDINATOR_NAV.breadcrumbLabel}
-          footerLabel={COORDINATOR_NAV.footerLabel}
-          footerIcon={COORDINATOR_NAV.footerIcon}
-        >
-          {children}
-        </OpsShell>
-      </div>
-    </ActiveTabProvider>
-  );
+export default async function RoleLayout({ children }: { children: ReactNode }) {
+  await requireServerUser(["COORDINATOR"]);
+  return <RoleWorkspace role="COORDINATOR">{children}</RoleWorkspace>;
 }

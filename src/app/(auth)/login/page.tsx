@@ -1,11 +1,11 @@
 "use client";
+import { useAuthStore } from "@/stores/auth-store";
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Cookies from "js-cookie";
 import { login } from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/error";
-import { setStoredRole } from "@/lib/roleStorage";
+
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   Flag,
@@ -20,7 +20,8 @@ import "./auth.css";
 function LoginHomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fromPath = searchParams.get("from") || "/";
+  const requestedPath = searchParams.get("from") || "/";
+  const fromPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\") ? requestedPath : "/";
 
   const [form, setForm] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +48,7 @@ function LoginHomeInner() {
         username: form.username.trim(),
         password: form.password,
       });
-      const role = (Cookies.get("role") || res.role || "").toUpperCase();
+      const role = (res.role || "").toUpperCase();
       const roleId = {
         ADMIN: "admin",
         COORDINATOR: "coordinator",
@@ -56,17 +57,14 @@ function LoginHomeInner() {
       }[role];
 
       if (!roleId) {
-        Cookies.remove("accessToken");
-        Cookies.remove("role");
-        Cookies.remove("username");
-        Cookies.remove("user_id");
+        await useAuthStore.getState().logout();
         setError(
           "Tài khoản không thuộc Admin / Coordinator / Photographer / Volunteer."
         );
         return;
       }
 
-      setStoredRole(roleId);
+
 
       if (res.mustChangePassword) {
         setMustChangePasswordHint(true);

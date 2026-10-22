@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { requireServerUser } from "@/lib/require-server-user";
 import ChangePasswordShell from "@/components/ChangePasswordShell";
 import { mapAppRole } from "@/lib/role";
 
@@ -7,8 +7,8 @@ export default async function ChangePasswordLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const role = mapAppRole(cookieStore.get("role")?.value);
+  const user = await requireServerUser();
+  const role = mapAppRole(user.roleName);
 
   return <ChangePasswordShell role={role}>{children}</ChangePasswordShell>;
 }
