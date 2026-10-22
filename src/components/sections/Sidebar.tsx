@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
-import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
+import { useAuthStore } from "@/stores/auth-store";
+import type { NavItemConfig } from "@/config/roles";
+import { ADMINISTRATOR_NAV, COORDINATOR_NAV, PHOTOGRAPHER_NAV, VOLUNTEER_NAV } from "@/config/ops-nav";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
   QrCode,
@@ -173,39 +174,18 @@ export default function Sidebar({
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
 
-  // Determine active role from prop, storage/cookie, or pathname fallback
-  const [activeRoleKey, setActiveRoleKey] = useState<string>(() => {
-    if (propRole) return propRole;
-    const stored = getStoredRole();
-    if (stored && ROLES_CONFIG[stored]) return stored;
-    // Derive from pathname
-    if (pathname.startsWith("/coordinator")) return "coordinator";
-    if (pathname.startsWith("/volunteer")) return "volunteer";
-    if (pathname.startsWith("/admin")) return "administrator";
-    if (pathname.startsWith("/photographer")) return "photographer";
-    return "coordinator";
-  });
+  const verifiedRole = useAuthStore((state) => state.user?.roleName)?.toLowerCase();
+  const activeRoleKey = verifiedRole === "admin" ? "administrator" : verifiedRole || "";
 
-  useEffect(() => {
-    if (propRole) {
-      setActiveRoleKey(propRole);
-      setStoredRole(propRole);
-    } else {
-      const stored = getStoredRole();
-      if (stored && ROLES_CONFIG[stored]) {
-        setActiveRoleKey(stored);
-      } else {
-        // Infer from route
-        const segments = pathname.split("/").filter(Boolean);
-        if (segments[0] && ROLES_CONFIG[segments[0]]) {
-          setActiveRoleKey(segments[0]);
-          setStoredRole(segments[0]);
-        }
-      }
-    }
-  }, [propRole, pathname]);
-
-  const roleConfig: RoleConfig | undefined = ROLES_CONFIG[activeRoleKey];
+  const roleNav = ({ administrator: ADMINISTRATOR_NAV, coordinator: COORDINATOR_NAV, photographer: PHOTOGRAPHER_NAV, volunteer: VOLUNTEER_NAV } as const)[activeRoleKey as "administrator" | "coordinator" | "photographer" | "volunteer"];
+  const roleConfig = roleNav ? {
+    name: roleNav.breadcrumbLabel,
+    roleAbbr: verifiedRole?.slice(0, 3).toUpperCase(),
+    roleColor: "#F59E0B",
+    roleColorRgb: "245,158,11",
+    basePath: "",
+    navItems: roleNav.groups.flatMap((group) => group.items.map((item): NavItemConfig => ({ id: item.id, label: item.label, href: item.href, icon: item.id }))),
+  } : undefined;
 
   const roleName = propRoleName ?? roleConfig?.name ?? "RaceDay Admin";
   const roleAbbr = propRoleAbbr ?? roleConfig?.roleAbbr ?? "ADM";

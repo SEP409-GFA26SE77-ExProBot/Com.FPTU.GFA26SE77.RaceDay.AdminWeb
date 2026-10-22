@@ -1,27 +1,8 @@
-"use client";
+import type { ReactNode } from "react";
+import { requireServerUser } from "@/lib/require-server-user";
+import RoleWorkspace from "@/components/RoleWorkspace";
 
-import OpsShell from "@/components/OpsShell";
-import { ActiveTabProvider } from "@/context/ActiveTabContext";
-import { ADMINISTRATOR_NAV } from "@/config/ops-nav";
-
-export default function AdministratorLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <ActiveTabProvider defaultTab="approvals">
-      <div className="min-h-screen">
-        <OpsShell
-          groups={ADMINISTRATOR_NAV.groups}
-          homeHref={ADMINISTRATOR_NAV.homeHref}
-          breadcrumbLabel={ADMINISTRATOR_NAV.breadcrumbLabel}
-          footerLabel={ADMINISTRATOR_NAV.footerLabel}
-          footerIcon={ADMINISTRATOR_NAV.footerIcon}
-        >
-          {children}
-        </OpsShell>
-      </div>
-    </ActiveTabProvider>
-  );
+export default async function RoleLayout({ children }: { children: ReactNode }) {
+  await requireServerUser(["ADMIN"]);
+  return <RoleWorkspace role="ADMIN">{children}</RoleWorkspace>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/stores/auth-store";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,7 +12,6 @@ import {
   type ReactNode,
   type SVGProps,
 } from "react";
-import Cookies from "js-cookie";
 import { logout } from "@/api/auth";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
@@ -77,7 +77,7 @@ export default function OpsShell({
   const [username, setUsername] = useState("User");
 
   useEffect(() => {
-    setUsername(Cookies.get("username") || "User");
+    setUsername(getAuthUser()?.username || "User");
   }, []);
 
   const initial = username.charAt(0).toUpperCase() || "U";
