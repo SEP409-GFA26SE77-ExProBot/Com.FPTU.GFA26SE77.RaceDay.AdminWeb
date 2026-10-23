@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start --port 3001",
     "lint": "eslint",
-    "test:auth": "node --test tests/auth-store.test.mjs tests/auth-http.test.mjs"
+    "test:auth": "node --test tests/auth-store.test.mjs tests/auth-http.test.mjs",
+    "test:photo": "node --test tests/photo-upload.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
