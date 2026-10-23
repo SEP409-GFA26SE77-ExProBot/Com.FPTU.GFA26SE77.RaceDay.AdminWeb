@@ -1,45 +1,14 @@
 "use client";
-
-import { SectionHeader, Card, Badge, Btn } from "@/components/ui";
-import { RouteTab } from "@/context/ActiveTabContext";
-
-const C = "#06B6D4";
-const CR = "6,182,212";
+import { useRouter } from "next/navigation";
+import { Btn, Card } from "@/components/ui";
+import { PHOTO_COLOR, PHOTO_RGB, PhotoPage, usePhotoWorkspace } from "@/components/photographer/PhotoWorkspace";
 
 export default function PhotographerAssignmentsPage() {
-  const events = [
-    { name: "Dalat Ultra Trail 2026", date: "Sep 28, 2026", zone: "KM 0 – 15 (Start)", status: "active" as const, distance: "100km" },
-    { name: "HCM City Night Run", date: "Oct 12, 2026", zone: "Finish Line Gate", status: "upcoming" as const, distance: "42km" },
-    { name: "Hanoi Spring 5K", date: "Nov 03, 2026", zone: "CP3 – Hoan Kiem", status: "upcoming" as const, distance: "5km" },
-  ];
-
-  return (
-    <RouteTab tab="assignments">
-      <div className="animate-slide-up">
-        <SectionHeader
-          id="FR-PHO-01"
-          title="Event Assignments"
-          desc="Events assigned to you by the Organizer. View shooting zones, checkpoints, and race details."
-          color={C}
-        />
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {events.map((ev) => (
-            <Card key={ev.name} style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: `rgba(${CR},0.12)`, border: `1px solid rgba(${CR},0.22)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>
-                🏔️
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "15px", marginBottom: "2px" }}>{ev.name}</div>
-                <div style={{ fontSize: "12px", color: "#475569" }}>
-                  {ev.date} &nbsp;·&nbsp; {ev.distance} &nbsp;·&nbsp; Zone: <span style={{ color: C }}>{ev.zone}</span>
-                </div>
-              </div>
-              <Badge label={ev.status} type={ev.status === "active" ? "green" : "cyan"} />
-              <Btn label="View Details" primary color={C} colorRgb={CR} />
-            </Card>
-          ))}
-        </div>
-      </div>
-    </RouteTab>
-  );
+  const { assignments, selectEvent } = usePhotoWorkspace();
+  const router = useRouter();
+  return <PhotoPage tab="assignments" title="Phân công giải" description="Các giải bạn đang được ban tổ chức phân công làm nhiếp ảnh.">
+    <div className="space-y-3">{assignments.map((item) => <Card key={item.eventId}>
+      <div className="flex flex-wrap items-center justify-between gap-4"><div><h3 className="font-bold">{item.eventName}</h3><p className="my-2 text-sm text-[var(--text-secondary)]">{item.eventDate ? new Date(item.eventDate + "T00:00:00").toLocaleDateString("vi-VN") : "Chưa có ngày thi đấu"} · {item.stationLabel || "Chưa phân công khu vực"}</p><span className="text-xs font-semibold text-emerald-600">Phân công đang hoạt động</span></div><div className="flex flex-wrap gap-2"><Btn label="Tải ảnh cho giải" primary color={PHOTO_COLOR} colorRgb={PHOTO_RGB} onClick={() => { selectEvent(item.eventId); router.push("/upload"); }} /><Btn label="Xem ảnh của giải" onClick={() => { selectEvent(item.eventId); router.push("/ocr"); }} /></div></div>
+    </Card>)}</div>
+  </PhotoPage>;
 }
