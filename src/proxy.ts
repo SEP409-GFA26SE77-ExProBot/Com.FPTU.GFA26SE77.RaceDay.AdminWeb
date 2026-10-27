@@ -1,10 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
-import { userForRequest } from "@/lib/server-auth";
+import { extractRoleFromToken } from "./lib/jwt";
 import { mapAppRole } from "./lib/role";
 
-import { ROLE_PREFIX, ROLE_ROUTES } from "@/lib/route-permissions";
 const PUBLIC_PATHS = ["/login"];
-const SHARED_PATHS = ["/profile", "/forbidden", "/change-password"];
+const SHARED_PATHS = ["/profile", "/forbidden"];
+
+const ROLE_PREFIX: Record<string, string> = {
+  ADMIN: "/admin",
+  VOLUNTEER: "/volunteer",
+  COORDINATOR: "/coordinator",
+  PHOTOGRAPHER: "/photographer",
+};
+
+const ROLE_ROUTES: Record<string, string[]> = {
+  ADMIN: [
+    "approvals",
+    "payouts",
+    "finance",
+    "settings",
+    "package-durations",
+    "package-capacities",
+    "promos",
+    "users",
+    "reconciliation",
+    "audit",
+    "stats",
+  ],
+  VOLUNTEER: ["scanner", "manual", "issues", "status"],
+  COORDINATOR: [
+    "map",
+    "scanner",
+    "medical",
+    "cutoff",
+    "inventory",
+    "contingency",
+    "broom",
+  ],
+  PHOTOGRAPHER: [
+    "upload",
+    "ocr",
+    "corrections",
+    "analytics",
+    "publish",
+    "requests",
+  ],
+};
+
 const isPublic = (pathname: string) =>
   PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
@@ -16,24 +57,28 @@ const firstSegment = (pathname: string) => pathname.split("/")[1] ?? "";
 const forbidden = (req: NextRequest) =>
   NextResponse.redirect(new URL("/forbidden", req.url));
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search  } = request.nextUrl;
-  let user;
-  try { user = await userForRequest(request); }
-  catch { return new NextResponse("Authentication service unavailable", { status: 503 }); }
+  const token = request.cookies.get("accessToken")?.value;
 
-  if (!user) {
+  if (!token) {
     if (isPublic(pathname)) return NextResponse.next(); // tránh vòng lặp redirect
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname + search);
+    loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const role = mapAppRole(user.roleName);
-  const prefix = ROLE_PREFIX[role];
+  const rawRole = request.cookies.get("role")?.value;
+  const tokenRole = extractRoleFromToken(token);
+  // USER (IAM) / trống → RUNNER
+  const role = token ? mapAppRole(rawRole || tokenRole) : "";
+  const prefix = ROLE_PREFIX[role.toLocaleUpperCase()];
+
   if (!prefix) {
-    if (pathname === "/forbidden") return NextResponse.next();
-    return NextResponse.redirect(new URL("/forbidden", request.url));
+    const res = NextResponse.redirect(new URL("/login", request.url));
+    res.cookies.delete("accessToken");
+    res.cookies.delete("role");
+    return res;
   }
 
   // Đã login mà vào login → về "/"

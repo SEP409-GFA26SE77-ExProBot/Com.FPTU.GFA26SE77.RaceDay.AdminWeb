@@ -26,6 +26,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ThemeToggle } from "./ui";
+import { getNavBlockMessage } from "@/lib/nav-guard";
+import { toastWarn } from "@/lib/toast";
 
 export type OpsIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -216,7 +218,15 @@ export default function OpsShell({
                       <Link
                         key={leaf.href}
                         href={leaf.href}
-                        onClick={closeMobile}
+                        onClick={(e) => {
+                          const block = getNavBlockMessage();
+                          if (block && !active) {
+                            e.preventDefault();
+                            toastWarn(block);
+                            return;
+                          }
+                          closeMobile();
+                        }}
                         title={collapsed ? leaf.label : undefined}
                         className={linkClass(active)}
                       >

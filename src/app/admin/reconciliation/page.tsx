@@ -46,9 +46,9 @@ export default function AdministratorReconciliationPage() {
       <Card>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
               {["ID", "Type", "BIB", "Detail", "Severity", "Status", "Actions"].map((h) => (
-                <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "#334155", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                   {h}
                 </th>
               ))}
@@ -56,14 +56,14 @@ export default function AdministratorReconciliationPage() {
           </thead>
           <tbody>
             {anomalies.map((a) => (
-              <tr key={a.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <td style={{ padding: "10px", fontSize: "11px", color: "#334155", fontFamily: "monospace" }}>{a.id}</td>
-                <td style={{ padding: "10px", fontSize: "12px", color: "#94A3B8" }}>
+              <tr key={a.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                <td style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", fontFamily: "monospace" }}>{a.id}</td>
+                <td style={{ padding: "10px", fontSize: "12px", color: "var(--text-secondary)" }}>
                   <span style={{ marginRight: "4px" }}>{typeIcon(a.type)}</span>
                   {a.type}
                 </td>
                 <td style={{ padding: "10px", fontSize: "13px", fontWeight: 700, color: C, fontFamily: "monospace" }}>{a.bib}</td>
-                <td style={{ padding: "10px", fontSize: "11px", color: "#475569", maxWidth: "200px", lineHeight: 1.4 }}>{a.detail}</td>
+                <td style={{ padding: "10px", fontSize: "11px", color: "var(--text-secondary)", maxWidth: "200px", lineHeight: 1.4 }}>{a.detail}</td>
                 <td style={{ padding: "10px" }}><Badge label={a.severity === "rose" ? "HIGH" : "MEDIUM"} type={a.severity} /></td>
                 <td style={{ padding: "10px" }}><Badge label={a.status} type={a.status === "resolved" ? "green" : a.status === "review" ? "violet" : "amber"} /></td>
                 <td style={{ padding: "10px" }}>

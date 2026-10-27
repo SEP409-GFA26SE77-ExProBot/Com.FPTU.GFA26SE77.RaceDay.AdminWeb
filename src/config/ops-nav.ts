@@ -9,12 +9,13 @@ import {
   Clock,
   FileCheck,
   Flag,
-  FolderOpen,
   HeartPulse,
   ImagePlus,
   Keyboard,
   Map,
   Pencil,
+  Package,
+  Percent,
   PiggyBank,
   Radio,
   Rocket,
@@ -26,6 +27,7 @@ import {
   Truck,
   Upload,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -74,6 +76,29 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
           label: "Cấu hình phí",
           href: "/settings",
           icon: Settings,
+        },
+      ],
+    },
+    {
+      heading: "Gói tổ chức",
+      items: [
+        {
+          id: "package-durations",
+          label: "Gói thời hạn",
+          href: "/package-durations",
+          icon: Package,
+        },
+        {
+          id: "package-capacities",
+          label: "Quy mô VĐV",
+          href: "/package-capacities",
+          icon: UsersRound,
+        },
+        {
+          id: "promos",
+          label: "Mã giảm giá",
+          href: "/promos",
+          icon: Percent,
         },
       ],
     },
@@ -156,12 +181,6 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
     {
       heading: "Công việc",
       items: [
-        {
-          id: "assignments",
-          label: "Phân công giải",
-          href: "/assignments",
-          icon: FolderOpen,
-        },
         {
           id: "upload",
           label: "Tải ảnh lên",

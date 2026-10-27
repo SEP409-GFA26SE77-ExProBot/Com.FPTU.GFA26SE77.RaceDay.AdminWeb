@@ -1,67 +1,283 @@
 "use client";
 
-import { SectionHeader, Card, Badge } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { SectionHeader, Card, Badge, Button } from "@/components/ui";
 import { RouteTab } from "@/context/ActiveTabContext";
+import { listPagedAuditEntries } from "@/api/admin-audit";
+import type { AuditEntryDto } from "@/dto/admin-audit.dto";
+import { getApiErrorMessage } from "@/lib/error";
+import { RefreshCw } from "lucide-react";
 
 const C = "#8B5CF6";
+const PAGE_SIZE = 10;
+
+type Category =
+  | "all"
+  | "user"
+  | "event"
+  | "registration"
+  | "payment"
+  | "refund"
+  | "other";
+
+function categorize(action: string, resourceType: string): Category {
+  const a = action.toLowerCase();
+  const r = resourceType.toLowerCase();
+  if (
+    r === "user" ||
+    a.includes("user") ||
+    a.includes("password") ||
+    a.includes("organizerrole")
+  )
+    return "user";
+  if (r === "raceevent" || a.includes("raceevent")) return "event";
+  if (r === "registration" || a.includes("registration")) return "registration";
+  if (r === "payment" || a.includes("payment") || a.includes("package"))
+    return "payment";
+  if (r === "refund" || a.includes("refund")) return "refund";
+  return "other";
+}
+
+function catMeta(c: Category): {
+  label: string;
+  type: "cyan" | "amber" | "violet" | "rose" | "green" | "gray";
+} {
+  switch (c) {
+    case "user":
+      return { label: "user", type: "rose" };
+    case "event":
+      return { label: "event", type: "green" };
+    case "registration":
+      return { label: "registration", type: "violet" };
+    case "payment":
+      return { label: "payment", type: "cyan" };
+    case "refund":
+      return { label: "refund", type: "amber" };
+    default:
+      return { label: "other", type: "gray" };
+  }
+}
+
+function actionLabel(action: string) {
+  const map: Record<string, string> = {
+    UserCreated: "Tạo user",
+    UserUpdated: "Cập nhật user",
+    UserDeleted: "Xóa user",
+    UserLoggedIn: "Đăng nhập",
+    UserLocked: "Khóa user",
+    UserUnlocked: "Mở khóa user",
+    UserEmailVerified: "Xác thực email",
+    PasswordReset: "Đặt lại mật khẩu",
+    OrganizerRoleAssigned: "Gán role Organizer",
+    RaceEventCreated: "Tạo giải",
+    RaceEventSubmitted: "Nộp duyệt giải",
+    RaceEventApproved: "Duyệt giải",
+    RaceEventRejected: "Từ chối giải",
+    RegistrationCreated: "Đăng ký giải",
+    RegistrationConfirmed: "Xác nhận đăng ký",
+    RegistrationRejected: "Từ chối đăng ký",
+    PaymentCompleted: "Thanh toán vé",
+    PackagePaymentCompleted: "Thanh toán gói",
+    PaymentFailed: "Thanh toán lỗi",
+    RefundCompleted: "Hoàn tiền",
+  };
+  return map[action] || action;
+}
+
+function payloadPreview(raw?: string | null) {
+  if (!raw) return null;
+  try {
+    const obj = JSON.parse(raw) as Record<string, unknown>;
+    return Object.entries(obj)
+      .slice(0, 4)
+      .map(([k, v]) => `${k}: ${String(v)}`)
+      .join(" · ");
+  } catch {
+    return raw.length > 120 ? raw.slice(0, 120) + "…" : raw;
+  }
+}
 
 export default function AdministratorAuditPage() {
-  const entries = [
-    { time: "09:24:11", user: "Admin #1", action: "Result Override", target: "BIB A0042 CP3 time", old: "09:14:32", next: "09:14:18", category: "timing" },
-    { time: "09:18:45", user: "Coordinator", action: "Status Changed", target: "BIB A0195 → DNF", old: "Active", next: "DNF", category: "status" },
-    { time: "09:15:02", user: "Volunteer #3", action: "Manual Entry", target: "BIB C0091 CP3", old: "—", next: "09:05:00", category: "manual" },
-    { time: "09:12:30", user: "Admin #1", action: "User Suspended", target: "Le Van C", old: "Active", next: "Suspended", category: "user" },
-    { time: "09:10:00", user: "System", action: "Event Published", target: "Dalat Ultra 2026", old: "Draft", next: "Live", category: "event" },
-    { time: "08:55:17", user: "Admin #2", action: "Photo Removed", target: "IMG_3821.jpg", old: "Published", next: "Removed", category: "content" },
-    { time: "08:42:00", user: "Volunteer #7", action: "BIB Reissue", target: "A0301 → A0301-R", old: "A0301", next: "A0301-R", category: "bib" },
-  ];
-  const catColor = (c: string) =>
-    ({ timing: "cyan", status: "amber", manual: "violet", user: "rose", event: "green", content: "gray", bib: "cyan" }[c] ?? "gray") as "cyan" | "amber" | "violet" | "rose" | "green" | "gray";
-  const catIcon = (c: string) => ({ timing: "⏱️", status: "🚩", manual: "⌨️", user: "👤", event: "🏁", content: "🖼️", bib: "🔖" }[c] ?? "📋");
+  const [entries, setEntries] = useState<AuditEntryDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState<Category>("all");
+
+  const load = useCallback(async (p: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listPagedAuditEntries(p, PAGE_SIZE);
+      setEntries(res.items);
+      setTotal(res.total);
+      setPage(res.page);
+    } catch (e) {
+      setError(getApiErrorMessage(e, "Không tải được nhật ký audit."));
+      setEntries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load(1);
+  }, [load]);
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return entries.filter((e) => {
+      const cat = categorize(e.action, e.resourceType);
+      if (category !== "all" && cat !== category) return false;
+      if (!needle) return true;
+      const hay = [
+        e.action,
+        e.actorId,
+        e.resourceType,
+        e.resourceId,
+        e.payloadJson || "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [entries, q, category]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <RouteTab tab="audit">
       <div className="animate-slide-up">
-      <SectionHeader
-        id="FR-ADM-04"
-        title="Audit Trail"
-        desc="Full change log: who changed what, when, old value → new value. Especially critical for timing and result edits."
-        color={C}
-      />
-      <Card>
-        <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-          <input placeholder="🔍 Search by user, action, or BIB…" style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px" }} />
-          <select style={{ padding: "9px 14px", borderRadius: "9px", background: "var(--input)", border: "1px solid var(--border)", color: "var(--text-primary)", fontSize: "13px", cursor: "pointer" }}>
-            {["All Categories", "Timing", "Status", "Manual", "User", "Event", "Content"].map((c) => (
-              <option key={c} style={{ background: "var(--card)", color: "var(--text-primary)" }}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-          {entries.map((e, i) => (
-            <div key={i} style={{ display: "flex", gap: "16px", padding: "13px 0", borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none", alignItems: "flex-start" }}>
-              <span style={{ fontSize: "11px", fontFamily: "monospace", color: "var(--text-secondary)", flexShrink: 0, paddingTop: "2px", width: "70px" }}>{e.time}</span>
-              <span style={{ fontSize: "16px", flexShrink: 0 }}>{catIcon(e.category)}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>{e.action}</span>
-                  <Badge label={e.category} type={catColor(e.category)} />
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                  Target: <span style={{ color: C }}>{e.target}</span>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                <span style={{ fontSize: "11px", fontFamily: "monospace", padding: "2px 6px", borderRadius: "4px", background: "rgba(239,68,68,0.10)", color: "#F87171" }}>{e.old}</span>
-                <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>→</span>
-                <span style={{ fontSize: "11px", fontFamily: "monospace", padding: "2px 6px", borderRadius: "4px", background: "rgba(16,185,129,0.10)", color: "#10B981" }}>{e.next}</span>
-              </div>
-              <span style={{ fontSize: "11px", color: "var(--text-secondary)", flexShrink: 0, width: "96px", textAlign: "right" }}>{e.user}</span>
+        <SectionHeader
+          id="FR-ADM-04"
+          title="Nhật ký audit"
+          desc="Trail từ integration events: IAM, Event, Payment & hoàn tiền. Phân trang server-side."
+          color={C}
+        />
+
+        {error ? (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        ) : null}
+
+        <Card className="p-4">
+          <div className="mb-4 flex flex-wrap gap-3">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Lọc trang hiện tại: action, actor, resource…"
+              className="min-w-[200px] flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+            />
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="all">Tất cả</option>
+              <option value="user">User / IAM</option>
+              <option value="event">Giải</option>
+              <option value="registration">Đăng ký</option>
+              <option value="payment">Thanh toán</option>
+              <option value="refund">Hoàn tiền</option>
+              <option value="other">Khác</option>
+            </select>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void load(page)}
+              disabled={loading}
+              className="gap-1"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+              />
+              Tải lại
+            </Button>
+          </div>
+
+          {loading ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Đang tải…
+            </p>
+          ) : filtered.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Chưa có bản ghi audit (hoặc không khớp bộ lọc trang này).
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {filtered.map((e) => {
+                const cat = categorize(e.action, e.resourceType);
+                const meta = catMeta(cat);
+                const preview = payloadPreview(e.payloadJson);
+                return (
+                  <div
+                    key={e.id}
+                    className="flex gap-4 border-b border-border py-3 last:border-0"
+                  >
+                    <span className="w-[148px] shrink-0 pt-0.5 font-mono text-[11px] text-muted-foreground">
+                      {e.occurredOnUtc
+                        ? new Date(e.occurredOnUtc).toLocaleString("vi-VN")
+                        : "—"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-foreground">
+                          {actionLabel(e.action)}
+                        </span>
+                        <Badge label={meta.label} type={meta.type} />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {e.resourceType}{" "}
+                        <span style={{ color: C }} className="font-mono">
+                          {e.resourceId.slice(0, 8)}…
+                        </span>
+                        {preview ? (
+                          <span className="mt-0.5 block truncate">{preview}</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <span className="w-28 shrink-0 text-right text-[11px] text-muted-foreground">
+                      {e.actorId === "system" || e.actorId === "admin"
+                        ? e.actorId
+                        : `${e.actorId.slice(0, 8)}…`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </Card>
-    </div>
+          )}
+
+          <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-sm text-muted-foreground">
+            <span>
+              Trang {page}/{totalPages} · {total} bản ghi
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={page <= 1 || loading}
+                onClick={() => void load(page - 1)}
+              >
+                Trước
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={page >= totalPages || loading}
+                onClick={() => void load(page + 1)}
+              >
+                Sau
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
     </RouteTab>
   );
 }

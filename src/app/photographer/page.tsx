@@ -1,5 +1,7 @@
-import PhotographerAssignmentsPage from "./assignments/page";
+"use client";
 
-export default function PhotographerRootPage() {
-  return <PhotographerAssignmentsPage />;
+import PhotographerUploadPage from "./upload/page";
+
+export default function PhotographerPage() {
+  return <PhotographerUploadPage />;
 }
