@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -37,43 +37,14 @@ import type { RaceEventDto } from "@/dto/event.dto";
 import type { CourseConfigDto } from "@/dto/race-map.dto";
 import { getApiErrorMessage } from "@/lib/error";
 import { mediaOpenUrl } from "@/lib/media-url";
+import { courseToRoute, courseToCheckpoints } from "@/lib/race-map.mapper";
 import {
   buildOrganizerSetupChecklist,
   checklistReady,
-  distanceHasRoute,
   type SetupCheckId,
   type SetupCheckItem,
 } from "@/lib/organizer-setup-checklist";
 import { RouteTab } from "@/context/ActiveTabContext";
-
-/** Map course CP types → RaceRouteMap marker types (màu cam / nâu). */
-function courseCpToMapType(type: string): Checkpoint["type"] {
-  if (type === "aid") return "AID";
-  if (type === "cp") return "TIMING";
-  return "CHECKPOINT";
-}
-
-function courseToRoute(course: CourseConfigDto | null): Coordinate[] {
-  if (!course?.polyline?.length) return [];
-  return course.polyline
-    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
-    .map((p) => ({ lat: p.lat, lng: p.lng }));
-}
-
-function courseToCheckpoints(course: CourseConfigDto | null): Checkpoint[] {
-  if (!course?.checkpoints?.length) return [];
-  return course.checkpoints
-    .filter((cp) => cp.type === "cp" || cp.type === "aid")
-    .map((cp) => ({
-      id: cp.id,
-      name: cp.name,
-      latitude: cp.lat,
-      longitude: cp.lng,
-      distanceFromStart: (cp.km || 0) * 1000,
-      type: courseCpToMapType(cp.type),
-      description: cp.cutoff ? `Cutoff: ${cp.cutoff}` : undefined,
-    }));
-}
 
 function formatMoney(n?: number | null, currency = "VND") {
   if (n == null || Number.isNaN(n)) return "—";
@@ -102,8 +73,12 @@ const SECTION_NAV: { id: SetupCheckId; label: string; icon: typeof FileText }[] 
 
 export default function AdminEventReviewPage() {
   const params = useParams();
-  const router = useRouter();
   const eventId = String(params?.id || "");
+  return <AdminEventReview key={eventId} eventId={eventId} />;
+}
+
+function AdminEventReview({ eventId }: { eventId: string }) {
+  const router = useRouter();
 
   const [event, setEvent] = useState<RaceEventDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,77 +92,73 @@ export default function AdminEventReviewPage() {
     docs: true,
   });
   const [activeDistanceIdx, setActiveDistanceIdx] = useState(0);
-  /** distanceId → course từ Map API (null = chưa có / lỗi) */
+  /** Keep successful empty courses; null means the request failed. */
   const [coursesByDistanceId, setCoursesByDistanceId] = useState<
     Record<string, CourseConfigDto | null>
   >({});
+  const [courseErrors, setCourseErrors] = useState<Record<string, string>>({});
   const [coursesLoaded, setCoursesLoaded] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!eventId) return;
-    setLoading(true);
-    setError(null);
-    setCoursesLoaded(false);
-    try {
-      const data = await getAdminEventById(eventId);
-      setEvent(data);
-
-      const distances = data.distances || [];
-      if (distances.length === 0) {
-        setCoursesByDistanceId({});
-        setCoursesLoaded(true);
-      } else {
-        // Map lưu ở Map module (không phải field distance) — luôn hỏi API.
-        const entries = await Promise.all(
-          distances.map(async (d) => {
-            if (!d.id) return [d.id || "", null] as const;
-            try {
-              const course = await getEventCourse(eventId, d.id);
-              return [
-                d.id,
-                courseHasRoute(course) ? course : null,
-              ] as const;
-            } catch {
-              return [d.id, null] as const;
-            }
-          })
-        );
-        setCoursesByDistanceId(Object.fromEntries(entries));
-        setCoursesLoaded(true);
-      }
-    } catch (e) {
-      setError(getApiErrorMessage(e, "Không tải được hồ sơ giải."));
-      setEvent(null);
-      setCoursesLoaded(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId]);
-
   useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const data = await getAdminEventById(eventId);
+        if (!active) return;
+        setEvent(data);
+
+        const distances = data.distances || [];
+        if (distances.length === 0) {
+          setCoursesByDistanceId({});
+          setCoursesLoaded(true);
+        } else {
+          // Map lưu ở Map module (không phải field distance) — luôn hỏi API.
+          const entries = await Promise.all(
+            distances.map(async (d) => {
+              if (!d.id) return ["", null, "Cự ly chưa có ID."] as const;
+              try {
+                const course = await getEventCourse(eventId, d.id);
+                return [d.id, course, null] as const;
+              } catch (error) {
+                return [d.id, null, getApiErrorMessage(error, "Không tải được cung đường.")] as const;
+              }
+            })
+          );
+          if (!active) return;
+          setCoursesByDistanceId(Object.fromEntries(entries.map(([id, course]) => [id, course])));
+          setCourseErrors(Object.fromEntries(entries.flatMap(([id, , error]) => error ? [[id, error]] : [])));
+          setCoursesLoaded(true);
+        }
+      } catch (e) {
+        if (!active) return;
+        setError(getApiErrorMessage(e, "Không tải được hồ sơ giải."));
+        setEvent(null);
+        setCoursesLoaded(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
     void load();
-  }, [load]);
+    return () => { active = false; };
+  }, [eventId]);
 
   const mapHint = useMemo(() => {
     if (!event) return undefined;
     const distances = event.distances || [];
-    const fromFields = distanceHasRoute(event);
-    if (!coursesLoaded && !fromFields) {
+    if (!coursesLoaded) {
       return { mapOk: false, mapSummary: "Đang kiểm tra map…" };
     }
     const withMap = distances.filter(
       (d) => d.id && courseHasRoute(coursesByDistanceId[d.id] ?? null)
     ).length;
-    const mapOk = fromFields || withMap > 0;
+    const mapOk = withMap > 0;
     return {
       mapOk,
       mapSummary: mapOk
-        ? withMap > 0
-          ? `${withMap}/${distances.length} cự ly có cung đường`
-          : "Có polyline gắn trên cự ly"
-        : "Chưa thiết lập cung đường",
+        ? `${withMap}/${distances.length} cự ly có cung đường`
+        : Object.keys(courseErrors).length ? "Không tải được cung đường từ Map API" : "Chưa thiết lập cung đường",
     };
-  }, [event, coursesByDistanceId, coursesLoaded]);
+  }, [event, coursesByDistanceId, coursesLoaded, courseErrors]);
 
   const checks = useMemo(
     () => (event ? buildOrganizerSetupChecklist(event, mapHint) : []),
@@ -209,36 +180,8 @@ export default function AdminEventReviewPage() {
     return null;
   }, [activeDistance?.id, coursesByDistanceId]);
 
-  const route: Coordinate[] = useMemo(() => {
-    const fromCourse = courseToRoute(activeCourse);
-    if (fromCourse.length >= 2) return fromCourse;
-    const line = activeDistance?.leafletPolyline;
-    if (!Array.isArray(line) || !line.length) return [];
-    return line
-      .filter((p) => Array.isArray(p) && p.length >= 2)
-      .map((point) => ({
-        lat: Number(point[0]),
-        lng: Number(point[1]),
-      }));
-  }, [activeCourse, activeDistance]);
-
-  const checkpoints: Checkpoint[] = useMemo(() => {
-    const fromCourse = courseToCheckpoints(activeCourse);
-    if (fromCourse.length) return fromCourse;
-    const list = activeDistance?.checkpoints;
-    if (!Array.isArray(list)) return [];
-    return list
-      .filter((cp) => cp.type !== "start" && cp.type !== "finish")
-      .map((cp) => ({
-        id: cp.id,
-        name: cp.name,
-        latitude: cp.lat,
-        longitude: cp.lng,
-        distanceFromStart: (cp.km || 0) * 1000,
-        type: courseCpToMapType(cp.type),
-        description: cp.cutoff ? `Cutoff: ${cp.cutoff}` : undefined,
-      }));
-  }, [activeCourse, activeDistance]);
+  const route = useMemo(() => courseToRoute(activeCourse), [activeCourse]);
+  const checkpoints = useMemo(() => courseToCheckpoints(activeCourse), [activeCourse]);
 
   const toggle = (id: string) =>
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -543,6 +486,7 @@ export default function AdminEventReviewPage() {
                           coursesByDistanceId={coursesByDistanceId}
                           coursesLoaded={coursesLoaded}
                           activeCourse={activeCourse}
+                          courseError={courseErrors[activeDistance?.id ?? ""]}
                         />
                       ) : null}
                     </div>
@@ -817,6 +761,9 @@ function MapLegend() {
     { color: "#b91c1c", label: "Vạch đích (F)", hint: "Điểm finish" },
     { color: "#c2410c", label: "Chấm cam", hint: "Checkpoint timing (CP)" },
     { color: "#a16207", label: "Chấm nâu", hint: "Điểm tiếp tế (aid)" },
+    { color: "#3B82F6", label: "Chấm xanh", hint: "Trạm nước (water)" },
+    { color: "#EF4444", label: "Chấm đỏ", hint: "Trạm y tế (medical)" },
+    { color: "#c2410c", label: "Cutoff", hint: "Điểm giới hạn thời gian" },
     { color: "#ea580c", label: "Đường cam", hint: "Polyline cung đường" },
   ];
   return (
@@ -851,6 +798,7 @@ function MapDetail({
   coursesByDistanceId,
   coursesLoaded,
   activeCourse,
+  courseError,
 }: {
   event: RaceEventDto;
   activeIdx: number;
@@ -860,6 +808,7 @@ function MapDetail({
   coursesByDistanceId: Record<string, CourseConfigDto | null>;
   coursesLoaded: boolean;
   activeCourse: CourseConfigDto | null;
+  courseError?: string;
 }) {
   const distances = event.distances || [];
   if (!distances.length) {
@@ -873,18 +822,20 @@ function MapDetail({
   const startPoint = {
     lat:
       start?.lat ??
-      activeCourse?.polyline?.[0]?.lat ??
+      route[0]?.lat ??
+      activeCourse?.waypoints[0]?.lat ??
       d.startLocation?.lat ??
       event.coordinates?.lat ??
       10.78,
     lng:
       start?.lng ??
-      activeCourse?.polyline?.[0]?.lng ??
+      route[0]?.lng ??
+      activeCourse?.waypoints[0]?.lng ??
       d.startLocation?.lng ??
       event.coordinates?.lng ??
       106.7,
   };
-  const last = activeCourse?.polyline?.[activeCourse.polyline.length - 1];
+  const last = route[route.length - 1] ?? activeCourse?.waypoints[activeCourse.waypoints.length - 1];
   const finishPoint = {
     lat:
       finish?.lat ??
@@ -927,11 +878,20 @@ function MapDetail({
 
       <MapLegend />
 
+      {activeCourse && (
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <p>{activeCourse.title || d.name || "Cung đường"} · {activeCourse.distanceKm} km · {activeCourse.waypoints.length} điểm điều hướng · {activeCourse.checkpoints.length} điểm trên đường</p>
+          <p>Cập nhật: <time dateTime={activeCourse.updatedAt}>{formatDt(activeCourse.updatedAt)}</time></p>
+        </div>
+      )}
+
       {!coursesLoaded ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
           Đang tải cung đường từ Map API…
         </div>
+      ) : courseError ? (
+        <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/5 px-3 py-2.5 text-xs text-red-600">{courseError}</p>
       ) : route.length > 1 ? (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
@@ -940,7 +900,7 @@ function MapDetail({
               ? ` · ${activeCourse.distanceKm.toFixed(2)} km`
               : ""}
             {checkpoints.length
-              ? ` · ${checkpoints.length} điểm CP/tiếp tế`
+              ? ` · ${checkpoints.length} điểm kiểm soát / hỗ trợ`
               : ""}
           </p>
           <div className="overflow-hidden rounded-xl border border-border">

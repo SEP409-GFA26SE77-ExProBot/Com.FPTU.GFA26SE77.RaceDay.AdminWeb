@@ -1,26 +1,11 @@
+import type { RaceCheckpointDto } from "@/dto/race-map.dto";
+
 /**
  * Coordinator map transport and view types.
  * Keep API response changes here and in coordinator-map.mapper.ts so the map UI
  * only depends on the stable view model below.
  */
-export type CoordinatorCheckpointType =
-  | "start"
-  | "finish"
-  | "water"
-  | "aid"
-  | "medical"
-  | "cutoff"
-  | "checkpoint"
-  | (string & {});
-
-export interface CoordinatorMapCheckpointDto {
-  id: string;
-  name: string;
-  km: number;
-  lat: number;
-  lng: number;
-  type: CoordinatorCheckpointType;
-  cutoff?: string;
+export interface CoordinatorMapCheckpointDto extends RaceCheckpointDto {
   elevation?: number;
 }
 
@@ -35,13 +20,11 @@ export interface CoordinatorMapDistanceDto {
   runnersCount?: number;
   registeredCount?: number;
   color?: string;
-  startLocation: { name?: string; lat: number; lng: number };
-  finishLocation: { name?: string; lat: number; lng: number };
-  checkpoints: CoordinatorMapCheckpointDto[];
-  leafletPolyline: [number, number][];
+  startLocation?: { name?: string; lat: number; lng: number };
+  finishLocation?: { name?: string; lat: number; lng: number };
 }
 
-/** Current fixture/API shape. Replace this boundary when the coordinator API is finalized. */
+/** Metadata from GET /api/v1/event/{eventId}. */
 export interface CoordinatorMapEventDto {
   id: string;
   name: string;
@@ -58,10 +41,10 @@ export interface CoordinatorMapDistance {
   type: string;
   name: string;
   distanceKm: number;
-  elevationGainM: number;
-  minElevationM: number;
-  maxElevationM: number;
-  runnersCount: number;
+  elevationGainM: number | null;
+  minElevationM: number | null;
+  maxElevationM: number | null;
+  runnersCount: number | null;
   color: string;
   route: Array<{ lat: number; lng: number }>;
   startPoint: { lat: number; lng: number };
