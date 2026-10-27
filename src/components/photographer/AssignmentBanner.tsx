@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { Camera, Loader2, RefreshCw } from "lucide-react";
 import type { StaffAssignmentDto } from "@/api/check-in";
 
 type Props = {
@@ -9,6 +9,29 @@ type Props = {
   error?: string | null;
   onRefresh?: () => void;
 };
+
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("vi-VN");
+}
+
+function formatStart(
+  eventDate?: string | null,
+  startTime?: string | null
+): string {
+  const date = formatDate(eventDate);
+  if (!startTime) return date;
+  // TimeOnly serializes as "HH:mm:ss"
+  const time = startTime.length >= 5 ? startTime.slice(0, 5) : startTime;
+  return date === "—" ? time : `${date} ${time}`;
+}
+
+function formatEnd(endDate?: string | null, eventDate?: string | null): string {
+  if (endDate) return formatDate(endDate);
+  return formatDate(eventDate);
+}
 
 export function AssignmentBanner({
   assignment,
@@ -44,43 +67,52 @@ export function AssignmentBanner({
     );
   }
 
+  const statusActive = assignment.status === "active";
+
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-cyan-200/80 bg-gradient-to-r from-cyan-50 to-sky-50 px-3.5 py-3">
+    <div className="flex flex-wrap items-start gap-3 rounded-xl border border-cyan-200/80 bg-gradient-to-r from-cyan-50 to-sky-50 px-3.5 py-3">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-600">
         <Camera className="h-5 w-5" />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-extrabold text-slate-900">
-          {assignment.eventName}
+      <div className="min-w-0 flex-1 space-y-1.5 text-sm">
+        <p className="text-slate-800">
+          <span className="font-semibold text-slate-500">Event:</span>{" "}
+          <span className="font-extrabold text-slate-900">
+            {assignment.eventName}
+          </span>
         </p>
-        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3 w-3 text-cyan-600" />
-            {assignment.stationLabel?.trim() || "Khu vực chưa gán"}
+        <p className="text-slate-700">
+          <span className="font-semibold text-slate-500">Assign Location:</span>{" "}
+          <span className="font-semibold">
+            {assignment.stationLabel?.trim() || "Chưa gán khu vực"}
           </span>
-          <span>·</span>
-          <span className="font-semibold uppercase tracking-wide text-cyan-700">
-            {assignment.role}
-          </span>
-          <span>·</span>
+        </p>
+        <p className="text-slate-700">
+          <span className="font-semibold text-slate-500">Status:</span>{" "}
           <span
             className={
-              assignment.status === "active"
-                ? "font-semibold text-emerald-600"
-                : "text-slate-500"
+              statusActive
+                ? "font-bold text-emerald-600"
+                : "font-semibold text-slate-600"
             }
           >
             {assignment.status}
           </span>
-          {assignment.eventDate ? (
-            <>
-              <span>·</span>
-              <span>
-                {new Date(assignment.eventDate).toLocaleDateString("vi-VN")}
-              </span>
-            </>
-          ) : null}
         </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-700">
+          <p>
+            <span className="font-semibold text-slate-500">Event start:</span>{" "}
+            <span className="font-semibold">
+              {formatStart(assignment.eventDate, assignment.startTime)}
+            </span>
+          </p>
+          <p>
+            <span className="font-semibold text-slate-500">Event end:</span>{" "}
+            <span className="font-semibold">
+              {formatEnd(assignment.endDate, assignment.eventDate)}
+            </span>
+          </p>
+        </div>
       </div>
       {onRefresh ? (
         <button

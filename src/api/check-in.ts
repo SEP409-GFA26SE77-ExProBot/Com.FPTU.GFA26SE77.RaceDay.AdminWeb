@@ -29,6 +29,8 @@ export type StaffAssignmentDto = {
   stationId?: string | null;
   stationLabel?: string | null;
   eventDate?: string | null;
+  endDate?: string | null;
+  startTime?: string | null;
 };
 
 export async function listMyStaffAssignments(): Promise<StaffAssignmentDto[]> {

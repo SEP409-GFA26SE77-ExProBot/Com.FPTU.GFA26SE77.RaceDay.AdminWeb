@@ -212,7 +212,7 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
         },
         {
           id: "publish",
-          label: "Ảnh đã khớp",
+          label: "Xuất bản ảnh",
           href: "/publish",
           icon: Rocket,
         },

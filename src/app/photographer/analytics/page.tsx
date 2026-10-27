@@ -6,7 +6,7 @@ import { RouteTab } from "@/context/ActiveTabContext";
 import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
 import { usePhotographerEvent } from "@/hooks/usePhotographerEvent";
 import { listPhotographerPhotos } from "@/api/photo";
-import { getApiErrorMessage } from "@/lib/error";
+import { toastError } from "@/lib/toast";
 
 type Stats = {
   pending: number;
@@ -18,7 +18,6 @@ export default function PhotographerAnalyticsPage() {
   const { assignment, eventId, loading, error, reload } = usePhotographerEvent();
   const [stats, setStats] = useState<Stats>({ pending: 0, matched: 0, review: 0 });
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   const refresh = useCallback(async (eid: string) => {
     if (!eid) {
@@ -26,7 +25,6 @@ export default function PhotographerAnalyticsPage() {
       return;
     }
     setBusy(true);
-    setErr(null);
     try {
       const [p, m, r] = await Promise.all([
         listPhotographerPhotos(eid, "pending", 1, 1),
@@ -35,7 +33,7 @@ export default function PhotographerAnalyticsPage() {
       ]);
       setStats({ pending: p.total, matched: m.total, review: r.total });
     } catch (e) {
-      setErr(getApiErrorMessage(e, "Không tải thống kê."));
+      toastError(e, "Không tải thống kê.");
     } finally {
       setBusy(false);
     }
@@ -52,10 +50,7 @@ export default function PhotographerAnalyticsPage() {
     <RouteTab tab="analytics">
       <div className="mx-auto max-w-5xl space-y-5 px-1 py-2 animate-slide-up">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-cyan-600">
-            FR-PHO-05 · Pipeline
-          </p>
-          <h1 className="mt-1 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900">
             <BarChart3 className="h-7 w-7 text-cyan-500" />
             Thống kê ảnh
           </h1>
@@ -73,12 +68,6 @@ export default function PhotographerAnalyticsPage() {
             if (eventId) void refresh(eventId);
           }}
         />
-
-        {err ? (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
-            {err}
-          </p>
-        ) : null}
 
         <div className="relative grid gap-4 sm:grid-cols-3">
           {busy ? (
