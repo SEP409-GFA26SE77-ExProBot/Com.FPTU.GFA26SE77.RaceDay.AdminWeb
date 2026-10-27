@@ -202,7 +202,7 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
       ],
     },
     {
-      heading: "Xuất bản",
+      heading: "Thư viện ảnh",
       items: [
         {
           id: "analytics",
@@ -212,7 +212,7 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
         },
         {
           id: "publish",
-          label: "Xuất bản ảnh",
+          label: "Ảnh có thể tìm kiếm",
           href: "/publish",
           icon: Rocket,
         },

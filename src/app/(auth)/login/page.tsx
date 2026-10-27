@@ -1,11 +1,11 @@
 "use client";
+import { useAuthStore } from "@/stores/auth-store";
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Cookies from "js-cookie";
 import { login } from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/error";
-import { setStoredRole } from "@/lib/roleStorage";
+
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   Flag,
@@ -20,7 +20,8 @@ import "./auth.css";
 function LoginHomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fromPath = searchParams.get("from") || "/";
+  const requestedPath = searchParams.get("from") || "/";
+  const fromPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\") ? requestedPath : "/";
 
   const [form, setForm] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +48,7 @@ function LoginHomeInner() {
         username: form.username.trim(),
         password: form.password,
       });
-      const role = (Cookies.get("role") || res.role || "").toUpperCase();
+      const role = (res.role || "").toUpperCase();
       const roleId = {
         ADMIN: "admin",
         COORDINATOR: "coordinator",
@@ -56,17 +57,14 @@ function LoginHomeInner() {
       }[role];
 
       if (!roleId) {
-        Cookies.remove("accessToken");
-        Cookies.remove("role");
-        Cookies.remove("username");
-        Cookies.remove("user_id");
+        await useAuthStore.getState().logout();
         setError(
           "Tài khoản không thuộc Admin / Coordinator / Photographer / Volunteer."
         );
         return;
       }
 
-      setStoredRole(roleId);
+
 
       if (res.mustChangePassword) {
         setMustChangePasswordHint(true);
@@ -119,23 +117,6 @@ function LoginHomeInner() {
 
         {/* Login — bắt buộc cho Administrator */}
         <div className="auth-card">
-          <div className="auth-card-header">
-            <h1 className="auth-title">Đăng nhập Admin</h1>
-            <p className="auth-subtitle">
-              Administrator cần đăng nhập IAM trước khi vào duyệt giải.
-            </p>
-          </div>
-
-          <div className="auth-tabs">
-            <span className="auth-tab auth-tab--active">Administrator</span>
-            <span
-              className="auth-tab"
-              style={{ opacity: 0.45, cursor: "default" }}
-              title="Demo roles bên dưới — không cần login"
-            >
-              Demo ops
-            </span>
-          </div>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
             {error && (
@@ -154,7 +135,7 @@ function LoginHomeInner() {
                 name="username"
                 type="text"
                 autoComplete="username"
-                placeholder="admin"
+                placeholder="Username"
                 value={form.username}
                 onChange={handleChange}
                 className="auth-input"
@@ -174,7 +155,7 @@ function LoginHomeInner() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="MatKhau@123"
+                  placeholder="Password"
                   value={form.password}
                   onChange={handleChange}
                   className="auth-input auth-input--with-icon"
@@ -192,14 +173,6 @@ function LoginHomeInner() {
               </div>
             </div>
 
-            <p
-              className="text-[11px] text-slate-400 -mt-1 mb-1"
-              style={{ lineHeight: 1.45 }}
-            >
-              Mẫu: <code className="text-orange-400">admin</code> /{" "}
-              <code className="text-orange-400">MatKhau@123</code>
-            </p>
-
             <button
               id="btn-login-submit"
               type="submit"
@@ -214,7 +187,7 @@ function LoginHomeInner() {
               ) : (
                 <>
                   <ShieldCheck size={18} />
-                  Đăng nhập Administrator
+                  Đăng nhập
                 </>
               )}
             </button>

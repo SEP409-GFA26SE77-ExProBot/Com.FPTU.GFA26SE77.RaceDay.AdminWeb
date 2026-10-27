@@ -1,27 +1,14 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { BASE_URL } from "./global-config";
-import Cookies from "js-cookie";
+import axios, { AxiosError } from "axios";
+import { useAuthStore } from "@/stores/auth-store";
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: "/api/backend/",
+  withCredentials: true,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
-
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== "undefined") {
-      const token = Cookies.get("accessToken");
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 api.interceptors.response.use(
   (response) => response.data,
@@ -42,8 +29,8 @@ api.interceptors.response.use(
         case 422:
           break;
         case 401:
-          Cookies.remove("accessToken");
-          Cookies.remove("role");
+          if (error.config?.url?.endsWith("/me")) return Promise.reject(error);
+          useAuthStore.getState().clearAuth();
           if (typeof window !== "undefined") {
             const path = window.location.pathname;
             if (path !== "/" && !path.startsWith("/login")) {

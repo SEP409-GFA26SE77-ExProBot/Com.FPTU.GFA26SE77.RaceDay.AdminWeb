@@ -12,9 +12,27 @@ export const LoginResponseSchema = z.object({
   username: z.string().optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
-  accessToken: z.string().optional(),
   role: z.string().optional(),
   mustChangePassword: z.boolean().optional(),
 });
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  fullName: string;
+  phone: string | null;
+  dateOfBirth: string | null;
+  gender: number | string;
+  status: number | string;
+  emailVerified: boolean;
+  roleId: string;
+  roleName: string | null;
+  profileDescription: string | null;
+  createdAt: string;
+  updatedAt: string;
+  avatarUrl: string | null;
+  idNumber: string | null;
+}
