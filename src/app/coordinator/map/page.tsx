@@ -1,76 +1,157 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { SectionHeader, Card, Badge, Btn } from "@/components/ui";
+import { CalendarDays, Flag, MapPin } from "lucide-react";
+import { SectionHeader, Card, Badge, Btn, Button } from "@/components/ui";
 import RaceRouteMap from "@/components/sections/RaceRouteMap";
-import type { Checkpoint } from "@/components/sections/RaceRouteMap";
 import { RouteTab } from "@/context/ActiveTabContext";
 import { getCoordinatorMapEvent } from "@/api/coordinator-map";
-import { mapCoordinatorEvent } from "@/lib/coordinator-map.mapper";
-import type { CoordinatorMapEvent } from "@/dto/coordinator-map.dto";
-
-const CP_TYPE_MAP: Record<string, NonNullable<Checkpoint["type"]>> = {
-  water: "WATER",
-  medical: "MEDICAL",
-  aid: "AID",
-  cutoff: "TIMING",
-  checkpoint: "CHECKPOINT",
-  start: "CHECKPOINT",
-  finish: "CHECKPOINT",
-  cp: "TIMING",
-};
+import { getEventCourse } from "@/api/race-map";
+import { listMyStaffAssignments, type StaffAssignmentDto } from "@/api/check-in";
+import { mapCoordinatorDistance } from "@/lib/coordinator-map.mapper";
+import { courseToCheckpoints } from "@/lib/race-map.mapper";
+import { getApiErrorMessage } from "@/lib/error";
+import type { CoordinatorMapEventDto } from "@/dto/coordinator-map.dto";
+import type { CourseConfigDto } from "@/dto/race-map.dto";
 
 export default function CoordinatorMapPage() {
-  const [event, setEvent] = useState<CoordinatorMapEvent | null>(null);
+  const [assignments, setAssignments] = useState<StaffAssignmentDto[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    listMyStaffAssignments().then((items) => {
+      if (!active) return;
+      setAssignments(items.filter((item) =>
+        item.role.toLowerCase() === "coordinator" && item.status.toLowerCase() === "active"
+      ));
+    }).catch((error) => {
+      if (active) setError(getApiErrorMessage(error, "Unable to load event assignments."));
+    });
+    return () => { active = false; };
+  }, []);
+
+  const selected = assignments?.[0];
+  const eventDate = selected?.eventDate ? new Date(`${selected.eventDate}T00:00:00`) : null;
+
+  return (
+    <RouteTab tab="map">
+      <div className="space-y-4">
+        {selected ? (
+          <>
+            <Card>
+              <section aria-labelledby="assigned-event-name" className="flex items-start gap-3 sm:gap-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+                  <Flag className="size-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">Assigned event</p>
+                    <Badge variant="secondary" className="px-2 py-0 text-[11px] font-medium">Coordinator</Badge>
+                  </div>
+                  <h1 id="assigned-event-name" className="text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-2xl">
+                    {selected.eventName}
+                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                    {eventDate && !Number.isNaN(eventDate.getTime()) && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
+                        <time dateTime={selected.eventDate ?? undefined}>
+                          {eventDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </time>
+                      </span>
+                    )}
+                    {selected.stationLabel && (
+                      <span className="inline-flex min-w-0 items-start gap-1.5">
+                        <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                        {selected.stationLabel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </Card>
+            <CoordinatorEventMap key={selected.eventId} assignment={selected} />
+          </>
+        ) : (
+          <div role={error ? "alert" : "status"} className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">
+            {error ?? (assignments ? "You have no active coordinator assignments." : "Loading assignments…")}
+          </div>
+        )}
+      </div>
+    </RouteTab>
+  );
+}
+
+function CoordinatorEventMap({ assignment }: { assignment: StaffAssignmentDto }) {
+  const [event, setEvent] = useState<CoordinatorMapEventDto | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDistId, setSelectedDistId] = useState("");
+  const [distanceIdInput, setDistanceIdInput] = useState("");
+  const [courseResult, setCourseResult] = useState<{
+    distanceId: string;
+    course: CourseConfigDto | null;
+    error?: string;
+  } | null>(null);
   const [activeAlert, setActiveAlert] = useState<string | null>("SOS-001");
 
   useEffect(() => {
     let active = true;
-    getCoordinatorMapEvent()
+    getCoordinatorMapEvent(assignment.eventId)
       .then((dto) => {
         if (!active) return;
-        const mapped = mapCoordinatorEvent(dto);
-        setEvent(mapped);
-        setSelectedDistId(mapped.distances[0]?.id ?? "");
+        setEvent(dto);
+        setSelectedDistId(dto.distances.find((distance) => distance.id)?.id ?? "");
       })
-      .catch(() => {
-        if (active) setLoadError("Unable to load the race map. Check the map API configuration and try again.");
+      .catch((error) => {
+        if (!active) return;
+        setLoadError(getApiErrorMessage(error, "Unable to load event distances."));
+        setEvent({ id: assignment.eventId, name: assignment.eventName, location: "", distances: [] });
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [assignment.eventId, assignment.eventName]);
 
-  const selectedDist = useMemo(
-    () => event?.distances.find((distance) => distance.id === selectedDistId) ?? event?.distances[0],
-    [event, selectedDistId]
-  );
+  useEffect(() => {
+    if (!selectedDistId) return;
+    let active = true;
+    getEventCourse(assignment.eventId, selectedDistId).then((course) => {
+      if (active) setCourseResult({ distanceId: selectedDistId, course });
+    }).catch((error) => {
+      if (active) setCourseResult({ distanceId: selectedDistId, course: null, error: getApiErrorMessage(error, "Unable to load the course.") });
+    });
+    return () => { active = false; };
+  }, [assignment.eventId, selectedDistId]);
+
+  const currentResult = courseResult?.distanceId === selectedDistId ? courseResult : null;
+  const course = currentResult?.course ?? null;
+  const selectedDist = useMemo(() => {
+    if (!selectedDistId) return null;
+    const distance = event?.distances.find((distance) => distance.id === selectedDistId)
+      ?? { id: selectedDistId, name: "Course", type: "", distanceKm: 0 };
+    const index = event?.distances.findIndex((distance) => distance.id === selectedDistId) ?? 0;
+    return mapCoordinatorDistance(distance, Math.max(0, index), course);
+  }, [event, selectedDistId, course]);
 
   if (!event || !selectedDist) {
     return (
-      <RouteTab tab="map">
-        <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-8 text-sm text-slate-300">
-          {loadError ?? "Loading race map…"}
-        </div>
-      </RouteTab>
+      <div className="space-y-3 rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">
+        <p role={loadError ? "alert" : "status"}>{loadError ?? (event ? "This event has no distances." : "Loading race map…")}</p>
+        {event && (
+          <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); setSelectedDistId(distanceIdInput.trim()); }}>
+            <p>For a draft event, enter the distance ID supplied by the organizer to view its course.</p>
+            <label className="block">Distance ID
+              <input required value={distanceIdInput} onChange={(event) => setDistanceIdInput(event.target.value)} className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+            </label>
+            <button type="submit" disabled={!distanceIdInput.trim()} className="rounded-lg bg-amber-500 px-3 py-2 font-semibold text-slate-950 disabled:opacity-50">Load course</button>
+          </form>
+        )}
+      </div>
     );
   }
 
-  const checkpoints: Checkpoint[] = selectedDist.checkpoints
-    .filter((cp) => cp.type !== "start" && cp.type !== "finish")
-    .map((cp) => ({
-      id: cp.id,
-      name: cp.name,
-      latitude: cp.lat,
-      longitude: cp.lng,
-      distanceFromStart: cp.km * 1000,
-      type: CP_TYPE_MAP[cp.type.toLowerCase()] ?? "CHECKPOINT",
-      description: [cp.cutoff ? `Cutoff: ${cp.cutoff}` : "", cp.elevation != null ? `Elevation: ${cp.elevation}m` : ""]
-        .filter(Boolean)
-        .join(" · "),
-    }));
+  const checkpoints = courseToCheckpoints(course);
 
   const alerts = [
     { id: "SOS-001", bib: "A0301", name: "Pham Van X", loc: `KM 28.4 – ${selectedDist.name}`, time: "09:22", type: "SOS", severity: "rose" as const, dist: selectedDist.type },
@@ -78,75 +159,85 @@ export default function CoordinatorMapPage() {
   ];
 
   return (
-    <RouteTab tab="map">
       <div className="animate-slide-up">
         <SectionHeader
-          id="FR-OPS-01"
-          title={`Race Route Map — ${event.name}`}
-          desc={`Interactive course map for ${event.location}. Select a distance to view its route, checkpoints, water stations, and medical posts.`}
+          title="Course map"
+          desc={`Interactive course map${event.location ? ` for ${event.location}` : ""}. Select a distance to view its route, checkpoints, water stations, and medical posts.`}
           color="#F59E0B"
         />
 
+        {!event.distances.length && (
+          <Button variant="outline" onClick={() => setSelectedDistId("")} className="mb-4">Change distance</Button>
+        )}
+
         <div className="mb-4 flex flex-wrap gap-2">
-          {event.distances.map((distance) => {
+          {event.distances.map((distance, index) => {
             const isActive = distance.id === selectedDist.id;
+            const color = mapCoordinatorDistance(distance, index).color;
             return (
-              <button
+              <Button
                 key={distance.id}
-                onClick={() => setSelectedDistId(distance.id)}
-                className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition"
-                style={{
-                  borderColor: isActive ? distance.color : "rgba(255,255,255,0.1)",
-                  background: isActive ? `${distance.color}18` : "rgba(255,255,255,0.03)",
-                  color: isActive ? distance.color : "rgba(255,255,255,0.55)",
-                }}
+                variant="outline"
+                onClick={() => setSelectedDistId(distance.id ?? "")}
+                disabled={!distance.id}
+                aria-pressed={isActive}
+                className="h-auto rounded-lg px-4 py-2 text-foreground"
+                style={isActive ? { borderColor: color, backgroundColor: `${color}18` } : undefined}
               >
-                <span className="h-2 w-2 rounded-full" style={{ background: distance.color, opacity: isActive ? 1 : 0.45 }} />
-                {distance.type} — {distance.name}
-              </button>
+                <span className="h-2 w-2 rounded-full" style={{ background: color, opacity: isActive ? 1 : 0.45 }} />
+                {distance.name || `${distance.distanceKm}K`}
+              </Button>
             );
           })}
         </div>
 
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <RaceRouteMap
+          {!currentResult ? (
+            <div role="status" className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">Loading course…</div>
+          ) : currentResult.error ? (
+            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-sm text-destructive">{currentResult.error}</div>
+          ) : selectedDist.route.length < 2 ? (
+            <div role="status" className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">No course polyline has been configured for this distance.</div>
+          ) : <RaceRouteMap
             route={selectedDist.route}
             startPoint={selectedDist.startPoint}
             finishPoint={selectedDist.finishPoint}
             checkpoints={checkpoints}
             height="min(68vh, 680px)"
             routeColor={selectedDist.color}
-          />
+          />}
 
           <div className="flex flex-col gap-3">
             <Card>
+              <div className="mb-2 text-sm font-semibold text-foreground">{selectedDist.name}</div>
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Course details</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Course details</div>
                 <Badge label={selectedDist.type} type="violet" />
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <InfoCell value={`${selectedDist.distanceKm} km`} label="Total distance" color={selectedDist.color} />
-                <InfoCell value={`+${selectedDist.elevationGainM}m`} label="Elevation gain" color="#06B6D4" />
+                <InfoCell value={selectedDist.elevationGainM == null ? "—" : `+${selectedDist.elevationGainM}m`} label="Elevation gain" color="#06B6D4" />
                 <InfoCell value={String(selectedDist.checkpoints.length)} label="Course points" color="#F59E0B" />
-                <InfoCell value={selectedDist.runnersCount.toLocaleString("en-US")} label="Registered" color="#10B981" />
+                <InfoCell value={selectedDist.runnersCount?.toLocaleString("en-US") ?? "—"} label="Registered" color="#10B981" />
               </div>
-              <div className="mt-3 flex justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-xs text-slate-400">
-                <span>Min: <strong className="text-white">{selectedDist.minElevationM}m</strong></span>
-                <span>Max: <strong className="text-white">{selectedDist.maxElevationM}m</strong></span>
+              <div className="mt-3 flex justify-between rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                <span>Min: <strong className="text-foreground">{selectedDist.minElevationM == null ? "—" : `${selectedDist.minElevationM}m`}</strong></span>
+                <span>Max: <strong className="text-foreground">{selectedDist.maxElevationM == null ? "—" : `${selectedDist.maxElevationM}m`}</strong></span>
               </div>
+              {course && <p className="mt-3 text-xs text-muted-foreground">{course.waypoints.length} waypoints · Updated <time dateTime={course.updatedAt}>{new Date(course.updatedAt).toLocaleString("vi-VN")}</time></p>}
             </Card>
 
             <Card>
-              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">Checkpoints ({selectedDist.checkpoints.length})</div>
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Checkpoints ({selectedDist.checkpoints.length})</div>
               <div className="max-h-56 space-y-1.5 overflow-y-auto">
                 {selectedDist.checkpoints.map((cp, index) => (
-                  <div key={cp.id} className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-2 text-xs">
+                  <div key={cp.id} className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/40 px-2.5 py-2 text-xs">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-extrabold text-white" style={{ background: checkpointColor(cp.type) }}>
                       {cp.type === "start" ? "S" : cp.type === "finish" ? "F" : index}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-white">{cp.name}</div>
-                      <div className="text-[11px] text-slate-500">KM {cp.km} · {cp.elevation ?? "—"}m{cp.cutoff ? ` · ${cp.cutoff}` : ""}</div>
+                      <div className="truncate font-semibold text-foreground">{cp.name}</div>
+                      <div className="text-[11px] text-muted-foreground">KM {cp.km} · {cp.elevation ?? "—"}m{cp.cutoff ? ` · ${cp.cutoff}` : ""}</div>
                     </div>
                   </div>
                 ))}
@@ -155,7 +246,7 @@ export default function CoordinatorMapPage() {
 
             <Card>
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Priority alerts ({alerts.length})</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority alerts ({alerts.length})</div>
                 <Badge label="LIVE GPS" type="rose" />
               </div>
               <div className="flex flex-col gap-2.5">
@@ -164,9 +255,9 @@ export default function CoordinatorMapPage() {
                   const alertColor = alert.severity === "rose" ? "#EF4444" : "#F59E0B";
                   return (
                     <div key={alert.id} onClick={() => setActiveAlert(alert.id)} className="cursor-pointer rounded-xl border p-3 transition" style={{ background: `${alertColor}0a`, borderColor: isSelected ? alertColor : `${alertColor}44` }}>
-                      <div className="mb-1.5 flex items-center justify-between"><Badge label={alert.type} type={alert.severity} /><span className="text-[11px] text-slate-500">{alert.time}</span></div>
-                      <div className="mb-1 text-sm font-bold text-white">BIB {alert.bib} · {alert.name}</div>
-                      <div className="mb-2.5 text-[11px] text-slate-400">📍 {alert.loc} <span style={{ color: "#F59E0B" }}>({alert.dist})</span></div>
+                      <div className="mb-1.5 flex items-center justify-between"><Badge label={alert.type} type={alert.severity} /><span className="text-[11px] text-muted-foreground">{alert.time}</span></div>
+                      <div className="mb-1 text-sm font-bold text-foreground">BIB {alert.bib} · {alert.name}</div>
+                      <div className="mb-2.5 text-[11px] text-muted-foreground">📍 {alert.loc} <span className="text-foreground">({alert.dist})</span></div>
                       <div className="flex gap-1.5">
                         <Btn label="Dispatch 🚑" primary small color="#F59E0B" colorRgb="245,158,11" />
                         <Btn label="Radio contact" small color="#F59E0B" colorRgb="245,158,11" />
@@ -179,7 +270,6 @@ export default function CoordinatorMapPage() {
           </div>
         </div>
       </div>
-    </RouteTab>
   );
 }
 
@@ -193,9 +283,9 @@ function checkpointColor(type: string) {
 
 function InfoCell({ value, label, color }: { value: string; label: string; color: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+    <div className="rounded-lg border border-border bg-muted/40 p-2.5">
       <div className="text-xl font-black" style={{ color }}>{value}</div>
-      <div className="text-[10px] text-slate-500">{label}</div>
+      <div className="text-[10px] text-muted-foreground">{label}</div>
     </div>
   );
 }

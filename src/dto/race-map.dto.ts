@@ -1,6 +1,13 @@
 /** Course từ Map module — khớp User FE race-map.dto */
 
-export type CheckpointType = "start" | "cp" | "aid" | "finish";
+export type CheckpointType =
+  | "start"
+  | "cp"
+  | "aid"
+  | "finish"
+  | "water"
+  | "medical"
+  | "cutoff";
 
 export interface LatLngDto {
   lat: number;
@@ -14,7 +21,7 @@ export interface RaceCheckpointDto {
   lat: number;
   lng: number;
   type: CheckpointType;
-  cutoff?: string;
+  cutoff?: string | null;
 }
 
 export interface CourseConfigDto {

@@ -4,36 +4,44 @@ import type {
   CoordinatorMapEvent,
   CoordinatorMapEventDto,
 } from "@/dto/coordinator-map.dto";
+import type { CourseConfigDto } from "@/dto/race-map.dto";
+import { courseToRoute } from "@/lib/race-map.mapper";
 
 const DISTANCE_COLORS = ["#10B981", "#06B6D4", "#8B5CF6", "#F59E0B"];
 
 export function mapCoordinatorDistance(
   distance: CoordinatorMapDistanceDto,
-  index: number
+  index: number,
+  course: CourseConfigDto | null = null
 ): CoordinatorMapDistance {
-  const start = distance.checkpoints.find((point) => point.type === "start");
-  const finish = distance.checkpoints.find((point) => point.type === "finish");
+  const checkpoints = course?.checkpoints ?? [];
+  const route = courseToRoute(course);
+  const start = checkpoints.find((point) => point.type === "start")
+    ?? route[0] ?? course?.waypoints[0] ?? distance.startLocation;
+  const finish = checkpoints.find((point) => point.type === "finish")
+    ?? route[route.length - 1] ?? course?.waypoints[course.waypoints.length - 1]
+    ?? distance.finishLocation;
 
   return {
     id: distance.id || distance.type,
     type: distance.type,
-    name: distance.name,
-    distanceKm: distance.distanceKm,
-    elevationGainM: distance.elevationGainM ?? 0,
-    minElevationM: distance.minElevationM ?? 0,
-    maxElevationM: distance.maxElevationM ?? 0,
-    runnersCount: distance.runnersCount ?? distance.registeredCount ?? 0,
+    name: course?.title || distance.name,
+    distanceKm: course?.distanceKm ?? distance.distanceKm,
+    elevationGainM: distance.elevationGainM ?? null,
+    minElevationM: distance.minElevationM ?? null,
+    maxElevationM: distance.maxElevationM ?? null,
+    runnersCount: distance.runnersCount ?? distance.registeredCount ?? null,
     color: distance.color || DISTANCE_COLORS[index % DISTANCE_COLORS.length],
-    route: distance.leafletPolyline.map(([lat, lng]) => ({ lat, lng })),
+    route,
     startPoint: {
-      lat: start?.lat ?? distance.startLocation.lat,
-      lng: start?.lng ?? distance.startLocation.lng,
+      lat: start?.lat ?? 0,
+      lng: start?.lng ?? 0,
     },
     finishPoint: {
-      lat: finish?.lat ?? distance.finishLocation.lat,
-      lng: finish?.lng ?? distance.finishLocation.lng,
+      lat: finish?.lat ?? 0,
+      lng: finish?.lng ?? 0,
     },
-    checkpoints: distance.checkpoints,
+    checkpoints,
   };
 }
 
@@ -45,6 +53,6 @@ export function mapCoordinatorEvent(
     name: event.name,
     location: event.location,
     status: event.status ?? "scheduled",
-    distances: event.distances.map(mapCoordinatorDistance),
+    distances: event.distances.map((distance, index) => mapCoordinatorDistance(distance, index)),
   };
 }

@@ -7,9 +7,9 @@ export async function getEventCourse(
   eventId: string,
   distanceId: string
 ): Promise<CourseConfigDto> {
-  return api.get(
-    `${MAP_API}/events/${eventId}/distances/${distanceId}/course`
-  ) as Promise<CourseConfigDto>;
+  return api.get<CourseConfigDto, CourseConfigDto>(
+    `${MAP_API}/events/${encodeURIComponent(eventId)}/distances/${encodeURIComponent(distanceId)}/course`
+  );
 }
 
 export async function hasEventCourse(
