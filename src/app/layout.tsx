@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import ToastProvider from "@/components/providers/ToastProvider";
+import AuthProvider from "@/components/AuthProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,7 +15,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "RaceDay Admin Portal | Operations Dashboard",
   description:
-    "Unified operations dashboard for RaceDay race management — Photographer, Volunteer, Coordinator, and Administrator roles.",
+    "RaceDay operations dashboard for Race-staff, Admin, Manager, and Photographer roles.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>{children}</AuthProvider>
           <ToastProvider />
         </ThemeProvider>
       </body>

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
-import { clearAuth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { logout } from "@/api/auth";
+import { useAuthStore } from "@/stores/auth-store";
+import { mapAppRole } from "@/lib/role";
 import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
@@ -31,7 +31,6 @@ import {
   LineChart,
   Send,
   Inbox,
-  Activity,
   Camera,
   ChevronLeft,
   ChevronRight,
@@ -44,7 +43,7 @@ import {
 export interface SidebarProps {
   /** Explicit active tab ID for the current route */
   tab?: string;
-  /** Role ID ("volunteer" | "coordinator" | "administrator" | "photographer") */
+  /** Role ID ("race-staff" | "admin" | "manager" | "photographer") */
   role?: string;
   roleName?: string;
   roleAbbr?: string;
@@ -132,12 +131,10 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
 function renderRoleIcon(roleKey: string, color: string) {
   const iconProps = { size: 18, strokeWidth: 1.75, style: { color } };
   switch (roleKey.toLowerCase()) {
-    case "coordinator":
-    case "ops":
+    case "race-staff":
       return <Map {...iconProps} />;
-    case "volunteer":
-    case "vol":
-      return <Activity {...iconProps} />;
+    case "manager":
+      return <FileCheck {...iconProps} />;
     case "administrator":
     case "admin":
     case "adm":
@@ -168,7 +165,7 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const contextTab = useActiveTab().activeTab;
 
   // Internal collapse state if not controlled externally
@@ -176,37 +173,7 @@ export default function Sidebar({
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
 
-  // Determine active role from prop, storage/cookie, or pathname fallback
-  const [activeRoleKey, setActiveRoleKey] = useState<string>(() => {
-    if (propRole) return propRole;
-    const stored = getStoredRole();
-    if (stored && ROLES_CONFIG[stored]) return stored;
-    // Derive from pathname
-    if (pathname.startsWith("/coordinator")) return "coordinator";
-    if (pathname.startsWith("/volunteer")) return "volunteer";
-    if (pathname.startsWith("/admin")) return "administrator";
-    if (pathname.startsWith("/photographer")) return "photographer";
-    return "coordinator";
-  });
-
-  useEffect(() => {
-    if (propRole) {
-      setActiveRoleKey(propRole);
-      setStoredRole(propRole);
-    } else {
-      const stored = getStoredRole();
-      if (stored && ROLES_CONFIG[stored]) {
-        setActiveRoleKey(stored);
-      } else {
-        // Infer from route
-        const segments = pathname.split("/").filter(Boolean);
-        if (segments[0] && ROLES_CONFIG[segments[0]]) {
-          setActiveRoleKey(segments[0]);
-          setStoredRole(segments[0]);
-        }
-      }
-    }
-  }, [propRole, pathname]);
+  const activeRoleKey = mapAppRole(propRole ?? user?.roleName).toLowerCase().replace("_", "-");
 
   const roleConfig: RoleConfig | undefined = ROLES_CONFIG[activeRoleKey];
 
@@ -510,10 +477,7 @@ export default function Sidebar({
 
             <button
               type="button"
-              onClick={() => {
-                clearAuth();
-                router.push("/login");
-              }}
+              onClick={() => { void logout(); }}
               style={{
                 width: "100%",
                 display: "flex",

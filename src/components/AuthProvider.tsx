@@ -24,5 +24,5 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     router.replace(user ? "/forbidden" : "/login?from=" + encodeURIComponent(pathname + window.location.search));
   }, [isInitialized, denied, user, pathname, router]);
   if (!isInitialized || denied) return <div role="status" className="flex min-h-[50vh] items-center justify-center">Đang kiểm tra phiên đăng nhập…</div>;
-  return <div key={user?.id || "guest"} className="contents">{children}</div>;
+  return <div key={permission === null ? "public" : user?.id || "guest"} className="contents">{children}</div>;
 }
