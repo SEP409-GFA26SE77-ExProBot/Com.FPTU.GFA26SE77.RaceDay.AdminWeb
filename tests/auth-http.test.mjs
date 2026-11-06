@@ -88,6 +88,22 @@ test('live cookie authentication and authorization', { skip: !origin || !usernam
     assert.equal(response.status, 307);
     assert(new URL(response.headers.get('location'), origin).pathname === '/login');
   });
+  await suite.test('operations pages enforce the new role split', { skip: !origin.endsWith(':3001') }, async () => {
+    const role = user.roleName.toLowerCase();
+    for (const [route, owner] of [
+      ['/users', 'admin'], ['/finance', 'admin'], ['/audit', 'admin'],
+      ['/approvals', 'manager'], ['/package-durations', 'manager'], ['/promos', 'manager'],
+      ['/map', 'race-staff'], ['/scanner', 'race-staff'], ['/manual', 'race-staff'],
+      ['/upload', 'photographer'],
+    ]) {
+      const response = await request(route, { headers: { Cookie: cookie } });
+      assert.equal(response.status, role === owner ? 200 : 307, route);
+      if (role !== owner) assert.equal(new URL(response.headers.get('location'), origin).pathname, '/forbidden', route);
+      await response.arrayBuffer();
+    }
+    const endpoint = await request(api + '/event/admin/pending', { headers: { Cookie: cookie } });
+    assert.equal(endpoint.status, role === 'manager' ? 200 : 403);
+  });
   await suite.test('properly signed expired JWTs are rejected', { skip: !process.env.AUTH_TEST_SIGNING_KEY }, async () => {
     const token = decodeURIComponent(cookie.slice(cookie.indexOf('=') + 1));
     const parts = token.split('.');

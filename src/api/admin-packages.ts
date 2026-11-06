@@ -1,5 +1,5 @@
 /**
- * Admin: gói thời hạn / quy mô VĐV / mã giảm giá.
+ * Manager: gói thời hạn / quy mô VĐV / mã giảm giá.
  * GET/POST/PATCH /api/v1/event/admin/...
  */
 import api from "@/config/axios";
