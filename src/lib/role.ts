@@ -4,10 +4,11 @@ import { Role } from "@/interfaces/role";
 export function mapAppRole(raw: string | null | undefined): string {
   if (!raw || !String(raw).trim()) return Role.RUNNER;
   const r = String(raw)
-    .replace(/^ROLE_/i, "")
     .trim()
+    .replace(/^ROLE_/i, "")
     .toUpperCase();
   if (r === "USER" || r === "CUSTOMER" || r === "MEMBER") return Role.RUNNER;
+  if (r === "RACE-STAFF" || r === "RACESTAFF" || r === "RACE_STAFF") return Role.RACE_STAFF;
   return r;
 }
 

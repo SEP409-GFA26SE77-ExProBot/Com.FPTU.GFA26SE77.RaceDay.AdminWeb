@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Cookies from "js-cookie";
 import { SectionHeader, Card, Badge, Button } from "@/components/ui";
 import { RouteTab } from "@/context/ActiveTabContext";
 import {
@@ -14,23 +13,21 @@ import {
   type AdminUserDto,
 } from "@/dto/admin-user.dto";
 import { getApiErrorMessage } from "@/lib/error";
-import {
-  extractRoleFromToken,
-  extractUserIdFromToken,
-} from "@/lib/jwt";
+import { useAuthStore } from "@/stores/auth-store";
+import { mapAppRole } from "@/lib/role";
 import { RefreshCw, ShieldOff, ShieldCheck } from "lucide-react";
 
 const C = "#8B5CF6";
 
 /** Bậc quyền — chỉ can thiệp role thấp hơn (không ngang/cao hơn, không tự khóa). */
 function roleRank(role?: string | null): number {
-  const r = (role || "").trim().toLowerCase();
-  if (r === "admin" || r === "administrator") return 100;
-  if (r === "organizer") return 60;
-  if (r === "coordinator") return 50;
-  if (r === "photographer") return 40;
-  if (r === "volunteer") return 30;
-  if (r === "user" || r === "runner") return 10;
+  const r = mapAppRole(role);
+  if (r === "ADMIN") return 100;
+  if (r === "MANAGER") return 80;
+  if (r === "ORGANIZER") return 60;
+  if (r === "RACE_STAFF") return 50;
+  if (r === "PHOTOGRAPHER") return 40;
+  if (r === "RUNNER") return 10;
   return 0;
 }
 
@@ -55,10 +52,10 @@ function roleBadgeType(
 ): "cyan" | "green" | "violet" | "gray" | "rose" {
   const r = (role || "").toLowerCase();
   if (r.includes("photo")) return "cyan";
-  if (r.includes("volun")) return "green";
+  if (mapAppRole(role) === "RACE_STAFF") return "green";
+  if (r === "manager") return "violet";
   if (r.includes("organ")) return "violet";
   if (r.includes("admin")) return "rose";
-  if (r.includes("coord")) return "cyan";
   return "gray";
 }
 
@@ -82,13 +79,8 @@ export default function AdministratorUsersPage() {
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  const me = useMemo(() => {
-    const token = Cookies.get("accessToken");
-    return {
-      id: extractUserIdFromToken(token),
-      role: extractRoleFromToken(token) || Cookies.get("role") || undefined,
-    };
-  }, []);
+  const user = useAuthStore((state) => state.user);
+  const me = { id: user?.id, role: user?.roleName ?? undefined };
 
   const load = useCallback(async (p: number) => {
     setLoading(true);

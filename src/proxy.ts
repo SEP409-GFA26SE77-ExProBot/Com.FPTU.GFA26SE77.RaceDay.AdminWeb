@@ -1,73 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { userForRequest } from "@/lib/server-auth";
 import { mapAppRole } from "./lib/role";
-
-import { ROLE_PREFIX, ROLE_ROUTES } from "@/lib/route-permissions";
-const PUBLIC_PATHS = ["/login"];
-const SHARED_PATHS = ["/profile", "/forbidden", "/change-password"];
-const isPublic = (pathname: string) =>
-  PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-
-const matches = (pathname: string, base: string) =>
-  pathname === base || pathname.startsWith(`${base}/`);
-
-const firstSegment = (pathname: string) => pathname.split("/")[1] ?? "";
-
-const forbidden = (req: NextRequest) =>
-  NextResponse.redirect(new URL("/forbidden", req.url));
+import { cleanWorkspacePath, ROLE_PREFIX, routePermission } from "./lib/route-permissions";
+import { clearSession, SESSION_COOKIE, verifiedUser } from "./lib/server-auth";
 
 export async function proxy(request: NextRequest) {
-  const { pathname, search  } = request.nextUrl;
-  let user;
-  try { user = await userForRequest(request); }
-  catch { return new NextResponse("Authentication service unavailable", { status: 503 }); }
+  const { pathname, search } = request.nextUrl;
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  if (pathname === "/login" && !token) return NextResponse.next();
 
-  if (!user) {
-    if (isPublic(pathname)) return NextResponse.next(); // tránh vòng lặp redirect
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname + search);
-    return NextResponse.redirect(loginUrl);
+  let user;
+  try {
+    user = await verifiedUser(token);
+  } catch {
+    return new NextResponse("Authentication service unavailable", { status: 503 });
   }
 
-  const role = mapAppRole(user.roleName);
+  const role = mapAppRole(user?.roleName);
   const prefix = ROLE_PREFIX[role];
-  if (!prefix) {
-    if (pathname === "/forbidden") return NextResponse.next();
+  if (!user || !prefix) {
+    const loginUrl = new URL("/login", request.url);
+    if (pathname !== "/login") loginUrl.searchParams.set("from", pathname + search);
+    const response = pathname === "/login" ? NextResponse.next() : NextResponse.redirect(loginUrl);
+    clearSession(response);
+    return response;
+  }
+
+  if (pathname === "/login") return NextResponse.redirect(new URL("/", request.url));
+
+  const permission = routePermission(pathname);
+  if (permission === "*") return NextResponse.next();
+  if (!permission || !permission.includes(role)) {
     return NextResponse.redirect(new URL("/forbidden", request.url));
   }
 
-  // Đã login mà vào login → về "/"
-  if (pathname === "/login") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  for (const [r, p] of Object.entries(ROLE_PREFIX)) {
-    if (matches(pathname, p)) {
-      if (r !== role) return forbidden(request); // role khác → /forbidden
-      const clean = pathname.slice(p.length) || "/";
-      return NextResponse.redirect(new URL(clean + search, request.url));
-    }
-  }
-
-  if (
-    SHARED_PATHS.some((p) => matches(pathname, p))
-  ) {
-    return NextResponse.next();
-  }
-
-  // 6. URL gọn thuộc về role khác (volunteer gõ /finance) → /forbidden
-  const seg = firstSegment(pathname);
-  if (seg) {
-    const ownedByMe = ROLE_ROUTES[role]?.includes(seg);
-    const ownedByOther = Object.entries(ROLE_ROUTES).some(
-      ([r, segs]) => r !== role && segs.includes(seg),
-    );
-    if (!ownedByMe && ownedByOther) return forbidden(request);
-  }
-
-  // 7. Còn lại: rewrite vào thư mục của role
-  //    Route không ai sở hữu sẽ tự ra 404 đúng nghĩa
-  const target = pathname === "/" ? prefix : `${prefix}${pathname}`;
+  const clean = cleanWorkspacePath(pathname);
+  if (clean !== pathname) return NextResponse.redirect(new URL(clean + search, request.url));
+  const target = pathname === "/" ? prefix : prefix + pathname;
   return NextResponse.rewrite(new URL(target + search, request.url));
 }
 

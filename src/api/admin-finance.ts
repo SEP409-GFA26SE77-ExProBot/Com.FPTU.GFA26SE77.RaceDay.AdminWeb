@@ -1,15 +1,17 @@
 /**
- * Admin escrow / payout / fee settings.
+ * Manager duyệt giải ngân; Admin overview + cấu hình phí.
  * Mặc định gọi BE thật. Bật mock chỉ khi NEXT_PUBLIC_FINANCE_USE_MOCK=true
  */
 import api from "@/config/axios";
 import type {
   AdminPayoutRequestDto,
+  ManagerSystemErrorRefundDto,
   PlatformFeeSettingsDto,
   PlatformFinanceOverviewDto,
 } from "@/dto/finance.dto";
 
-const FINANCE_API = "api/v1/finance/admin";
+const MANAGER_FINANCE_API = "api/v1/finance/manager";
+const ADMIN_FINANCE_API = "api/v1/finance/admin";
 
 export const FINANCE_USE_MOCK =
   process.env.NEXT_PUBLIC_FINANCE_USE_MOCK === "true";
@@ -41,7 +43,7 @@ const SEED_PAYOUTS: AdminPayoutRequestDto[] = [
     eventId: "ev-1",
     eventName: "Fun Run 5K Mỹ Khê 2027 (demo)",
     amount: 12_200_000,
-    note: "Giải ngân đợt khả dụng",
+    note: "Giải ngân đợt tạm ứng T-4 tuần",
     status: "pending",
     bankAccount: {
       bankName: "Vietcombank",
@@ -70,17 +72,21 @@ const SEED_PAYOUTS: AdminPayoutRequestDto[] = [
 
 const DEFAULT_SETTINGS: PlatformFeeSettingsDto = {
   platformFeePercent: 5,
-  preEventWithdrawPercent: 50,
-  postEventWithdrawPercent: 50,
+  preEventWithdrawPercent: 30,
+  postEventWithdrawPercent: 70,
   minPayoutAmount: 500_000,
-  notes: "Rút tối đa 50% trước race day, 50% còn lại sau khi giải kết thúc.",
+  fullRefundPercent: 100,
+  partialRefundPercent: 85,
+  allowRefundAfterEventStart: false,
+  notes:
+    "Phí 5%. Giải ngân: tạm ứng 30% từ T-4 tuần; 70% còn lại sau giải. Yêu cầu hoàn VĐV: không hoàn lý do cá nhân; chỉ khiếu nại lỗi hệ thống (duyệt → 100%).",
 };
 
 export async function listAdminPayoutRequests(): Promise<AdminPayoutRequestDto[]> {
   if (FINANCE_USE_MOCK) {
     return readJson(LS_PAYOUTS, SEED_PAYOUTS);
   }
-  return api.get(`${FINANCE_API}/payouts`);
+  return api.get(`${MANAGER_FINANCE_API}/payouts`);
 }
 
 export async function approveAdminPayout(
@@ -103,7 +109,7 @@ export async function approveAdminPayout(
     if (!row) throw new Error("Không tìm thấy yêu cầu.");
     return row;
   }
-  return api.post(`${FINANCE_API}/payouts/${id}/approve`, { receiptUrl });
+  return api.post(`${MANAGER_FINANCE_API}/payouts/${id}/approve`, { receiptUrl });
 }
 
 export async function rejectAdminPayout(
@@ -122,7 +128,38 @@ export async function rejectAdminPayout(
     if (!row) throw new Error("Không tìm thấy yêu cầu.");
     return row;
   }
-  return api.post(`${FINANCE_API}/payouts/${id}/reject`, { reason });
+  return api.post(`${MANAGER_FINANCE_API}/payouts/${id}/reject`, { reason });
+}
+
+export async function listSystemErrorRefunds(
+  pendingOnly = true
+): Promise<ManagerSystemErrorRefundDto[]> {
+  if (FINANCE_USE_MOCK) {
+    return [];
+  }
+  const q = pendingOnly ? "?pendingOnly=true" : "?pendingOnly=false";
+  return api.get(`${MANAGER_FINANCE_API}/system-error-refunds${q}`);
+}
+
+export async function approveSystemErrorRefund(
+  id: string
+): Promise<ManagerSystemErrorRefundDto> {
+  if (FINANCE_USE_MOCK) {
+    throw new Error("Mock không hỗ trợ duyệt khiếu nại lỗi hệ thống.");
+  }
+  return api.post(`${MANAGER_FINANCE_API}/system-error-refunds/${id}/approve`, {});
+}
+
+export async function rejectSystemErrorRefund(
+  id: string,
+  reason: string
+): Promise<ManagerSystemErrorRefundDto> {
+  if (FINANCE_USE_MOCK) {
+    throw new Error("Mock không hỗ trợ từ chối khiếu nại lỗi hệ thống.");
+  }
+  return api.post(`${MANAGER_FINANCE_API}/system-error-refunds/${id}/reject`, {
+    reason,
+  });
 }
 
 export async function getPlatformFinanceOverview(): Promise<PlatformFinanceOverviewDto> {
@@ -135,14 +172,14 @@ export async function getPlatformFinanceOverview(): Promise<PlatformFinanceOverv
       currency: "VND",
     };
   }
-  return api.get(`${FINANCE_API}/overview`);
+  return api.get(`${ADMIN_FINANCE_API}/overview`);
 }
 
 export async function getPlatformFeeSettings(): Promise<PlatformFeeSettingsDto> {
   if (FINANCE_USE_MOCK) {
     return readJson(LS_SETTINGS, DEFAULT_SETTINGS);
   }
-  return api.get(`${FINANCE_API}/settings`);
+  return api.get(`${ADMIN_FINANCE_API}/settings`);
 }
 
 export async function savePlatformFeeSettings(
@@ -152,5 +189,5 @@ export async function savePlatformFeeSettings(
     writeJson(LS_SETTINGS, body);
     return body;
   }
-  return api.put(`${FINANCE_API}/settings`, body);
+  return api.put(`${ADMIN_FINANCE_API}/settings`, body);
 }

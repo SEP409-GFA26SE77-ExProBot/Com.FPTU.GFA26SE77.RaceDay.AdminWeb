@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/api/auth";
 import { useAuthStore } from "@/stores/auth-store";
-import type { NavItemConfig } from "@/config/roles";
-import { ADMINISTRATOR_NAV, COORDINATOR_NAV, PHOTOGRAPHER_NAV, VOLUNTEER_NAV } from "@/config/ops-nav";
+import { mapAppRole } from "@/lib/role";
+import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
   QrCode,
@@ -30,7 +31,6 @@ import {
   LineChart,
   Send,
   Inbox,
-  Activity,
   Camera,
   ChevronLeft,
   ChevronRight,
@@ -38,12 +38,15 @@ import {
   Banknote,
   PiggyBank,
   Settings,
+  Package,
+  Percent,
+  UsersRound,
 } from "lucide-react";
 
 export interface SidebarProps {
   /** Explicit active tab ID for the current route */
   tab?: string;
-  /** Role ID ("volunteer" | "coordinator" | "administrator" | "photographer") */
+  /** Role ID ("race-staff" | "admin" | "manager" | "photographer") */
   role?: string;
   roleName?: string;
   roleAbbr?: string;
@@ -97,6 +100,8 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <FileCheck {...iconProps} />;
     case "payouts":
       return <Banknote {...iconProps} />;
+    case "refund-claims":
+      return <AlertTriangle {...iconProps} />;
     case "finance":
       return <PiggyBank {...iconProps} />;
     case "settings":
@@ -123,6 +128,12 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Send {...iconProps} />;
     case "requests":
       return <Inbox {...iconProps} />;
+    case "package-durations":
+      return <Package {...iconProps} />;
+    case "package-capacities":
+      return <UsersRound {...iconProps} />;
+    case "promos":
+      return <Percent {...iconProps} />;
     default:
       return <CircleDot {...iconProps} />;
   }
@@ -131,12 +142,10 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
 function renderRoleIcon(roleKey: string, color: string) {
   const iconProps = { size: 18, strokeWidth: 1.75, style: { color } };
   switch (roleKey.toLowerCase()) {
-    case "coordinator":
-    case "ops":
+    case "race-staff":
       return <Map {...iconProps} />;
-    case "volunteer":
-    case "vol":
-      return <Activity {...iconProps} />;
+    case "manager":
+      return <FileCheck {...iconProps} />;
     case "administrator":
     case "admin":
     case "adm":
@@ -167,25 +176,16 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
   const contextTab = useActiveTab().activeTab;
 
-  // Internal collapse state if not controlled externally
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
 
-  const verifiedRole = useAuthStore((state) => state.user?.roleName)?.toLowerCase();
-  const activeRoleKey = verifiedRole === "admin" ? "administrator" : verifiedRole || "";
+  const activeRoleKey = mapAppRole(propRole ?? user?.roleName).toLowerCase().replace("_", "-");
 
-  const roleNav = ({ administrator: ADMINISTRATOR_NAV, coordinator: COORDINATOR_NAV, photographer: PHOTOGRAPHER_NAV, volunteer: VOLUNTEER_NAV } as const)[activeRoleKey as "administrator" | "coordinator" | "photographer" | "volunteer"];
-  const roleConfig = roleNav ? {
-    name: roleNav.breadcrumbLabel,
-    roleAbbr: verifiedRole?.slice(0, 3).toUpperCase(),
-    roleColor: "#F59E0B",
-    roleColorRgb: "245,158,11",
-    basePath: "",
-    navItems: roleNav.groups.flatMap((group) => group.items.map((item): NavItemConfig => ({ id: item.id, label: item.label, href: item.href, icon: item.id }))),
-  } : undefined;
+  const roleConfig: RoleConfig | undefined = ROLES_CONFIG[activeRoleKey];
 
   const roleName = propRoleName ?? roleConfig?.name ?? "RaceDay Admin";
   const roleAbbr = propRoleAbbr ?? roleConfig?.roleAbbr ?? "ADM";
@@ -194,7 +194,6 @@ export default function Sidebar({
   const basePath = propBasePath ?? roleConfig?.basePath ?? `/${activeRoleKey}`;
   const navItems = propNavItems ?? roleConfig?.navItems ?? [];
 
-  // Determine active tab: priority is explicit prop > contextTab > pathname match > first item
   const resolvedTab =
     tab ||
     contextTab ||
@@ -224,7 +223,6 @@ export default function Sidebar({
         ...style,
       }}
     >
-      {/* Sidebar top accent glow */}
       <div
         style={{
           position: "absolute",
@@ -237,7 +235,6 @@ export default function Sidebar({
         }}
       />
 
-      {/* Header / Logo row */}
       <div
         style={{
           padding: "18px 12px",
@@ -315,7 +312,6 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Navigation tabs */}
       <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto", overflowX: "hidden" }}>
         {navItems.map((item) => {
           const itemHref = item.href ?? (basePath ? `${basePath}/${item.id}` : undefined);
@@ -415,7 +411,6 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Footer / Role status */}
       <div style={{ padding: "10px 8px", borderTop: "1px solid var(--border)" }}>
         {isCollapsed ? (
           <button
@@ -485,8 +480,11 @@ export default function Sidebar({
               </span>
             </div>
 
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={() => {
+                void logout();
+              }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -498,6 +496,10 @@ export default function Sidebar({
                 color: "var(--text-secondary)",
                 textDecoration: "none",
                 transition: "all 0.15s",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                width: "100%",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = "var(--text-primary)";
@@ -509,7 +511,7 @@ export default function Sidebar({
               }}
             >
               <span>⇄</span> Change Role
-            </Link>
+            </button>
           </div>
         )}
       </div>

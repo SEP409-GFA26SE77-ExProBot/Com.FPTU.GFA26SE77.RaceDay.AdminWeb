@@ -1,6 +1,7 @@
 import api from "@/config/axios";
 import { RaceEventDto } from "@/dto/event.dto";
 
+// Manager owns event review; the backend keeps the original /admin paths.
 const ADMIN_EVENT_API = "api/v1/event/admin";
 
 /** GET /api/v1/event/admin/pending */

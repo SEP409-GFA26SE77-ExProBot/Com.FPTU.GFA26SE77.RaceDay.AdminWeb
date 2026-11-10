@@ -24,7 +24,14 @@ export default function AdministratorSettingsPage() {
     (async () => {
       try {
         const s = await getPlatformFeeSettings();
-        if (!cancelled) setForm(s);
+        if (!cancelled) {
+          setForm({
+            ...s,
+            fullRefundPercent: s.fullRefundPercent ?? 100,
+            partialRefundPercent: s.partialRefundPercent ?? 85,
+            allowRefundAfterEventStart: s.allowRefundAfterEventStart ?? false,
+          });
+        }
       } catch (e) {
         if (!cancelled) {
           setError(getApiErrorMessage(e, "Không tải được cấu hình phí."));
@@ -45,7 +52,7 @@ export default function AdministratorSettingsPage() {
     try {
       const next = await savePlatformFeeSettings(form);
       setForm(next);
-      setToast("Đã lưu cấu hình phí & điều kiện rút.");
+      setToast("Đã lưu cấu hình phí, giải ngân & hoàn tiền.");
     } catch (e) {
       setError(getApiErrorMessage(e, "Lưu cấu hình thất bại."));
     } finally {
@@ -59,7 +66,7 @@ export default function AdministratorSettingsPage() {
         <SectionHeader
           id="FR-ADM-SET"
           title="Cấu hình phí nền tảng"
-          desc="% hoa hồng trên mỗi vé + tỷ lệ rút trước/sau sự kiện (chuẩn marketplace escrow)."
+          desc="Phí nền tảng + tạm ứng 30%/70% + chính sách hoàn VĐV (≥90d / ≥60d). Manager duyệt từng lệnh rút."
           color={C}
         />
 
@@ -100,7 +107,7 @@ export default function AdministratorSettingsPage() {
             </label>
             <label className="block space-y-1 text-xs">
               <span className="font-semibold text-muted-foreground">
-                Cho rút tối đa trước sự kiện (%)
+                Tạm ứng trước sự kiện — từ T-4 tuần (%)
               </span>
               <input
                 type="number"
@@ -150,6 +157,55 @@ export default function AdministratorSettingsPage() {
                 }
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
               />
+            </label>
+            <label className="block space-y-1 text-xs">
+              <span className="font-semibold text-muted-foreground">
+                Hoàn đầy đủ khi ≥90 ngày (%)
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={form.fullRefundPercent ?? 100}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    fullRefundPercent: Number(e.target.value),
+                  })
+                }
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block space-y-1 text-xs">
+              <span className="font-semibold text-muted-foreground">
+                Hoàn một phần khi ≥60 ngày (%)
+              </span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={form.partialRefundPercent ?? 85}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    partialRefundPercent: Number(e.target.value),
+                  })
+                }
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={form.allowRefundAfterEventStart ?? false}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    allowRefundAfterEventStart: e.target.checked,
+                  })
+                }
+              />
+              Cho phép hoàn sau giờ xuất phát
             </label>
             <label className="block space-y-1 text-xs">
               <span className="font-semibold text-muted-foreground">Ghi chú chính sách</span>

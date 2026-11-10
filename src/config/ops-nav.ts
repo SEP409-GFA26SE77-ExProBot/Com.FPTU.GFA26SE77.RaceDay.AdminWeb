@@ -40,31 +40,14 @@ export type OpsRoleNav = {
 };
 
 export const ADMINISTRATOR_NAV: OpsRoleNav = {
-  homeHref: "/approvals",
+  homeHref: "/users",
   breadcrumbLabel: "Quản trị hệ thống",
   footerLabel: "Admin panel",
   footerIcon: ShieldCheck,
   groups: [
     {
-      heading: "Vận hành",
-      items: [
-        {
-          id: "approvals",
-          label: "Duyệt giải",
-          href: "/approvals",
-          icon: FileCheck,
-        },
-      ],
-    },
-    {
       heading: "Tài chính",
       items: [
-        {
-          id: "payouts",
-          label: "Giải ngân",
-          href: "/payouts",
-          icon: Banknote,
-        },
         {
           id: "finance",
           label: "Tài chính",
@@ -72,33 +55,16 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
           icon: PiggyBank,
         },
         {
+          id: "refund-claims",
+          label: "Hoàn lỗi HT",
+          href: "/refund-claims",
+          icon: AlertTriangle,
+        },
+        {
           id: "settings",
           label: "Cấu hình phí",
           href: "/settings",
           icon: Settings,
-        },
-      ],
-    },
-    {
-      heading: "Gói tổ chức",
-      items: [
-        {
-          id: "package-durations",
-          label: "Gói thời hạn",
-          href: "/package-durations",
-          icon: Package,
-        },
-        {
-          id: "package-capacities",
-          label: "Quy mô VĐV",
-          href: "/package-capacities",
-          icon: UsersRound,
-        },
-        {
-          id: "promos",
-          label: "Mã giảm giá",
-          href: "/promos",
-          icon: Percent,
         },
       ],
     },
@@ -112,32 +78,57 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
           icon: Users,
         },
         {
-          id: "reconciliation",
-          label: "Đối soát dữ liệu",
-          href: "/reconciliation",
-          icon: Scale,
-        },
-        {
           id: "audit",
           label: "Nhật ký",
           href: "/audit",
           icon: ClipboardList,
-        },
-        {
-          id: "stats",
-          label: "Thống kê",
-          href: "/stats",
-          icon: BarChart3,
         },
       ],
     },
   ],
 };
 
-export const VOLUNTEER_NAV: OpsRoleNav = {
+export const MANAGER_NAV: OpsRoleNav = {
+  homeHref: "/approvals",
+  breadcrumbLabel: "Quản lý vận hành",
+  footerLabel: "Manager panel",
+  footerIcon: FileCheck,
+  groups: [
+    {
+      heading: "Vận hành",
+      items: [
+        { id: "approvals", label: "Duyệt giải", href: "/approvals", icon: FileCheck },
+        { id: "payouts", label: "Giải ngân", href: "/payouts", icon: Banknote },
+        {
+          id: "refund-claims",
+          label: "Hoàn lỗi HT",
+          href: "/refund-claims",
+          icon: AlertTriangle,
+        },
+      ],
+    },
+    {
+      heading: "Gói tổ chức",
+      items: [
+        { id: "package-durations", label: "Gói thời hạn", href: "/package-durations", icon: Package },
+        { id: "package-capacities", label: "Quy mô VĐV", href: "/package-capacities", icon: UsersRound },
+        { id: "promos", label: "Mã giảm giá", href: "/promos", icon: Percent },
+      ],
+    },
+    {
+      heading: "Báo cáo vận hành",
+      items: [
+        { id: "reconciliation", label: "Đối soát dữ liệu", href: "/reconciliation", icon: Scale },
+        { id: "stats", label: "Thống kê", href: "/stats", icon: BarChart3 },
+      ],
+    },
+  ],
+};
+
+const CHECK_IN_NAV: OpsRoleNav = {
   homeHref: "/",
-  breadcrumbLabel: "Tình nguyện viên",
-  footerLabel: "Volunteer panel",
+  breadcrumbLabel: "Nhân sự ngày đua",
+  footerLabel: "Race-staff panel",
   footerIcon: Flag,
   groups: [
     {
@@ -227,10 +218,10 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
   ],
 };
 
-export const COORDINATOR_NAV: OpsRoleNav = {
+export const RACE_STAFF_NAV: OpsRoleNav = {
   homeHref: "/",
-  breadcrumbLabel: "Điều phối giải",
-  footerLabel: "Coordinator panel",
+  breadcrumbLabel: "Nhân sự ngày đua",
+  footerLabel: "Race-staff panel",
   footerIcon: Map,
   groups: [
     {
@@ -241,12 +232,6 @@ export const COORDINATOR_NAV: OpsRoleNav = {
           label: "Bản đồ trực tiếp",
           href: "/map",
           icon: Map,
-        },
-        {
-          id: "scanner",
-          label: "Quét QR / RFID",
-          href: "/scanner",
-          icon: Radio,
         },
         {
           id: "medical",
@@ -285,5 +270,6 @@ export const COORDINATOR_NAV: OpsRoleNav = {
         },
       ],
     },
+    ...CHECK_IN_NAV.groups,
   ],
 };
