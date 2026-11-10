@@ -91,6 +91,10 @@ test('Admin and Manager menus enforce separate permissions for every link and de
   assert.equal(permissions.routePermission('/photographer/finance').length, 0);
   assert.equal(permissions.routePermission('/admin/approvals/event-id').join(','), 'MANAGER');
   assert.equal(permissions.routePermission('/admin/package-capacities').join(','), 'MANAGER');
+  assert.equal(permissions.routePermission('/payouts').join(','), 'MANAGER');
+  assert.equal(permissions.routePermission('/admin/payouts').join(','), 'MANAGER');
+  assert.equal(permissions.routePermission('/finance').join(','), 'ADMIN');
+  assert.equal(permissions.routePermission('/settings').join(','), 'ADMIN');
 });
 
 test('Race-staff can open every former Coordinator and Volunteer tool', () => {
@@ -142,6 +146,7 @@ test('legacy bookmarks redirect only for the new owner and preserve query parame
     ['Race-staff', '/volunteer/manual', '/manual'],
     ['Manager', '/admin/approvals/event-id', '/approvals/event-id'],
     ['Manager', '/admin/promos', '/promos'],
+    ['Manager', '/admin/payouts', '/payouts'],
   ]) {
     const response = await proxyFor(roleName)(request(oldPath + '?page=2'));
     assert.equal(response.headers.get('location'), 'http://localhost:3001' + cleanPath + '?page=2');

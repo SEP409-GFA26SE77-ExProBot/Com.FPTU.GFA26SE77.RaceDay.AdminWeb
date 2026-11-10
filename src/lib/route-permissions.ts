@@ -10,9 +10,9 @@ export const ROLE_PREFIX: Record<string, string> = {
 };
 
 export const ROLE_ROUTES: Record<string, string[]> = {
-  ADMIN: ["users", "payouts", "finance", "settings", "audit"],
+  ADMIN: ["users", "finance", "settings", "audit", "refund-claims"],
   MANAGER: [
-    "approvals", "package-durations", "package-capacities", "promos",
+    "approvals", "payouts", "refund-claims", "package-durations", "package-capacities", "promos",
     "reconciliation", "stats",
   ],
   RACE_STAFF: [

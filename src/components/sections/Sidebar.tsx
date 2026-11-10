@@ -38,6 +38,9 @@ import {
   Banknote,
   PiggyBank,
   Settings,
+  Package,
+  Percent,
+  UsersRound,
 } from "lucide-react";
 
 export interface SidebarProps {
@@ -97,6 +100,8 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <FileCheck {...iconProps} />;
     case "payouts":
       return <Banknote {...iconProps} />;
+    case "refund-claims":
+      return <AlertTriangle {...iconProps} />;
     case "finance":
       return <PiggyBank {...iconProps} />;
     case "settings":
@@ -123,6 +128,12 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Send {...iconProps} />;
     case "requests":
       return <Inbox {...iconProps} />;
+    case "package-durations":
+      return <Package {...iconProps} />;
+    case "package-capacities":
+      return <UsersRound {...iconProps} />;
+    case "promos":
+      return <Percent {...iconProps} />;
     default:
       return <CircleDot {...iconProps} />;
   }
@@ -168,7 +179,6 @@ export default function Sidebar({
   const user = useAuthStore((state) => state.user);
   const contextTab = useActiveTab().activeTab;
 
-  // Internal collapse state if not controlled externally
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
@@ -184,7 +194,6 @@ export default function Sidebar({
   const basePath = propBasePath ?? roleConfig?.basePath ?? `/${activeRoleKey}`;
   const navItems = propNavItems ?? roleConfig?.navItems ?? [];
 
-  // Determine active tab: priority is explicit prop > contextTab > pathname match > first item
   const resolvedTab =
     tab ||
     contextTab ||
@@ -214,7 +223,6 @@ export default function Sidebar({
         ...style,
       }}
     >
-      {/* Sidebar top accent glow */}
       <div
         style={{
           position: "absolute",
@@ -227,7 +235,6 @@ export default function Sidebar({
         }}
       />
 
-      {/* Header / Logo row */}
       <div
         style={{
           padding: "18px 12px",
@@ -239,8 +246,8 @@ export default function Sidebar({
         }}
       >
         <Link
-          href={basePath}
-          title="Dashboard"
+          href="/"
+          title="Back to Role Selection"
           style={{
             width: "38px",
             height: "38px",
@@ -305,7 +312,6 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Navigation tabs */}
       <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto", overflowX: "hidden" }}>
         {navItems.map((item) => {
           const itemHref = item.href ?? (basePath ? `${basePath}/${item.id}` : undefined);
@@ -405,7 +411,6 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Footer / Role status */}
       <div style={{ padding: "10px 8px", borderTop: "1px solid var(--border)" }}>
         {isCollapsed ? (
           <button
@@ -477,33 +482,35 @@ export default function Sidebar({
 
             <button
               type="button"
-              onClick={() => { void logout(); }}
+              onClick={() => {
+                void logout();
+              }}
               style={{
-                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "6px",
-                padding: "8px",
+                padding: "6px",
                 borderRadius: "8px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: "#EF4444",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                cursor: "pointer",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+                textDecoration: "none",
                 transition: "all 0.15s",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                width: "100%",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.18)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)";
+                e.currentTarget.style.color = "var(--text-primary)";
+                e.currentTarget.style.background = "var(--surface-hover)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
+                e.currentTarget.style.color = "var(--text-secondary)";
+                e.currentTarget.style.background = "transparent";
               }}
             >
-              <span>🚪</span> Đăng xuất
+              <span>⇄</span> Change Role
             </button>
           </div>
         )}

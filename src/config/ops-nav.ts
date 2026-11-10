@@ -49,16 +49,16 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
       heading: "Tài chính",
       items: [
         {
-          id: "payouts",
-          label: "Giải ngân",
-          href: "/payouts",
-          icon: Banknote,
-        },
-        {
           id: "finance",
           label: "Tài chính",
           href: "/finance",
           icon: PiggyBank,
+        },
+        {
+          id: "refund-claims",
+          label: "Hoàn lỗi HT",
+          href: "/refund-claims",
+          icon: AlertTriangle,
         },
         {
           id: "settings",
@@ -96,7 +96,16 @@ export const MANAGER_NAV: OpsRoleNav = {
   groups: [
     {
       heading: "Vận hành",
-      items: [{ id: "approvals", label: "Duyệt giải", href: "/approvals", icon: FileCheck }],
+      items: [
+        { id: "approvals", label: "Duyệt giải", href: "/approvals", icon: FileCheck },
+        { id: "payouts", label: "Giải ngân", href: "/payouts", icon: Banknote },
+        {
+          id: "refund-claims",
+          label: "Hoàn lỗi HT",
+          href: "/refund-claims",
+          icon: AlertTriangle,
+        },
+      ],
     },
     {
       heading: "Gói tổ chức",
@@ -194,7 +203,7 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
         },
         {
           id: "publish",
-          label: "Ảnh có thể tìm kiếm",
+          label: "Xuất bản & thư viện",
           href: "/publish",
           icon: Rocket,
         },
