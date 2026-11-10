@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
-import { clearAuth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
-import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
+import { useAuthStore } from "@/stores/auth-store";
+import type { NavItemConfig } from "@/config/roles";
+import { ADMINISTRATOR_NAV, COORDINATOR_NAV, PHOTOGRAPHER_NAV, VOLUNTEER_NAV } from "@/config/ops-nav";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
   QrCode,
@@ -168,7 +167,6 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const contextTab = useActiveTab().activeTab;
 
   // Internal collapse state if not controlled externally
@@ -176,39 +174,18 @@ export default function Sidebar({
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
 
-  // Determine active role from prop, storage/cookie, or pathname fallback
-  const [activeRoleKey, setActiveRoleKey] = useState<string>(() => {
-    if (propRole) return propRole;
-    const stored = getStoredRole();
-    if (stored && ROLES_CONFIG[stored]) return stored;
-    // Derive from pathname
-    if (pathname.startsWith("/coordinator")) return "coordinator";
-    if (pathname.startsWith("/volunteer")) return "volunteer";
-    if (pathname.startsWith("/admin")) return "administrator";
-    if (pathname.startsWith("/photographer")) return "photographer";
-    return "coordinator";
-  });
+  const verifiedRole = useAuthStore((state) => state.user?.roleName)?.toLowerCase();
+  const activeRoleKey = verifiedRole === "admin" ? "administrator" : verifiedRole || "";
 
-  useEffect(() => {
-    if (propRole) {
-      setActiveRoleKey(propRole);
-      setStoredRole(propRole);
-    } else {
-      const stored = getStoredRole();
-      if (stored && ROLES_CONFIG[stored]) {
-        setActiveRoleKey(stored);
-      } else {
-        // Infer from route
-        const segments = pathname.split("/").filter(Boolean);
-        if (segments[0] && ROLES_CONFIG[segments[0]]) {
-          setActiveRoleKey(segments[0]);
-          setStoredRole(segments[0]);
-        }
-      }
-    }
-  }, [propRole, pathname]);
-
-  const roleConfig: RoleConfig | undefined = ROLES_CONFIG[activeRoleKey];
+  const roleNav = ({ administrator: ADMINISTRATOR_NAV, coordinator: COORDINATOR_NAV, photographer: PHOTOGRAPHER_NAV, volunteer: VOLUNTEER_NAV } as const)[activeRoleKey as "administrator" | "coordinator" | "photographer" | "volunteer"];
+  const roleConfig = roleNav ? {
+    name: roleNav.breadcrumbLabel,
+    roleAbbr: verifiedRole?.slice(0, 3).toUpperCase(),
+    roleColor: "#F59E0B",
+    roleColorRgb: "245,158,11",
+    basePath: "",
+    navItems: roleNav.groups.flatMap((group) => group.items.map((item): NavItemConfig => ({ id: item.id, label: item.label, href: item.href, icon: item.id }))),
+  } : undefined;
 
   const roleName = propRoleName ?? roleConfig?.name ?? "RaceDay Admin";
   const roleAbbr = propRoleAbbr ?? roleConfig?.roleAbbr ?? "ADM";
@@ -272,8 +249,8 @@ export default function Sidebar({
         }}
       >
         <Link
-          href={basePath}
-          title="Dashboard"
+          href="/"
+          title="Back to Role Selection"
           style={{
             width: "38px",
             height: "38px",
@@ -508,39 +485,31 @@ export default function Sidebar({
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                clearAuth();
-                router.push("/login");
-              }}
+            <Link
+              href="/"
               style={{
-                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "6px",
-                padding: "8px",
+                padding: "6px",
                 borderRadius: "8px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: "#EF4444",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                cursor: "pointer",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+                textDecoration: "none",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.18)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)";
+                e.currentTarget.style.color = "var(--text-primary)";
+                e.currentTarget.style.background = "var(--surface-hover)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
+                e.currentTarget.style.color = "var(--text-secondary)";
+                e.currentTarget.style.background = "transparent";
               }}
             >
-              <span>🚪</span> Đăng xuất
-            </button>
+              <span>⇄</span> Change Role
+            </Link>
           </div>
         )}
       </div>
