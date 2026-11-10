@@ -84,8 +84,9 @@ export default function OpsShell({
 
   const initial = username.charAt(0).toUpperCase() || "U";
 
-  const atHome = pathname === homeHref || pathname === `${homeHref}/`;
-  const homeLeaf = groups[0]?.items[0] ?? null;
+  const atHome = pathname === "/" || pathname === homeHref || pathname === `${homeHref}/`;
+  const homeLeaf = groups.flatMap((group) => group.items).find((leaf) => leaf.href === homeHref)
+    ?? groups[0]?.items[0] ?? null;
 
   const activeLeaf = useMemo(() => {
     for (const g of groups) {

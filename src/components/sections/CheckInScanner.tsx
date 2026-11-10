@@ -33,6 +33,7 @@ import {
   removePending,
 } from "@/lib/check-in-offline";
 import { getApiErrorMessage } from "@/lib/error";
+import { isActiveRaceStaffAssignment } from "@/lib/staff-assignment";
 
 function formatDt(iso: string) {
   try {
@@ -42,7 +43,7 @@ function formatDt(iso: string) {
   }
 }
 
-export default function CheckInScanner({ roleLabel }: { roleLabel: "Volunteer" | "Coordinator" }) {
+export default function CheckInScanner({ roleLabel }: { roleLabel: "Race-staff" }) {
   const [assignment, setAssignment] = useState<StaffAssignmentDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [manualBib, setManualBib] = useState("");
@@ -78,7 +79,7 @@ export default function CheckInScanner({ roleLabel }: { roleLabel: "Volunteer" |
     setError(null);
     try {
       const items = await listMyStaffAssignments();
-      const first = items[0] ?? null;
+      const first = items.find(isActiveRaceStaffAssignment) ?? null;
       setAssignment(first);
       cacheAssignment(first);
       if (!first) {
@@ -86,7 +87,7 @@ export default function CheckInScanner({ roleLabel }: { roleLabel: "Volunteer" |
       }
     } catch (e) {
       const cached = readCachedAssignment();
-      if (cached && isProbablyOffline(e)) {
+      if (cached && isActiveRaceStaffAssignment(cached) && isProbablyOffline(e)) {
         setAssignment(cached);
         setError(null);
       } else {
