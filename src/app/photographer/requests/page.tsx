@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { RouteTab } from "@/context/ActiveTabContext";
 import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
+import { ZoomablePhoto } from "@/components/photographer/ZoomablePhoto";
 import { usePhotographerEvent } from "@/hooks/usePhotographerEvent";
 import {
   approveDispute,
@@ -327,14 +328,14 @@ function DisputePreviewPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/55 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-stretch justify-end bg-slate-900/55 p-0 sm:items-center sm:justify-center sm:p-4"
       onClick={() => !busy && onClose()}
     >
       <div
         role="dialog"
         aria-modal
         aria-labelledby="dispute-preview-title"
-        className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+        className="flex h-full w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(90vh,820px)] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
@@ -350,7 +351,8 @@ function DisputePreviewPanel({
               {photo?.status ? ` · ${statusLabel(photo.status)}` : ""}
             </h2>
             <p className="mt-0.5 text-xs text-slate-500">
-              Duyệt → ảnh vào hàng Sửa BIB. Từ chối → runner nhận lý do.
+              Duyệt → ảnh vào hàng Sửa BIB. Từ chối → runner nhận lý do. Zoom ảnh
+              để kiểm tra trước khi quyết.
             </p>
           </div>
           <button
@@ -364,17 +366,12 @@ function DisputePreviewPanel({
           </button>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-0 overflow-y-auto lg:grid-cols-2">
-          <div className="bg-slate-100">
+        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
+          <div className="min-h-[240px] bg-slate-950 p-2 lg:min-h-0">
             {thumb ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={thumb}
-                alt="Ảnh khiếu nại"
-                className="max-h-[50vh] w-full object-contain lg:max-h-none lg:min-h-[360px]"
-              />
+              <ZoomablePhoto url={photo!.url} alt="Ảnh khiếu nại" />
             ) : (
-              <div className="flex min-h-[240px] items-center justify-center text-sm text-slate-400">
+              <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-slate-400">
                 {row.photoLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
                 ) : (
@@ -384,7 +381,7 @@ function DisputePreviewPanel({
             )}
           </div>
 
-          <div className="space-y-4 p-4">
+          <div className="flex min-h-0 flex-col overflow-y-auto border-t border-slate-100 p-4 lg:border-l lg:border-t-0">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                 Lý do runner
@@ -395,10 +392,10 @@ function DisputePreviewPanel({
             </div>
 
             {photo?.zone ? (
-              <p className="text-xs text-slate-500">Zone: {photo.zone}</p>
+              <p className="mt-3 text-xs text-slate-500">Zone: {photo.zone}</p>
             ) : null}
 
-            <label className="block space-y-1.5 text-sm">
+            <label className="mt-5 block space-y-1.5 text-sm">
               <span className="font-bold text-slate-800">
                 Lý do từ chối (nếu từ chối)
               </span>
@@ -412,7 +409,7 @@ function DisputePreviewPanel({
               />
             </label>
 
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="mt-auto flex flex-wrap gap-2 pt-5">
               <button
                 type="button"
                 disabled={busy}
@@ -438,7 +435,7 @@ function DisputePreviewPanel({
 
             <Link
               href="/photographer/corrections"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-700 hover:underline"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-700 hover:underline"
             >
               <Pencil className="h-3.5 w-3.5" />
               Mở hàng sửa BIB
