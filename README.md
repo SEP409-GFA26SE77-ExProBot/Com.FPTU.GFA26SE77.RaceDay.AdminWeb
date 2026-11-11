@@ -7,7 +7,7 @@ Configure `BACKEND_API_URL` for the RaceDay API; the default is `http://localhos
 
 | IAM role | Workspace | Functions |
 | --- | --- | --- |
-| Race-staff | `/race-staff` | All former Coordinator and Volunteer tools: live map, scanner, manual entry, issues, race status, medical, cut-off, inventory, contingency, and broom vehicle. |
+| Race-staff | `/race-staff` | Assigned checkpoint simulation (live map, checkpoint history, DNF/DNS/DQ, export to organizer) and all former Coordinator and Volunteer tools: live map, scanner, manual entry, issues, race status, medical, cut-off, inventory, contingency, and broom vehicle. |
 | Admin | `/admin` | IAM accounts, platform finance, payouts, fee settings, and audit logs. |
 | Manager | `/manager` | Event approval and rejection, package durations and capacities, promos, reconciliation, and statistics. |
 | Photographer | `/photographer` | Existing upload, OCR, corrections, analytics, publishing, and photo request workflows. |
@@ -29,3 +29,5 @@ Manager continues to use the existing `/api/v1/event/admin/...` endpoints for ap
 - `npm run lint` runs the repository ESLint checks.
 
 The live authentication suite requires `AUTH_TEST_ORIGIN`, `AUTH_TEST_USERNAME`, and `AUTH_TEST_PASSWORD`; it skips when these are absent.
+
+Race-staff logs in here at `http://localhost:3001/checkpoint`, selects their assigned event, and follows the organizer simulation on the checkpoint page. Start the WebAPI on port 5080.

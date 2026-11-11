@@ -13,6 +13,7 @@ import {
   ImagePlus,
   Keyboard,
   Map,
+  MapPin,
   Pencil,
   Package,
   Percent,
@@ -219,7 +220,7 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
 };
 
 export const RACE_STAFF_NAV: OpsRoleNav = {
-  homeHref: "/",
+  homeHref: "/checkpoint",
   breadcrumbLabel: "Nhân sự ngày đua",
   footerLabel: "Race-staff panel",
   footerIcon: Map,
@@ -227,6 +228,12 @@ export const RACE_STAFF_NAV: OpsRoleNav = {
     {
       heading: "Vận hành ngày đua",
       items: [
+        {
+          id: "checkpoint",
+          label: "Checkpoint của tôi",
+          href: "/checkpoint",
+          icon: MapPin,
+        },
         {
           id: "map",
           label: "Bản đồ trực tiếp",

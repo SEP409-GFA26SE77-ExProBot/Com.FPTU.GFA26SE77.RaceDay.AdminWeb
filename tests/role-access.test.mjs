@@ -98,7 +98,7 @@ test('Admin and Manager menus enforce separate permissions for every link and de
 });
 
 test('Race-staff can open every former Coordinator and Volunteer tool', () => {
-  const tools = ['map', 'scanner', 'manual', 'issues', 'status', 'medical', 'cutoff', 'inventory', 'contingency', 'broom'];
+  const tools = ['checkpoint', 'map', 'scanner', 'manual', 'issues', 'status', 'medical', 'cutoff', 'inventory', 'contingency', 'broom'];
   const links = nav.RACE_STAFF_NAV.groups.flatMap((group) => group.items.map((item) => item.href));
   for (const tool of tools) {
     assert(links.includes('/' + tool));

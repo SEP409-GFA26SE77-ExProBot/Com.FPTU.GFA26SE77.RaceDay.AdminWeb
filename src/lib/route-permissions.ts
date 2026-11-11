@@ -16,7 +16,7 @@ export const ROLE_ROUTES: Record<string, string[]> = {
     "reconciliation", "stats",
   ],
   RACE_STAFF: [
-    "map", "map-demo", "scanner", "manual", "issues", "status", "medical",
+    "checkpoint", "map", "map-demo", "scanner", "manual", "issues", "status", "medical",
     "cutoff", "inventory", "contingency", "broom",
   ],
   PHOTOGRAPHER: [
