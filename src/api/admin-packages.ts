@@ -1,6 +1,6 @@
 /**
  * Manager: gói thời hạn / quy mô VĐV / mã giảm giá.
- * GET/POST/PATCH /api/v1/event/admin/...
+ * GET/POST/PATCH /api/v1/event/manager/...
  */
 import api from "@/config/axios";
 import type {
@@ -15,9 +15,9 @@ import type {
   UpdatePromoCodeBody,
 } from "@/dto/package-admin.dto";
 
-const DURATIONS = "api/v1/event/admin/package-durations";
-const CAPACITIES = "api/v1/event/admin/package-capacities";
-const PROMOS = "api/v1/event/admin/promos";
+const DURATIONS = "api/v1/event/manager/package-durations";
+const CAPACITIES = "api/v1/event/manager/package-capacities";
+const PROMOS = "api/v1/event/manager/promos";
 
 export async function listPackageDurations(): Promise<PackageDurationOptionDto[]> {
   return api.get(DURATIONS);

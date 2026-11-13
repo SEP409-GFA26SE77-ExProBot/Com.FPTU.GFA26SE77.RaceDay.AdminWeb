@@ -10,6 +10,7 @@ export const ROLE_PREFIX: Record<string, string> = {
 };
 
 export const ROLE_ROUTES: Record<string, string[]> = {
+  // finance/settings/refund-claims: bookmark cũ redirect → /users (ops finance ở Manager).
   ADMIN: ["users", "finance", "settings", "audit", "refund-claims"],
   MANAGER: [
     "approvals", "payouts", "refund-claims", "package-durations", "package-capacities", "promos",

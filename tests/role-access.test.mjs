@@ -82,9 +82,17 @@ test('Admin and Manager menus enforce separate permissions for every link and de
     const links = workspace.groups.flatMap((group) => group.items.map((item) => item.href));
     assert.equal(new Set(links).size, links.length, 'combined menu must not duplicate scanner');
     for (const link of links) {
-      assert.equal(permissions.routePermission(link).join(','), role);
-      assert.equal(permissions.routePermission(link + '/example-id').join(','), role);
-      assert.equal(permissions.routePermission(permissions.ROLE_PREFIX[role] + link).join(','), role);
+      const owners = permissions.routePermission(link);
+      assert.ok(owners.includes(role), `${role} must own ${link}`);
+      assert.ok(permissions.routePermission(link + '/example-id').includes(role));
+      // Exclusive routes: workspace prefix must match. Shared routes (vd. /refund-claims)
+      // and /admin/<manager-route> remaps are covered by short-path + proxy tests.
+      if (owners.length === 1) {
+        assert.equal(
+          permissions.routePermission(permissions.ROLE_PREFIX[role] + link).join(','),
+          role
+        );
+      }
     }
   }
   assert.equal(permissions.routePermission('/manager/users').length, 0);
@@ -93,8 +101,10 @@ test('Admin and Manager menus enforce separate permissions for every link and de
   assert.equal(permissions.routePermission('/admin/package-capacities').join(','), 'MANAGER');
   assert.equal(permissions.routePermission('/payouts').join(','), 'MANAGER');
   assert.equal(permissions.routePermission('/admin/payouts').join(','), 'MANAGER');
-  assert.equal(permissions.routePermission('/finance').join(','), 'ADMIN');
-  assert.equal(permissions.routePermission('/settings').join(','), 'ADMIN');
+  // Bookmark cũ Admin (redirect /users); refund-claims shared với Manager.
+  assert.ok(permissions.routePermission('/finance').includes('ADMIN'));
+  assert.ok(permissions.routePermission('/settings').includes('ADMIN'));
+  assert.ok(permissions.routePermission('/refund-claims').includes('MANAGER'));
 });
 
 test('Race-staff can open every former Coordinator and Volunteer tool', () => {
@@ -128,7 +138,8 @@ test('each role uses the verified session to reach its workspace and rejects oth
     for (const [owner, workspace] of Object.entries(navigation)) {
       for (const item of workspace.groups.flatMap((group) => group.items)) {
         const response = await proxy(request(item.href));
-        if (owner === role) {
+        const shared = permissions.routePermission(item.href).includes(role);
+        if (owner === role || shared) {
           assert.equal(new URL(response.headers.get('x-middleware-rewrite')).pathname, permissions.ROLE_PREFIX[role] + item.href);
         } else {
           assert.equal(new URL(response.headers.get('location')).pathname, '/forbidden');
@@ -207,15 +218,15 @@ test('Manager requests retain the existing event admin endpoints and payloads', 
     await packages[list]();
     await packages[create]({ name: 'test' });
     await packages[update]('option-id', { isActive: false });
-    assert.equal(calls.at(-3).url, `api/v1/event/admin/${resource}`);
-    assert.equal(calls.at(-2).url, `api/v1/event/admin/${resource}`);
-    assert.equal(calls.at(-1).url, `api/v1/event/admin/${resource}/option-id`);
+    assert.equal(calls.at(-3).url, `api/v1/event/manager/${resource}`);
+    assert.equal(calls.at(-2).url, `api/v1/event/manager/${resource}`);
+    assert.equal(calls.at(-1).url, `api/v1/event/manager/${resource}/option-id`);
   }
   assert.deepEqual(calls.slice(0, 4).map(({ method, url }) => [method, url]), [
-    ['get', 'api/v1/event/admin/pending'],
-    ['get', 'api/v1/event/admin/event-id'],
-    ['post', 'api/v1/event/admin/event-id/approve'],
-    ['post', 'api/v1/event/admin/event-id/reject'],
+    ['get', 'api/v1/event/manager/pending'],
+    ['get', 'api/v1/event/manager/event-id'],
+    ['post', 'api/v1/event/manager/event-id/approve'],
+    ['post', 'api/v1/event/manager/event-id/reject'],
   ]);
   assert.equal(calls[2].body.openRegistration, true);
   assert.equal(calls[3].body.reason, 'Missing course');

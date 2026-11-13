@@ -25,29 +25,6 @@ export interface AdminPayoutRequestDto {
   receiptUrl?: string;
 }
 
-export interface PlatformFinanceOverviewDto {
-  totalEscrowHeld: number;
-  platformFeeCollected: number;
-  pendingPayoutAmount: number;
-  transferredThisMonth: number;
-  currency: string;
-}
-
-export interface PlatformFeeSettingsDto {
-  platformFeePercent: number;
-  /** Đợt tạm ứng trước giải (mặc định 30). */
-  preEventWithdrawPercent: number;
-  /** Phần còn lại sau giải (mặc định 70). */
-  postEventWithdrawPercent: number;
-  minPayoutAmount: number;
-  notes?: string;
-  /** Hoàn khi ≥90 ngày trước EventDate. */
-  fullRefundPercent?: number;
-  /** Hoàn khi ≥60 và dưới 90 ngày. */
-  partialRefundPercent?: number;
-  allowRefundAfterEventStart?: boolean;
-}
-
 export type SystemErrorRefundStatus =
   | "requested"
   | "processing"

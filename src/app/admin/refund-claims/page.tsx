@@ -1,12 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { RouteTab } from "@/context/ActiveTabContext";
-import SystemErrorRefundsPanel from "@/components/finance/SystemErrorRefundsPanel";
-
-export default function AdminRefundClaimsPage() {
-  return (
-    <RouteTab tab="refund-claims">
-      <SystemErrorRefundsPanel tabId="refund-claims" />
-    </RouteTab>
-  );
+/** Hoàn lỗi HT Admin đã gỡ — dùng workspace Manager /refund-claims. */
+export default function AdministratorRefundClaimsRedirectPage() {
+  redirect("/users");
 }

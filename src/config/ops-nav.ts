@@ -16,12 +16,10 @@ import {
   Pencil,
   Package,
   Percent,
-  PiggyBank,
   Radio,
   Rocket,
   ScanSearch,
   Scale,
-  Settings,
   ShieldCheck,
   Tent,
   Truck,
@@ -45,29 +43,6 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
   footerLabel: "Admin panel",
   footerIcon: ShieldCheck,
   groups: [
-    {
-      heading: "Tài chính",
-      items: [
-        {
-          id: "finance",
-          label: "Tài chính",
-          href: "/finance",
-          icon: PiggyBank,
-        },
-        {
-          id: "refund-claims",
-          label: "Hoàn lỗi HT",
-          href: "/refund-claims",
-          icon: AlertTriangle,
-        },
-        {
-          id: "settings",
-          label: "Cấu hình phí",
-          href: "/settings",
-          icon: Settings,
-        },
-      ],
-    },
     {
       heading: "Hệ thống",
       items: [
