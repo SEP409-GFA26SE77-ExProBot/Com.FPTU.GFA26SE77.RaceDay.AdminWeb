@@ -1,23 +1,19 @@
 /**
- * Manager duyệt giải ngân; Admin overview + cấu hình phí.
+ * Manager duyệt giải ngân + hoàn lỗi HT.
  * Mặc định gọi BE thật. Bật mock chỉ khi NEXT_PUBLIC_FINANCE_USE_MOCK=true
  */
 import api from "@/config/axios";
 import type {
   AdminPayoutRequestDto,
   ManagerSystemErrorRefundDto,
-  PlatformFeeSettingsDto,
-  PlatformFinanceOverviewDto,
 } from "@/dto/finance.dto";
 
 const MANAGER_FINANCE_API = "api/v1/finance/manager";
-const ADMIN_FINANCE_API = "api/v1/finance/admin";
 
 export const FINANCE_USE_MOCK =
   process.env.NEXT_PUBLIC_FINANCE_USE_MOCK === "true";
 
 const LS_PAYOUTS = "raceday.admin.payouts.v1";
-const LS_SETTINGS = "raceday.admin.fee-settings.v1";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -70,18 +66,6 @@ const SEED_PAYOUTS: AdminPayoutRequestDto[] = [
   },
 ];
 
-const DEFAULT_SETTINGS: PlatformFeeSettingsDto = {
-  platformFeePercent: 5,
-  preEventWithdrawPercent: 30,
-  postEventWithdrawPercent: 70,
-  minPayoutAmount: 500_000,
-  fullRefundPercent: 100,
-  partialRefundPercent: 85,
-  allowRefundAfterEventStart: false,
-  notes:
-    "Phí 5%. Giải ngân: tạm ứng 30% từ T-4 tuần; 70% còn lại sau giải. Yêu cầu hoàn VĐV: không hoàn lý do cá nhân; chỉ khiếu nại lỗi hệ thống (duyệt → 100%).",
-};
-
 export async function listAdminPayoutRequests(): Promise<AdminPayoutRequestDto[]> {
   if (FINANCE_USE_MOCK) {
     return readJson(LS_PAYOUTS, SEED_PAYOUTS);
@@ -90,17 +74,36 @@ export async function listAdminPayoutRequests(): Promise<AdminPayoutRequestDto[]
 }
 
 export async function approveAdminPayout(
-  id: string,
-  receiptUrl?: string
+  id: string
 ): Promise<AdminPayoutRequestDto> {
   if (FINANCE_USE_MOCK) {
+    const list = readJson(LS_PAYOUTS, SEED_PAYOUTS);
+    const next = list.map((p) =>
+      p.id === id ? { ...p, status: "approved" as const } : p
+    );
+    writeJson(LS_PAYOUTS, next);
+    const row = next.find((p) => p.id === id);
+    if (!row) throw new Error("Không tìm thấy yêu cầu.");
+    return row;
+  }
+  return api.post(`${MANAGER_FINANCE_API}/payouts/${id}/approve`, {});
+}
+
+export async function confirmTransferAdminPayout(
+  id: string,
+  receiptUrl: string
+): Promise<AdminPayoutRequestDto> {
+  if (FINANCE_USE_MOCK) {
+    if (!receiptUrl.trim()) {
+      throw new Error("Cần URL biên nhận / chứng từ chuyển khoản.");
+    }
     const list = readJson(LS_PAYOUTS, SEED_PAYOUTS);
     const next = list.map((p) =>
       p.id === id
         ? {
             ...p,
             status: "transferred" as const,
-            receiptUrl: receiptUrl || p.receiptUrl || "#",
+            receiptUrl: receiptUrl.trim(),
           }
         : p
     );
@@ -109,7 +112,9 @@ export async function approveAdminPayout(
     if (!row) throw new Error("Không tìm thấy yêu cầu.");
     return row;
   }
-  return api.post(`${MANAGER_FINANCE_API}/payouts/${id}/approve`, { receiptUrl });
+  return api.post(`${MANAGER_FINANCE_API}/payouts/${id}/confirm-transfer`, {
+    receiptUrl,
+  });
 }
 
 export async function rejectAdminPayout(
@@ -160,34 +165,4 @@ export async function rejectSystemErrorRefund(
   return api.post(`${MANAGER_FINANCE_API}/system-error-refunds/${id}/reject`, {
     reason,
   });
-}
-
-export async function getPlatformFinanceOverview(): Promise<PlatformFinanceOverviewDto> {
-  if (FINANCE_USE_MOCK) {
-    return {
-      totalEscrowHeld: 186_400_000,
-      platformFeeCollected: 24_850_000,
-      pendingPayoutAmount: 12_200_000,
-      transferredThisMonth: 45_000_000,
-      currency: "VND",
-    };
-  }
-  return api.get(`${ADMIN_FINANCE_API}/overview`);
-}
-
-export async function getPlatformFeeSettings(): Promise<PlatformFeeSettingsDto> {
-  if (FINANCE_USE_MOCK) {
-    return readJson(LS_SETTINGS, DEFAULT_SETTINGS);
-  }
-  return api.get(`${ADMIN_FINANCE_API}/settings`);
-}
-
-export async function savePlatformFeeSettings(
-  body: PlatformFeeSettingsDto
-): Promise<PlatformFeeSettingsDto> {
-  if (FINANCE_USE_MOCK) {
-    writeJson(LS_SETTINGS, body);
-    return body;
-  }
-  return api.put(`${ADMIN_FINANCE_API}/settings`, body);
 }

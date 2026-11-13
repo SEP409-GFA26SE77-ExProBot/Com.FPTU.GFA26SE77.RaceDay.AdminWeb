@@ -8,7 +8,11 @@
     "start": "next start --port 3001",
     "lint": "eslint",
     "test:auth": "node --test tests/auth-store.test.mjs tests/auth-http.test.mjs tests/role-access.test.mjs",
-    "test:photo": "node --test tests/photo-upload.test.mjs"
+    "test:photo": "node --test tests/photo-upload.test.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:live-auth": "node --test tests/auth-http.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
@@ -33,6 +37,7 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4",
     "@types/js-cookie": "^3.0.6",
     "@types/leaflet": "^1.9.22",
