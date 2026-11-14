@@ -125,8 +125,8 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
       setList(rows);
       setPage(1);
     } catch (e) {
-      setError(getApiErrorMessage(e, "Không tải được khiếu nại lỗi hệ thống."));
-      toastError(e, "Không tải được khiếu nại lỗi hệ thống.");
+      setError(getApiErrorMessage(e, "Không tải được yêu cầu hoàn tiền."));
+      toastError(e, "Không tải được yêu cầu hoàn tiền.");
       setList([]);
     } finally {
       setLoading(false);
@@ -194,7 +194,7 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
     <div className="animate-slide-up" data-tab={tabId}>
       <SectionHeader
         id="FR-SYS-REFUND"
-        title="Khiếu nại hoàn lỗi hệ thống"
+        title="Yêu cầu hoàn tiền lỗi hệ thống"
         desc="Danh sách rút gọn — mở chi tiết để xem lý do, đính kèm rồi duyệt hoặc từ chối."
         color={C}
       />
@@ -234,7 +234,7 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
         </Card>
       ) : list.length === 0 ? (
         <Card className="px-4 py-10 text-center text-sm text-muted-foreground">
-          Không có khiếu nại{pendingOnly ? " chờ duyệt" : ""}.
+          Không có yêu cầu{pendingOnly ? " chờ duyệt" : ""}.
         </Card>
       ) : (
         <>
@@ -308,7 +308,7 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
 
           <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
             <span>
-              Trang {page}/{totalPages} · {list.length} khiếu nại
+              Trang {page}/{totalPages} · {list.length} yêu cầu
             </span>
             <div className="flex gap-2">
               <Button
@@ -346,10 +346,10 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
               <DialogHeader className="text-left">
                 <DialogTitle>
                   {detailMode === "reject"
-                    ? "Từ chối khiếu nại"
+                    ? "Từ chối yêu cầu"
                     : detailMode === "approve"
                       ? "Xác nhận duyệt hoàn"
-                      : "Chi tiết khiếu nại"}
+                      : "Chi tiết yêu cầu"}
                 </DialogTitle>
                 <DialogDescription>
                   {detail.eventName || "Giải chạy"}
@@ -467,7 +467,7 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
                       Lý do từ chối (bắt buộc)
                     </p>
                     <p className="text-xs text-red-700/80">
-                      VĐV sẽ thấy lý do này trên lịch sử thanh toán / khiếu nại.
+                      VĐV sẽ thấy lý do này trên lịch sử thanh toán / yêu cầu.
                     </p>
                     <textarea
                       value={rejectReason}
@@ -510,7 +510,7 @@ export default function SystemErrorRefundsPanel({ tabId = "refund-claims" }: Pro
                       type="button"
                       variant="outline"
                       disabled={Boolean(busyId)}
-                      onClick={closeDetail}
+                      onClick={() => closeDetail()}
                     >
                       Đóng
                     </Button>
