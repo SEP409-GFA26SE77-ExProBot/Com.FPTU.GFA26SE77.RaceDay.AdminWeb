@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
-import { getAdminDashboard } from "@/api/dashboard";
+import { exportAdminDashboard, getAdminDashboard } from "@/api/dashboard";
 import { listPagedAuditEntries } from "@/api/admin-audit";
 import { Button } from "@/components/ui/button";
 import { RouteTab } from "@/context/ActiveTabContext";
@@ -19,6 +19,7 @@ import {
   TrendChart,
   Updated,
 } from "./DashboardUI";
+import DashboardExport from "./DashboardExport";
 
 const loadAudit = () => listPagedAuditEntries(1, 6);
 const roleLabels: Record<string, string> = {
@@ -79,6 +80,12 @@ export default function AdminDashboard() {
           </div>
         </header>
         <DateFilter value={range} onChange={setRange} />
+        <DashboardExport
+          key={range.from + range.to}
+          range={range}
+          download={(format) => exportAdminDashboard(range, format)}
+          disabled={!data || dashboard.loading}
+        />
         <p className="text-xs text-muted-foreground">
           Bộ lọc ngày áp dụng cho tài khoản mới. Trạng thái tài khoản và vai trò
           là số liệu hiện tại.
@@ -90,26 +97,16 @@ export default function AdminDashboard() {
         />
         {data && (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Metric
                 label="Tổng tài khoản"
                 value={data.totalUsers}
                 note="Toàn bộ tài khoản trong hệ thống"
               />
               <Metric
-                label="Đang hoạt động"
-                value={data.activeUsers}
-                note="Tài khoản Active, không phải số người online"
-              />
-              <Metric
-                label="Chờ kích hoạt"
-                value={data.pendingUsers}
-                note="Tài khoản đang ở trạng thái Pending"
-              />
-              <Metric
-                label="Đã khóa"
-                value={data.lockedUsers}
-                note="Xem và xử lý trong Quản lý tài khoản"
+                label="Tài khoản mới trong kỳ"
+                value={data.newUsersInPeriod}
+                note="Theo ngày tạo trong khoảng đã áp dụng"
               />
             </div>
             <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -130,23 +127,32 @@ export default function AdminDashboard() {
                   ]}
                 />
               </Panel>
-              <Panel
-                title="Phân bố vai trò"
-                description="Số tài khoản theo vai trò hiện tại"
-              >
-                {data.usersByRole.length ? (
-                  <Distribution
-                    items={data.usersByRole.map((item) => ({
-                      label: roleLabels[item.role.toUpperCase()] ?? item.role,
-                      count: item.count,
-                    }))}
-                  />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Chưa có tài khoản.
-                  </p>
-                )}
-              </Panel>
+              <div className="space-y-6">
+                <Panel title="Trạng thái tài khoản" description="Số tài khoản hiện tại; đã kích hoạt là đã xác thực email.">
+                  <Distribution items={[
+                    { label: "Đã kích hoạt", count: data.activeUsers },
+                    { label: "Chờ xác thực email", count: data.pendingUsers },
+                    { label: "Đã khóa", count: data.lockedUsers },
+                  ]} />
+                </Panel>
+                <Panel
+                  title="Phân bố vai trò"
+                  description="Số tài khoản theo vai trò hiện tại"
+                >
+                  {data.usersByRole.length ? (
+                    <Distribution
+                      items={data.usersByRole.map((item) => ({
+                        label: roleLabels[item.role.toUpperCase()] ?? item.role,
+                        count: item.count,
+                      }))}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Chưa có tài khoản.
+                    </p>
+                  )}
+                </Panel>
+              </div>
             </div>
             <Updated at={data.generatedAtUtc} />
           </>

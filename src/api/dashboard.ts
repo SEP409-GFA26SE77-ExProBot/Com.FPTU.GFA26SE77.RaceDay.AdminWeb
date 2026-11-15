@@ -7,3 +7,11 @@ export function getAdminDashboard(
 ): Promise<AdminDashboardDto> {
   return api.get("api/v1/iam/admin/dashboard", { params: range });
 }
+
+export function exportAdminDashboard(range: DateRange, format: "xlsx" | "pdf"): Promise<Blob> {
+  return api.get("api/v1/iam/admin/dashboard/export", {
+    params: { ...range, format },
+    responseType: "blob",
+    timeout: 60000,
+  });
+}
