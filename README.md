@@ -3,12 +3,16 @@
 Run `npm install` and `npm run dev`, then open [http://localhost:3001](http://localhost:3001).
 Configure `BACKEND_API_URL` for the RaceDay API; the default is `http://localhost:5080`.
 
+Development uses Webpack (`next dev --webpack`) to avoid the Turbopack Google Fonts resolver error `next/font/google queries have exactly one entry`. After updating the dev script, stop the running dev server and run `npm run dev` again. See [Next.js CLI options](https://nextjs.org/docs/app/api-reference/cli/next#next-dev-options).
+
+Dashboard Admin tại trang chủ: [luồng giao diện, API và cách kiểm tra](docs/dashboard.md).
+
 ## Roles
 
 | IAM role | Workspace | Functions |
 | --- | --- | --- |
 | Race-staff | `/race-staff` | Live map, scanner, manual entry, issues, race status, medical, cut-off, inventory, contingency, broom. |
-| Admin | `/admin` | IAM users, audit logs. (Tài chính / hoàn lỗi HT → Manager) |
+| Admin | `/admin` | Account dashboard, IAM users, audit logs. (Tài chính / hoàn lỗi HT → Manager) |
 | Manager | `/manager` | Event approval/reject, payouts, system-error refunds, package durations/capacities, promos, reconciliation, stats. |
 | Photographer | `/photographer` | Upload, OCR, corrections, analytics, publishing, photo requests. |
 
