@@ -39,6 +39,10 @@ The screen has Athletes, Checkpoint activity, and Staff journal tabs. It default
 
 Business journal entries persist after reset/API restart and can be filtered by run, action, runner, and actor (25 per page). Old runs are read-only; simulation state itself is not restored. DNS/DNF, DQ reporting/review, and checkpoint submission are recorded with actor identity and real/simulated timestamps. Automatic passages remain current-run activity.
 
+Staff own `(previous checkpoint km, assigned checkpoint km]`; Start owns the starting position. For CP1 at km 3 and CP2 at km 5, CP2 owns `(3, 5]`. DNF requires a Racing runner currently in that segment (Running/Paused). DQ reporting also remains available after a recorded passage at the assigned checkpoint in the current run, including after Finish, until sealing/run locking/reset. Report only incidents in your assigned segment/station. Use **Đã qua** or **Tất cả VĐV** to find runners who have passed. The FE uses backend `isInAssignedSegment` and action flags; it does not calculate boundaries. Deploy this scope change with its matching backend; no new migration is required.
+
+Test with `coord2` at CP 1.25 km: start a run, open DNF while the runner approaches, then let the runner pass; the form retains its reason and disables submission. Find the runner under **Đã qua**, report DQ, have the organizer review it, then submit the checkpoint report after Finished. The journal retains the reporting checkpoint and timestamps after reset.
+
 Submit checkpoint results only after the run finishes and all local DQ reports are resolved. Submission seals that checkpoint for both staff and organizer; retry returns the existing report. The report is a snapshot and does not publish official results. Deploy the backend migration `20261116010000_AddSimulationJournal` before this AdminWeb version.
 
 Start the WebAPI on port 5080. REST calls use `BACKEND_API_URL`; the browser SignalR connection uses `NEXT_PUBLIC_API_URL` (default `http://localhost:5080`) and connects to `/api/v1/simulation/hub`. Set both URLs to the API origin when using a different backend address.

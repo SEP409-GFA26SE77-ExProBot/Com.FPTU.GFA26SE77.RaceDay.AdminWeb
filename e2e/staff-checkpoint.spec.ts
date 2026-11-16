@@ -6,7 +6,7 @@ test.use({ actionTimeout: 15_000, video: "off", launchOptions: process.env.E2E_B
 // Uses simulation drafts; the optional restart scenario also revokes staff. Use an isolated seeded database.
 test.skip(process.env.STAFF_CHECKPOINT_E2E !== "1", "Set STAFF_CHECKPOINT_E2E=1 with an isolated seeded API to run checkpoint workflow tests.");
 
-test("staff checkpoint preserves draft input offline, records decisions, seals export and reads prior-run journal", async ({ page, request }) => {
+test("staff checkpoint preserves draft input offline, records decisions, seals export and reads prior-run journal", async ({ page, request, browser }) => {
   test.skip(process.env.STAFF_CHECKPOINT_RESTART_E2E === "1", "Run the read-only restart/revocation scenario instead.");
   test.setTimeout(120_000);
   const backend = process.env.E2E_BACKEND || "http://localhost:5080";
@@ -46,13 +46,20 @@ test("staff checkpoint preserves draft input offline, records decisions, seals e
   await page.getByLabel("Mô tả / đường dẫn bằng chứng").fill("Staff observed runner route");
   await page.getByRole("button", { name: "Gửi báo cáo", exact: true }).click();
   await expect(dqRow.getByText("DQ chờ duyệt · Xem báo cáo")).toBeVisible();
+  const segmentContext = await browser.newContext({ baseURL: process.env.E2E_ORIGIN || "http://localhost:3001" });
+  const segmentPage = await segmentContext.newPage();
+  await loginAs(segmentPage, "coord2");
+  await segmentPage.goto(`/checkpoint/events/${eventId}`);
+  await expect(segmentPage.getByText("Đang cập nhật trực tiếp", { exact: true })).toBeVisible();
   await post(`/runs/${run.runId}/start`);
+  const dnfRow = segmentPage.getByRole("row").filter({ has: segmentPage.getByText(dnf.bib, { exact: true }) });
+  await expect(dnfRow.getByRole("button", { name: "Bỏ cuộc", exact: true })).toBeVisible();
   await post(`/runs/${run.runId}/pause`);
-  const dnfRow = page.getByRole("row").filter({ has: page.getByText(dnf.bib, { exact: true }) });
   await dnfRow.getByRole("button", { name: "Bỏ cuộc", exact: true }).click();
-  await page.getByLabel("Lý do *", { exact: true }).fill("Runner retired");
-  await page.getByRole("button", { name: "Xác nhận", exact: true }).click();
-  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await segmentPage.getByLabel("Lý do *", { exact: true }).fill("Runner retired");
+  await segmentPage.getByRole("button", { name: "Xác nhận", exact: true }).click();
+  await expect(segmentPage.getByRole("dialog")).not.toBeVisible();
+  await segmentContext.close();
   await post(`/runs/${run.runId}/athletes/${dq.registrationId}/speed`, { kmh: 40 });
   await post(`/runs/${run.runId}/playback`, { rate: 60 });
   await post(`/runs/${run.runId}/resume`);
@@ -80,6 +87,86 @@ test("staff checkpoint preserves draft input offline, records decisions, seals e
   await page.getByLabel("Lượt giả lập").selectOption(originalRunId);
   await expect(page.getByText("Đang xem nhật ký lượt cũ · Chỉ đọc", { exact: true })).toBeVisible();
   await expect(page.getByText("Lý do: No violation", { exact: true })).toBeVisible();
+});
+
+test("staff owns the incoming segment and can report DQ after passage while an open DNF form is locked", async ({ page, request }) => {
+  test.skip(process.env.STAFF_CHECKPOINT_RESTART_E2E === "1", "Run the restart scenario instead.");
+  test.setTimeout(120_000);
+  const backend = process.env.E2E_BACKEND || "http://localhost:5080";
+  const eventId = process.env.E2E_STAFF_EVENT || "5aff0000-0000-4000-8000-000000000100";
+  const distanceId = process.env.E2E_STAFF_DISTANCE || "5aff0000-0000-4000-8000-000000000101";
+  const login = async (username: string) => {
+    const response = await request.post(`${backend}/api/v1/iam/auth/login`, { data: { username, password: process.env.E2E_PASSWORD || "MatKhau@123" } });
+    expect(response.ok()).toBeTruthy();
+    return { Authorization: `Bearer ${(await response.json()).accessToken}` };
+  };
+  const headers = await login(process.env.E2E_ORGANIZER_USER || "cuong.le");
+  const staffHeaders = await login("coord2");
+  const post = async (path: string, data?: unknown) => {
+    const response = await request.post(`${backend}/api/v1/simulation${path}`, { headers, data });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return response.json();
+  };
+  const checkpoint = async () => {
+    const response = await request.get(`${backend}/api/v1/simulation/staff/events/${eventId}/checkpoint`, { headers: staffHeaders });
+    expect(response.ok()).toBeTruthy();
+    return response.json();
+  };
+  let run = await post(`/events/${eventId}/distances/${distanceId}/runs`, { runnerCount: 1, seed: 4 });
+  run = await post(`/runs/${run.runId}/new`, { confirmDiscard: true, runnerCount: 1, seed: 4 });
+  const [athlete] = run.athletes;
+  await loginAs(page, "coord2");
+  await page.goto(`/checkpoint/events/${eventId}`);
+  await expect(page.getByText("Đang cập nhật trực tiếp", { exact: true })).toBeVisible();
+  await expect(page.getByText("Chặng phụ trách:", { exact: false })).toContainText("sau CP trước (km 0)");
+  await expect(page.getByText("Chặng phụ trách:", { exact: false })).toContainText("bao gồm mốc 1.25");
+  expect((await checkpoint()).athletes[0].canReport).toBe(false);
+  await post(`/runs/${run.runId}/athletes/${athlete.registrationId}/speed`, { kmh: 20 });
+  await post(`/runs/${run.runId}/playback`, { rate: 60 });
+  await post(`/runs/${run.runId}/start`);
+  await expect.poll(async () => (await checkpoint()).athletes[0].courseKm).toBeGreaterThan(0);
+  await post(`/runs/${run.runId}/pause`);
+  const row = page.getByRole("row").filter({ has: page.getByText(athlete.bib, { exact: true }) });
+  await row.getByRole("button", { name: "Bỏ cuộc", exact: true }).click();
+  await page.getByLabel("Lý do *", { exact: true }).fill("Retirement observed on incoming segment");
+  await post(`/runs/${run.runId}/resume`);
+  await expect(page.getByText("VĐV đã ra khỏi chặng phụ trách;", { exact: false })).toBeVisible({ timeout: 20_000 });
+  await post(`/runs/${run.runId}/pause`);
+  await expect(page.getByLabel("Lý do *", { exact: true })).toHaveValue("Retirement observed on incoming segment");
+  await expect(page.getByRole("button", { name: "Xác nhận", exact: true })).toBeDisabled();
+  const afterPassage = await checkpoint();
+  expect(afterPassage.athletes[0]).toMatchObject({ isInAssignedSegment: false, canDnf: false, canReport: true });
+  expect(afterPassage.athletes[0].passedAtSeconds).not.toBeNull();
+  const lateDnf = await request.post(`${backend}/api/v1/simulation/staff/events/${eventId}/runs/${run.runId}/athletes/${athlete.registrationId}/decisions`, {
+    headers: staffHeaders, data: { status: "DNF", reason: "Stale form", operationId: crypto.randomUUID() },
+  });
+  expect(lateDnf.ok()).toBeFalsy();
+  for (const width of [375, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.screenshot({ path: `test-results/staff-checkpoint-scope-${width}.png`, fullPage: true });
+  }
+  await page.getByRole("button", { name: "Hủy", exact: true }).click();
+  await page.getByRole("combobox", { name: /Hiển thị/ }).selectOption("passed");
+  await row.getByRole("button", { name: "Báo vi phạm", exact: true }).click();
+  await expect(page.getByText("Chỉ báo vi phạm xảy ra", { exact: false })).toBeVisible();
+  await page.getByLabel("Lý do *", { exact: true }).fill("Incident witnessed at assigned CP");
+  await page.getByRole("button", { name: "Gửi báo cáo", exact: true }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(row.getByText("DQ chờ duyệt · Xem báo cáo")).toBeVisible();
+  await post(`/runs/${run.runId}/athletes/${athlete.registrationId}/speed`, { kmh: 40 });
+  await post(`/runs/${run.runId}/resume`);
+  await expect(page.getByText("Đã kết thúc", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Gửi cho organizer", exact: true })).toBeDisabled();
+  const pending = await checkpoint();
+  expect(pending.athletes[0].motion).toBe("Finished");
+  await post(`/runs/${run.runId}/decisions/${pending.decisions[0].id}/review`, { approve: false, reason: "Reviewed CP incident", operationId: crypto.randomUUID() });
+  await expect(page.getByRole("button", { name: "Gửi cho organizer", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Gửi cho organizer", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Đã gửi kết quả", exact: true })).toBeDisabled();
+  await expect(row.getByRole("button", { name: "Báo vi phạm", exact: true })).not.toBeVisible();
+  await page.getByRole("tab", { name: "Nhật ký thao tác", exact: true }).click();
+  await expect(page.getByText("Lý do: Incident witnessed at assigned CP", { exact: true })).toBeVisible();
+  await expect(page.getByText("Lý do: Reviewed CP incident", { exact: true })).toBeVisible();
 });
 
 test("after API restart staff can read old journal and revocation clears checkpoint data", async ({ page, request }) => {

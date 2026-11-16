@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -94,7 +94,7 @@ function CheckpointContent({ snapshot: s, connected, onAccessLost, onReconnect }
       <p className="text-xs font-bold uppercase tracking-wider text-orange-700">Checkpoint được phân công · Giả lập</p>
       <h1 className="mt-2 flex items-start gap-2 text-2xl font-extrabold"><MapPin className="mt-1 h-6 w-6 shrink-0 text-orange-600" />{s.checkpoint.name} · km {s.checkpoint.km}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{s.eventName} · {s.title} · {s.distanceKm} km</p>
-      <p className="mt-2 text-xs text-muted-foreground">Chặng phụ trách: km {s.segmentFromKm} đến {s.segmentToKm == null ? "hết đường đua" : `trước km ${s.segmentToKm}`} · Lượt {s.runId?.slice(0, 8) || "chưa tạo"}</p>
+      <p className="mt-2 text-xs text-muted-foreground">Chặng phụ trách: {s.checkpoint.type === "start" ? "Khu vực xuất phát" : s.segmentToKm == null ? "Chờ thông tin chặng của lượt mới" : `sau CP trước (km ${s.segmentFromKm}) đến ${s.checkpoint.name} (km ${s.segmentToKm}), bao gồm mốc ${s.segmentToKm}`} · Lượt {s.runId?.slice(0, 8) || "chưa tạo"}</p>
       <div className="mt-4 flex flex-wrap gap-3 text-sm"><span className="rounded-full bg-orange-50 px-3 py-2 font-semibold text-orange-800">{s.phase ? phaseLabel[s.phase] : "Chờ organizer tạo lượt"}</span>
         {s.runId && <span className="rounded-full bg-muted px-3 py-2 tabular-nums">Đồng hồ giả lập {formatSimClock(s.simulatedSeconds)} · {s.playbackRate}×</span>}
         {s.commitState === "Committed" && <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">Đã ghi kết quả lên hệ thống</span>}</div>
@@ -149,9 +149,10 @@ function CheckpointContent({ snapshot: s, connected, onAccessLost, onReconnect }
     </section>
     <Dialog open={!!action} onOpenChange={open => { if (!open && !busy) setAction(null); }}><DialogContent className="max-h-[90vh] overflow-y-auto">
       <DialogHeader><DialogTitle>{action?.status === "DQ" ? "Báo cáo vi phạm" : `Xác nhận ${action?.status || ""}`}</DialogTitle><DialogDescription>BIB {action?.athlete.bib} · {action?.athlete.fullName} · {s.checkpoint.name}. {action?.status === "DQ" ? "Organizer sẽ xem xét trước khi quyết định DQ." : "Kiểm tra đúng VĐV trước khi ghi nhận."}</DialogDescription></DialogHeader>
+      {action?.status === "DQ" && <p className="text-sm text-muted-foreground">Chỉ báo vi phạm xảy ra trong chặng hoặc tại trạm bạn phụ trách. VĐV đã có ghi nhận qua trạm vẫn có thể được báo trước khi chốt checkpoint và khóa lượt. Tìm VĐV trong bộ lọc Đã qua hoặc Tất cả VĐV.</p>}
       <div className="space-y-2"><label htmlFor="decision-reason" className="text-sm font-medium">Lý do *</label><textarea id="decision-reason" disabled={busy} required maxLength={1000} value={reason} onChange={e => setReason(e.target.value)} className="min-h-28 w-full rounded-md border bg-background p-3 text-sm" /></div>
       {action?.status === "DQ" && <div className="space-y-2"><label htmlFor="decision-evidence" className="text-sm font-medium">Mô tả / đường dẫn bằng chứng</label><textarea id="decision-evidence" disabled={busy} maxLength={2000} value={evidence} onChange={e => setEvidence(e.target.value)} className="min-h-20 w-full rounded-md border bg-background p-3 text-sm" /></div>}
-      {!connected && <div className="space-y-2"><p role="status" className="text-sm text-amber-800">Đang chờ dữ liệu mới; nội dung bạn nhập được giữ lại.</p><Button variant="outline" onClick={onReconnect}>Kết nối lại</Button></div>}{!allowed && <p role="status" className="text-sm text-amber-800">Trạng thái đã thay đổi; thao tác này không còn khả dụng.</p>}{error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {!connected && <div className="space-y-2"><p role="status" className="text-sm text-amber-800">Đang chờ dữ liệu mới; nội dung bạn nhập được giữ lại.</p><Button variant="outline" onClick={onReconnect}>Kết nối lại</Button></div>}{!allowed && <p role="status" className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">{action?.status === "DNF" && selected && !selected.isInAssignedSegment ? "VĐV đã ra khỏi chặng phụ trách; không thể ghi DNF. Nội dung bạn nhập được giữ lại." : "Trạng thái đã thay đổi; thao tác này không còn khả dụng."}</p>}{error && <p role="alert" className="text-sm text-red-700">{error}</p>}
       <DialogFooter><Button variant="outline" disabled={busy} onClick={() => setAction(null)}>Hủy</Button><Button disabled={busy || !allowed || !connected} onClick={() => void submit()}>{busy ? "Đang gửi…" : action?.status === "DQ" ? "Gửi báo cáo" : "Xác nhận"}</Button></DialogFooter>
     </DialogContent></Dialog>
   </>;
