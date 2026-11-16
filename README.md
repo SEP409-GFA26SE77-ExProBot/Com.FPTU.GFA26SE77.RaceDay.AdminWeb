@@ -11,7 +11,7 @@ Dashboard Admin tại trang chủ: [luồng giao diện, API và cách kiểm tr
 
 | IAM role | Workspace | Functions |
 | --- | --- | --- |
-| Race-staff | `/race-staff` | Live map, scanner, manual entry, issues, race status, medical, cut-off, inventory, contingency, broom. |
+| Race-staff | `/race-staff` | Assigned checkpoint simulation (live map, checkpoint history, DNF/DNS/DQ reports, export to organizer), live map, scanner, manual entry, issues, race status, medical, cut-off, inventory, contingency, broom. |
 | Admin | `/admin` | Account dashboard, IAM users, audit logs. (Tài chính / hoàn lỗi HT → Manager) |
 | Manager | `/manager` | Event approval/reject, payouts, system-error refunds, package durations/capacities, promos, reconciliation, stats. |
 | Photographer | `/photographer` | Upload, OCR, corrections, analytics, publishing, photo requests. |
@@ -30,6 +30,14 @@ Navigation keeps short URLs such as `/users`, `/approvals`, and `/scanner`. The 
 FE clients: `src/api/admin-events.ts`, `admin-packages.ts` → manager event; `admin-finance.ts` → manager payouts/refunds; `admin-users.ts` → iam admin; `race-map.ts` → map.
 
 Không còn `/api/v1/event/admin`. Bookmark FE cũ `/admin/approvals` redirect → `/approvals` (Manager).
+
+## Race-staff checkpoint simulation
+
+Race-staff lands on `/checkpoint` after login, selects an assigned event, and follows the organizer simulation at `/checkpoint/events/{eventId}/checkpoint`. The existing live map remains available at `/map`.
+
+The checkpoint screen shows nearby athletes and checkpoint history, records DNS/DNF, submits DQ reports for organizer review, and sends checkpoint results to the organizer after the run finishes. Staff must have a checkpoint assignment on the event map.
+
+Start the WebAPI on port 5080. REST calls use `BACKEND_API_URL`; the browser SignalR connection uses `NEXT_PUBLIC_API_URL` (default `http://localhost:5080`) and connects to `/api/v1/simulation/hub`. Set both URLs to the API origin when using a different backend address.
 
 ## Validation
 

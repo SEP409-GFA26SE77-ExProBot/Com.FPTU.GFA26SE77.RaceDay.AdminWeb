@@ -1,7 +1,5 @@
-"use client";
-
-import RaceStaffMapPage from "./map/page";
+import { redirect } from "next/navigation";
 
 export default function RaceStaffPage() {
-  return <RaceStaffMapPage />;
+  redirect("/checkpoint");
 }
