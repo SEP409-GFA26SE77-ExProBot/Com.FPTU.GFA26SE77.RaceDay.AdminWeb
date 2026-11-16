@@ -140,7 +140,7 @@ test('each role uses the verified session to reach its workspace and rejects oth
         const response = await proxy(request(item.href));
         const shared = permissions.routePermission(item.href).includes(role);
         if (owner === role || shared) {
-          assert.equal(new URL(response.headers.get('x-middleware-rewrite')).pathname, permissions.ROLE_PREFIX[role] + item.href);
+          assert.equal(new URL(response.headers.get('x-middleware-rewrite')).pathname, permissions.ROLE_PREFIX[role] + (item.href === '/' ? '' : item.href));
         } else {
           assert.equal(new URL(response.headers.get('location')).pathname, '/forbidden');
         }

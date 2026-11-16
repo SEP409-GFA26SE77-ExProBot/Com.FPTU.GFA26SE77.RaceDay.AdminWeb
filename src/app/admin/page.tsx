@@ -1,7 +1,5 @@
-"use client";
-
-import AdministratorUsersPage from "./users/page";
+import AdminDashboard from "@/components/dashboard/AdminDashboard";
 
 export default function AdministratorPage() {
-  return <AdministratorUsersPage />;
+  return <AdminDashboard />;
 }
