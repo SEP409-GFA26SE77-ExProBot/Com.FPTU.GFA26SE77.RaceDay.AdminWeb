@@ -22,7 +22,7 @@ export async function fetchHubAccessToken(): Promise<string> {
     credentials: "same-origin",
     headers: { Accept: "application/json" },
   });
-  if (!res.ok) throw new Error("Không lấy được token cho SignalR (đăng nhập lại).");
+  if (!res.ok) throw Object.assign(new Error("Không lấy được token cho SignalR (đăng nhập lại)."), { status: res.status });
   const body = (await res.json()) as { accessToken?: string };
   if (!body.accessToken) throw new Error("Token hub trống.");
   return body.accessToken;

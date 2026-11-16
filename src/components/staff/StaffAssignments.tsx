@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Loader2, MapPin } from "lucide-react";
 import { listMyStaffAssignments, type StaffAssignmentDto } from "@/api/check-in";
+import { isActiveRaceStaffAssignment } from "@/lib/staff-assignment";
 import { Button } from "@/components/ui/button";
 
 export default function StaffAssignments() {
@@ -13,7 +14,7 @@ export default function StaffAssignments() {
   useEffect(() => {
     let active = true;
     void listMyStaffAssignments().then(rows => {
-      if (active) setItems(rows.filter(x => x.role === "race-staff"));
+      if (active) setItems(rows.filter(isActiveRaceStaffAssignment));
     }).catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [retry]);

@@ -8,6 +8,7 @@ export type CheckpointResultExport = {
   checkpointName: string;
   checkpointKm: number;
   staffUserId: string;
+  staffName?: string | null;
   submittedAtUtc: string;
   rows: {
     registrationId: string;

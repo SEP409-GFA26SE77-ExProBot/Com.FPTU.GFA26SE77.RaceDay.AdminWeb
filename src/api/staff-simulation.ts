@@ -5,6 +5,7 @@ export type StaffAthlete = {
   registrationId: string; bib: string; fullName: string; motion: AthleteMotion; sos: boolean;
   courseKm: number; speedKmh: number; passedAtSeconds: number | null; remainingKm: number;
   canDnf: boolean; canDns: boolean; canReport: boolean;
+  isInAssignedSegment: boolean; pendingDq: SimulationDecisionDto | null; hasPendingDq: boolean;
 };
 
 export type StaffCheckpointSnapshot = {
@@ -13,11 +14,14 @@ export type StaffCheckpointSnapshot = {
   runId: string | null; generation: number; version: number; phase: SimulationPhase | null;
   simulatedSeconds: number; playbackRate: number; commitState: string | null;
   athletes: StaffAthlete[]; decisions: SimulationDecisionDto[];
+  segmentFromKm: number; segmentToKm: number | null; historyVersion: number;
+  canSubmitExport: boolean; exportBlockedReason: string | null;
+  submittedAtUtc: string | null; submittedBy: string | null; submittedByName: string | null;
 };
 
 export const getStaffCheckpoint = (eventId: string): Promise<StaffCheckpointSnapshot> =>
   api.get(`api/v1/simulation/staff/events/${eventId}/checkpoint`);
 
 export const recordStaffDecision = (eventId: string, runId: string, registrationId: string,
-  body: { status: "DNF" | "DNS" | "DQ"; reason: string; evidence?: string }): Promise<StaffCheckpointSnapshot> =>
+  body: { status: "DNF" | "DNS" | "DQ"; reason: string; evidence?: string; operationId?: string }): Promise<StaffCheckpointSnapshot> =>
   api.post(`api/v1/simulation/staff/events/${eventId}/runs/${runId}/athletes/${registrationId}/decisions`, body);
