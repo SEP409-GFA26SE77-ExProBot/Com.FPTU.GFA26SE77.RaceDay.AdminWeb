@@ -14,6 +14,7 @@ import { getApiErrorMessage } from "@/lib/error";
 import type { CoordinatorMapEventDto } from "@/dto/coordinator-map.dto";
 import type { CourseConfigDto } from "@/dto/race-map.dto";
 import { isActiveRaceStaffAssignment } from "@/lib/staff-assignment";
+import { useAuthStore } from "@/stores/auth-store";
 import { useLiveStaffPositions } from "./use-live-staff-positions";
 
 export default function RaceStaffMapPage() {
@@ -84,6 +85,7 @@ export default function RaceStaffMapPage() {
 }
 
 function CoordinatorEventMap({ assignment }: { assignment: StaffAssignmentDto }) {
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const [event, setEvent] = useState<CoordinatorMapEventDto | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDistId, setSelectedDistId] = useState("");
@@ -99,7 +101,7 @@ function CoordinatorEventMap({ assignment }: { assignment: StaffAssignmentDto })
   const checkpoints = useMemo(() => courseToCheckpoints(courseResult?.course ?? null), [courseResult]);
   const liveMarkers: LiveMapMarker[] = (positions ?? []).map((person) => ({
     id: person.userId,
-    name: person.name,
+    name: person.userId === currentUserId ? `${person.name} (tôi)` : person.name,
     role: person.roles.map((role) => role === "photographer" ? "Photographer" : "Race-staff").join(" · "),
     station: person.stations.map(({ id, label }) => {
       if (id === "duty:float") return "Mobile";
