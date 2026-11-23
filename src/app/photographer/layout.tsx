@@ -3,12 +3,11 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
+import OpsShell from "@/components/OpsShell";
+import { ActiveTabProvider } from "@/context/ActiveTabContext";
+import { PhotographerJobProvider } from "@/context/PhotographerJobContext";
+import { OcrJobResumer } from "@/components/photographer/OcrJobResumer";
+import { PHOTOGRAPHER_NAV } from "@/config/ops-nav";
 
 export const metadata: Metadata = {
   title: "RaceDay Admin Portal | Operations Dashboard",
@@ -18,17 +17,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col antialiased bg-background text-foreground" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ActiveTabProvider defaultTab="upload">
+      <PhotographerJobProvider>
+        <OcrJobResumer />
+        <div className="min-h-screen">
+          <OpsShell
+            groups={PHOTOGRAPHER_NAV.groups}
+            homeHref={PHOTOGRAPHER_NAV.homeHref}
+            breadcrumbLabel={PHOTOGRAPHER_NAV.breadcrumbLabel}
+            footerLabel={PHOTOGRAPHER_NAV.footerLabel}
+            footerIcon={PHOTOGRAPHER_NAV.footerIcon}
+          >
+            {children}
+          </OpsShell>
+        </div>
+      </PhotographerJobProvider>
+    </ActiveTabProvider>
   );
 }

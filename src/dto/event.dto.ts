@@ -1,4 +1,4 @@
-/** Shape chi tiết giải từ GET /api/v1/event/admin/pending & /{id} — khớp FE User CreateRaceEventRequest. */
+/** Shape chi tiết giải từ GET /api/v1/event/manager/pending & /{id} — khớp FE User CreateRaceEventRequest. */
 
 export interface GeoPointDto {
   lat: number;
@@ -141,6 +141,10 @@ export interface RaceEventDto {
   registrationOpensAtUtc?: string | null;
   registrationClosesAtUtc?: string | null;
   packagePurchaseId?: string | null;
+  /** Optional — User FE cấu hình BIB theo giải; Admin chỉ đọc nếu có */
+  bibPrefix?: string | null;
+  bibRangeStart?: number | null;
+  bibRangeEnd?: number | null;
   createdAtUtc?: string;
   updatedAtUtc?: string;
 }

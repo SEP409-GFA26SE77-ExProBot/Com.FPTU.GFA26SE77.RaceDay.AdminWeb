@@ -12,7 +12,7 @@ const STORAGE_PUBLIC = (
 ).replace(/\/$/, "");
 
 const STORAGE_FOLDER =
-  /^\/(?:uploads\/)?(event-docs|event-banners|health-certs)\/(.+)$/i;
+  /^\/(?:uploads\/)?(event-docs|event-banners|health-certs|event-photos)\/(.+)$/i;
 
 export function absoluteFileUrl(fileUrl: string): string {
   if (!fileUrl) return "";

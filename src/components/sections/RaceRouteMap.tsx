@@ -21,15 +21,24 @@ export type Checkpoint = {
 
 export type RaceRouteMapProps = {
   route: Coordinate[];
-  startPoint: Coordinate;
-  finishPoint: Coordinate;
+  startPoint?: Coordinate;
+  finishPoint?: Coordinate;
   checkpoints: Checkpoint[];
+  liveMarkers?: LiveMapMarker[];
+  liveFocus?: { id: string; revision: number } | null;
   /** Map height in CSS units. Defaults to "520px" */
   height?: string;
   /** Route polyline colour. Defaults to "#8B5CF6" (violet) */
   routeColor?: string;
   /** Route polyline width. Defaults to 4 */
   routeWeight?: number;
+};
+
+export type LiveMapMarker = Coordinate & {
+  id: string;
+  name: string;
+  role: string;
+  station: string;
 };
 
 // ─── Dynamic import (SSR‑safe) ──────────────────────────────────────────────
@@ -72,8 +81,9 @@ export default function RaceRouteMap(props: RaceRouteMapProps) {
   // Memoize the bounds calculation so we don't recompute every render.
   const bounds = useMemo(() => {
     const allPoints: [number, number][] = [
-      [props.startPoint.lat, props.startPoint.lng],
-      [props.finishPoint.lat, props.finishPoint.lng],
+      ...[props.startPoint, props.finishPoint].flatMap((point): [number, number][] =>
+        point ? [[point.lat, point.lng]] : [],
+      ),
       ...props.route.map((c) => [c.lat, c.lng] as [number, number]),
       ...props.checkpoints.map((cp) => [cp.latitude, cp.longitude] as [number, number]),
     ];

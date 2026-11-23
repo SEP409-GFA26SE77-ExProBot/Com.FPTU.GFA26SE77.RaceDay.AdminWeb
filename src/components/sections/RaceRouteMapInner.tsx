@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import {
   MapContainer,
@@ -12,7 +12,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import type { RaceRouteMapProps, Checkpoint } from "./RaceRouteMap";
+import type { RaceRouteMapProps, Checkpoint, LiveMapMarker } from "./RaceRouteMap";
 
 // ─── Extended props (includes pre‑calculated bounds from parent) ────────────
 interface InnerProps extends RaceRouteMapProps {
@@ -95,6 +95,43 @@ const CP_TYPE_LABELS: Record<string, string> = {
   AID: "Điểm tiếp tế",
 };
 
+const liveIcon = L.divIcon({
+  className: "",
+  html: '<div class="size-4 rounded-full border-2 border-white bg-emerald-600 shadow-md"></div>',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+function StaffMarker({ marker, focusRevision }: { marker: LiveMapMarker; focusRevision?: number }) {
+  const map = useMap();
+  const markerRef = useRef<L.Marker>(null);
+  const lastFocus = useRef<number | undefined>(undefined);
+  const { lat, lng } = marker;
+
+  useEffect(() => {
+    if (focusRevision === undefined) return;
+    if (lastFocus.current === focusRevision) {
+      if (!map.getBounds().contains([lat, lng])) map.panTo([lat, lng], { animate: false });
+      return;
+    }
+    lastFocus.current = focusRevision;
+    map.setView([lat, lng], Math.max(map.getZoom(), 17), { animate: false });
+    markerRef.current?.openPopup();
+  }, [map, lat, lng, focusRevision]);
+
+  return (
+    <Marker ref={markerRef} position={[lat, lng]} icon={liveIcon} title={marker.name} alt={marker.name} zIndexOffset={1000}>
+      <Popup>
+        <div className="space-y-1">
+          <div className="font-semibold">{marker.name}</div>
+          <div>{marker.role}</div>
+          <div>{marker.station}</div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
 // ─── Sub‑component: fits map bounds on mount / data change ──────────────────
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
@@ -142,6 +179,8 @@ export default function RaceRouteMapInner({
   startPoint,
   finishPoint,
   checkpoints,
+  liveMarkers = [],
+  liveFocus,
   allBoundsPoints,
   height = "520px",
   routeColor = "#8B5CF6",
@@ -151,7 +190,8 @@ export default function RaceRouteMapInner({
   const polylinePositions: [number, number][] = route.map((c) => [c.lat, c.lng]);
 
   // We pick a sensible initial center (the start point).
-  const center: [number, number] = [startPoint.lat, startPoint.lng];
+  const firstPoint = startPoint ?? route[0] ?? liveMarkers[0];
+  const center: [number, number] = firstPoint ? [firstPoint.lat, firstPoint.lng] : [0, 0];
 
   const startIcon = createStartIcon();
   const finishIcon = createFinishIcon();
@@ -247,7 +287,7 @@ export default function RaceRouteMapInner({
         )}
 
         {/* ── Start marker ── */}
-        <Marker position={[startPoint.lat, startPoint.lng]} icon={startIcon}>
+        {startPoint && <Marker position={[startPoint.lat, startPoint.lng]} icon={startIcon}>
           <Popup>
             <div style={{ fontFamily: "system-ui,sans-serif" }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#10B981" }}>🏁 Start</div>
@@ -256,10 +296,10 @@ export default function RaceRouteMapInner({
               </div>
             </div>
           </Popup>
-        </Marker>
+        </Marker>}
 
         {/* ── Finish marker ── */}
-        <Marker position={[finishPoint.lat, finishPoint.lng]} icon={finishIcon}>
+        {finishPoint && <Marker position={[finishPoint.lat, finishPoint.lng]} icon={finishIcon}>
           <Popup>
             <div style={{ fontFamily: "system-ui,sans-serif" }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: "#EF4444" }}>🏆 Finish</div>
@@ -268,11 +308,14 @@ export default function RaceRouteMapInner({
               </div>
             </div>
           </Popup>
-        </Marker>
+        </Marker>}
 
         {/* ── Checkpoint markers ── */}
         {checkpoints.map((cp, i) => (
           <CheckpointMarker key={cp.id} cp={cp} index={i} />
+        ))}
+        {liveMarkers.map((marker) => (
+          <StaffMarker key={marker.id} marker={marker} focusRevision={liveFocus?.id === marker.id ? liveFocus.revision : undefined} />
         ))}
       </MapContainer>
     </div>

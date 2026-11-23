@@ -9,23 +9,24 @@ import {
   Clock,
   FileCheck,
   Flag,
-  FolderOpen,
   HeartPulse,
   ImagePlus,
   Keyboard,
   Map,
+  MapPin,
   Pencil,
-  PiggyBank,
+  Package,
+  Percent,
   Radio,
   Rocket,
   ScanSearch,
   Scale,
-  Settings,
   ShieldCheck,
   Tent,
   Truck,
   Upload,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,81 +39,73 @@ export type OpsRoleNav = {
 };
 
 export const ADMINISTRATOR_NAV: OpsRoleNav = {
-  homeHref: "/administrator/approvals",
+  homeHref: "/",
   breadcrumbLabel: "Quản trị hệ thống",
   footerLabel: "Admin panel",
   footerIcon: ShieldCheck,
   groups: [
     {
-      heading: "Vận hành",
-      items: [
-        {
-          id: "approvals",
-          label: "Duyệt giải",
-          href: "/administrator/approvals",
-          icon: FileCheck,
-        },
-      ],
-    },
-    {
-      heading: "Tài chính",
-      items: [
-        {
-          id: "payouts",
-          label: "Giải ngân",
-          href: "/administrator/payouts",
-          icon: Banknote,
-        },
-        {
-          id: "finance",
-          label: "Tài chính",
-          href: "/administrator/finance",
-          icon: PiggyBank,
-        },
-        {
-          id: "settings",
-          label: "Cấu hình phí",
-          href: "/administrator/settings",
-          icon: Settings,
-        },
-      ],
-    },
-    {
       heading: "Hệ thống",
       items: [
+        { id: "dashboard", label: "Dashboard", href: "/", icon: BarChart3 },
         {
           id: "users",
           label: "Người dùng",
-          href: "/administrator/users",
+          href: "/users",
           icon: Users,
-        },
-        {
-          id: "reconciliation",
-          label: "Đối soát dữ liệu",
-          href: "/administrator/reconciliation",
-          icon: Scale,
         },
         {
           id: "audit",
           label: "Nhật ký",
-          href: "/administrator/audit",
+          href: "/audit",
           icon: ClipboardList,
-        },
-        {
-          id: "stats",
-          label: "Thống kê",
-          href: "/administrator/stats",
-          icon: BarChart3,
         },
       ],
     },
   ],
 };
 
-export const VOLUNTEER_NAV: OpsRoleNav = {
-  homeHref: "/volunteer",
-  breadcrumbLabel: "Tình nguyện viên",
-  footerLabel: "Volunteer panel",
+export const MANAGER_NAV: OpsRoleNav = {
+  homeHref: "/approvals",
+  breadcrumbLabel: "Quản lý vận hành",
+  footerLabel: "Manager panel",
+  footerIcon: FileCheck,
+  groups: [
+    {
+      heading: "Vận hành",
+      items: [
+        { id: "approvals", label: "Duyệt giải", href: "/approvals", icon: FileCheck },
+        { id: "payouts", label: "Giải ngân", href: "/payouts", icon: Banknote },
+        {
+          id: "refund-claims",
+          label: "Hoàn lỗi HT",
+          href: "/refund-claims",
+          icon: AlertTriangle,
+        },
+      ],
+    },
+    {
+      heading: "Gói tổ chức",
+      items: [
+        { id: "package-durations", label: "Gói thời hạn", href: "/package-durations", icon: Package },
+        { id: "package-capacities", label: "Quy mô VĐV", href: "/package-capacities", icon: UsersRound },
+        { id: "promos", label: "Mã giảm giá", href: "/promos", icon: Percent },
+      ],
+    },
+    {
+      heading: "Báo cáo vận hành",
+      items: [
+        { id: "reconciliation", label: "Đối soát dữ liệu", href: "/reconciliation", icon: Scale },
+        { id: "stats", label: "Thống kê", href: "/stats", icon: BarChart3 },
+      ],
+    },
+  ],
+};
+
+const CHECK_IN_NAV: OpsRoleNav = {
+  homeHref: "/",
+  breadcrumbLabel: "Nhân sự ngày đua",
+  footerLabel: "Race-staff panel",
   footerIcon: Flag,
   groups: [
     {
@@ -121,25 +114,25 @@ export const VOLUNTEER_NAV: OpsRoleNav = {
         {
           id: "scanner",
           label: "Quét QR / RFID",
-          href: "/volunteer/scanner",
+          href: "/scanner",
           icon: Radio,
         },
         {
           id: "manual",
           label: "Nhập tay",
-          href: "/volunteer/manual",
+          href: "/manual",
           icon: Keyboard,
         },
         {
           id: "issues",
           label: "Sự cố tại chỗ",
-          href: "/volunteer/issues",
+          href: "/issues",
           icon: AlertTriangle,
         },
         {
           id: "status",
           label: "Trạng thái đặc biệt",
-          href: "/volunteer/status",
+          href: "/status",
           icon: ClipboardList,
         },
       ],
@@ -148,7 +141,7 @@ export const VOLUNTEER_NAV: OpsRoleNav = {
 };
 
 export const PHOTOGRAPHER_NAV: OpsRoleNav = {
-  homeHref: "/photographer",
+  homeHref: "/",
   breadcrumbLabel: "Nhiếp ảnh",
   footerLabel: "Photographer panel",
   footerIcon: Camera,
@@ -157,50 +150,44 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
       heading: "Công việc",
       items: [
         {
-          id: "assignments",
-          label: "Phân công giải",
-          href: "/photographer/assignments",
-          icon: FolderOpen,
-        },
-        {
           id: "upload",
           label: "Tải ảnh lên",
-          href: "/photographer/upload",
+          href: "/upload",
           icon: Upload,
         },
         {
           id: "ocr",
           label: "Nhận diện BIB",
-          href: "/photographer/ocr",
+          href: "/ocr",
           icon: ScanSearch,
         },
         {
           id: "corrections",
           label: "Sửa BIB",
-          href: "/photographer/corrections",
+          href: "/corrections",
           icon: Pencil,
         },
       ],
     },
     {
-      heading: "Xuất bản",
+      heading: "Thư viện ảnh",
       items: [
         {
           id: "analytics",
           label: "Thống kê ảnh",
-          href: "/photographer/analytics",
+          href: "/analytics",
           icon: BarChart3,
         },
         {
           id: "publish",
-          label: "Xuất bản ảnh",
-          href: "/photographer/publish",
+          label: "Xuất bản & thư viện",
+          href: "/publish",
           icon: Rocket,
         },
         {
           id: "requests",
-          label: "Yêu cầu chỉnh / ẩn",
-          href: "/photographer/requests",
+          label: "Khiếu nại ảnh",
+          href: "/requests",
           icon: ImagePlus,
         },
       ],
@@ -208,37 +195,37 @@ export const PHOTOGRAPHER_NAV: OpsRoleNav = {
   ],
 };
 
-export const COORDINATOR_NAV: OpsRoleNav = {
-  homeHref: "/coordinator",
-  breadcrumbLabel: "Điều phối giải",
-  footerLabel: "Coordinator panel",
+export const RACE_STAFF_NAV: OpsRoleNav = {
+  homeHref: "/checkpoint",
+  breadcrumbLabel: "Nhân sự ngày đua",
+  footerLabel: "Race-staff panel",
   footerIcon: Map,
   groups: [
     {
       heading: "Vận hành ngày đua",
       items: [
         {
-          id: "map",
-          label: "Bản đồ trực tiếp",
-          href: "/coordinator/map",
-          icon: Map,
+          id: "checkpoint",
+          label: "Checkpoint của tôi",
+          href: "/checkpoint",
+          icon: MapPin,
         },
         {
-          id: "scanner",
-          label: "Quét QR / RFID",
-          href: "/coordinator/scanner",
-          icon: Radio,
+          id: "map",
+          label: "Bản đồ trực tiếp",
+          href: "/map",
+          icon: Map,
         },
         {
           id: "medical",
           label: "Đội y tế",
-          href: "/coordinator/medical",
+          href: "/medical",
           icon: HeartPulse,
         },
         {
           id: "cutoff",
           label: "Lộ trình & cut-off",
-          href: "/coordinator/cutoff",
+          href: "/cutoff",
           icon: Clock,
         },
       ],
@@ -249,22 +236,23 @@ export const COORDINATOR_NAV: OpsRoleNav = {
         {
           id: "inventory",
           label: "Trạm tiếp tế",
-          href: "/coordinator/inventory",
+          href: "/inventory",
           icon: Tent,
         },
         {
           id: "contingency",
           label: "Phương án dự phòng",
-          href: "/coordinator/contingency",
+          href: "/contingency",
           icon: Ambulance,
         },
         {
           id: "broom",
           label: "Xe quét đường",
-          href: "/coordinator/broom",
+          href: "/broom",
           icon: Truck,
         },
       ],
     },
+    ...CHECK_IN_NAV.groups,
   ],
 };
