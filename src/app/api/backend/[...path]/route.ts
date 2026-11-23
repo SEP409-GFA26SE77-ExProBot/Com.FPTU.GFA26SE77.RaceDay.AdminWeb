@@ -22,8 +22,10 @@ async function forward(request: NextRequest, context: Context) {
   const endpoint = "/" + path.join("/");
   if (!(endpoint.startsWith("/api/v1/") || endpoint.startsWith("/admin/v1/"))) return NextResponse.json({ message: "Not found" }, { status: 404 });
   const isLogin = endpoint.toLowerCase() === "/api/v1/iam/auth/login";
-  const isPositionStream = request.method === "GET" &&
-    /^\/api\/v1\/positioning\/events\/[\da-f-]{36}\/(alerts|positions\/live)$/i.test(endpoint);
+  // Long-lived SSE: no 60 s timeout, no proxy buffering, "retry" frame when the backend is down.
+  const isPositionStream = request.method === "GET" && (
+    /^\/api\/v1\/positioning\/events\/[\da-f-]{36}\/(alerts|positions\/live)$/i.test(endpoint) ||
+    /^\/api\/v1\/race-monitoring\/cutoff-warnings\/stream$/i.test(endpoint));
   if (isLogin && request.method !== "POST") return new NextResponse(null, { status: 405 });
   const headers = new Headers();
   for (const name of ["content-type", "accept"]) {

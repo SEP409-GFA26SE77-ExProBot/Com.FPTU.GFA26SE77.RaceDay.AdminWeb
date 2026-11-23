@@ -9,7 +9,6 @@ import {
   Clock,
   FileCheck,
   Flag,
-  HeartPulse,
   ImagePlus,
   Keyboard,
   Map,
@@ -22,6 +21,7 @@ import {
   ScanSearch,
   Scale,
   ShieldCheck,
+  Siren,
   Tent,
   Truck,
   Upload,
@@ -60,6 +60,12 @@ export const ADMINISTRATOR_NAV: OpsRoleNav = {
           href: "/audit",
           icon: ClipboardList,
         },
+      ],
+    },
+    {
+      heading: "Ngày đua",
+      items: [
+        { id: "emergency", label: "Khẩn cấp", href: "/emergency", icon: Siren },
       ],
     },
   ],
@@ -217,10 +223,10 @@ export const RACE_STAFF_NAV: OpsRoleNav = {
           icon: Map,
         },
         {
-          id: "medical",
-          label: "Đội y tế",
-          href: "/medical",
-          icon: HeartPulse,
+          id: "emergency",
+          label: "Khẩn cấp",
+          href: "/emergency",
+          icon: Siren,
         },
         {
           id: "cutoff",

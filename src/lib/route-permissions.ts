@@ -11,13 +11,13 @@ export const ROLE_PREFIX: Record<string, string> = {
 
 export const ROLE_ROUTES: Record<string, string[]> = {
   // finance/settings/refund-claims: bookmark cũ redirect → /users (ops finance ở Manager).
-  ADMIN: ["users", "finance", "settings", "audit", "refund-claims"],
+  ADMIN: ["users", "finance", "settings", "audit", "refund-claims", "emergency"],
   MANAGER: [
     "approvals", "payouts", "refund-claims", "package-durations", "package-capacities", "promos",
     "reconciliation", "stats",
   ],
   RACE_STAFF: [
-    "checkpoint", "map", "map-demo", "scanner", "manual", "issues", "status", "medical",
+    "checkpoint", "map", "map-demo", "scanner", "manual", "issues", "status", "emergency", "medical",
     "cutoff", "inventory", "contingency", "broom",
   ],
   PHOTOGRAPHER: [

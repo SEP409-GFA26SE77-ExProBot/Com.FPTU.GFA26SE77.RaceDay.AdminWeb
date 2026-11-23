@@ -108,14 +108,26 @@ test('Admin and Manager menus enforce separate permissions for every link and de
 });
 
 test('Race-staff can open every former Coordinator and Volunteer tool', () => {
-  const tools = ['checkpoint', 'map', 'scanner', 'manual', 'issues', 'status', 'medical', 'cutoff', 'inventory', 'contingency', 'broom'];
+  const tools = ['checkpoint', 'map', 'scanner', 'manual', 'issues', 'status', 'emergency', 'cutoff', 'inventory', 'contingency', 'broom'];
   const links = nav.RACE_STAFF_NAV.groups.flatMap((group) => group.items.map((item) => item.href));
+  // Emergency is shared with Admin on the short URL; each workspace prefix still resolves to one role.
+  const shared = { emergency: 'ADMIN,RACE_STAFF' };
   for (const tool of tools) {
     assert(links.includes('/' + tool));
     for (const prefix of ['', '/race-staff', '/coordinator', '/volunteer']) {
-      assert.equal(permissions.routePermission(`${prefix}/${tool}`).join(','), 'RACE_STAFF');
+      const expected = prefix === '' && shared[tool] ? shared[tool] : 'RACE_STAFF';
+      assert.equal(permissions.routePermission(`${prefix}/${tool}`).join(','), expected);
     }
   }
+});
+
+test('Emergency is open to Admin and Race-staff, old Medical bookmark stays Race-staff', () => {
+  const adminLinks = nav.ADMINISTRATOR_NAV.groups.flatMap((group) => group.items.map((item) => item.href));
+  assert(adminLinks.includes('/emergency'));
+  assert.equal(permissions.routePermission('/admin/emergency').join(','), 'ADMIN');
+  assert.equal(permissions.routePermission('/race-staff/emergency').join(','), 'RACE_STAFF');
+  assert.equal(permissions.routePermission('/medical').join(','), 'RACE_STAFF');
+  assert.equal(permissions.routePermission('/emergency').includes('MANAGER'), false);
 });
 
 test('map and scanner select only active Race-staff assignments', () => {
