@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Map,
   HeartPulse,
+  Siren,
   Timer,
   Layers,
   ShieldAlert,
@@ -88,6 +89,8 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Map {...iconProps} />;
     case "medical":
       return <HeartPulse {...iconProps} />;
+    case "emergency":
+      return <Siren {...iconProps} />;
     case "cutoff":
       return <Timer {...iconProps} />;
     case "inventory":
