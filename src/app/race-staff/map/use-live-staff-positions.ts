@@ -50,19 +50,19 @@ export function useLiveStaffPositions(eventId: string) {
         update,
       ]);
     });
-    stream.addEventListener("unavailable", () => setError("Live GPS disconnected. Reconnecting…"));
+    stream.addEventListener("unavailable", () => setError("Mất kết nối GPS trực tiếp. Đang kết nối lại…"));
 
     stream.addEventListener("outside", (event: MessageEvent<string>) => {
       const alert = JSON.parse(event.data) as { staffName: string; assignmentId: string; occurredAtUtc: string };
-      toastWarn(`${alert.staffName} left their assigned area.`, {
+      toastWarn(`${alert.staffName} đã rời khỏi khu vực được phân công.`, {
         autoClose: 8000,
         toastId: `${alert.assignmentId}:${alert.occurredAtUtc}`,
       });
     });
     stream.onerror = () => {
       setError(stream.readyState === EventSource.CLOSED
-        ? "Live GPS unavailable. Check your sign-in and event assignment."
-        : "Live GPS disconnected. Reconnecting…");
+        ? "Không dùng được GPS trực tiếp. Hãy kiểm tra đăng nhập và phân công sự kiện."
+        : "Mất kết nối GPS trực tiếp. Đang kết nối lại…");
     };
 
     return () => {

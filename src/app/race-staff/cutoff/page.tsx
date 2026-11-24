@@ -12,7 +12,7 @@ export default function RaceStaffCutoffPage() {
     { name: "CP1 → CP2", cutoff: "10:00", current: "09:24", runners: 980, cleared: 0, total: 1240, status: "open" as const },
     { name: "CP2 → CP3", cutoff: "12:30", current: "09:24", runners: 340, cleared: 0, total: 980, status: "open" as const },
     { name: "CP3 → CP4", cutoff: "15:00", current: "09:24", runners: 42, cleared: 0, total: 340, status: "open" as const },
-    { name: "CP4 → Finish", cutoff: "18:00", current: "09:24", runners: 8, cleared: 0, total: 42, status: "open" as const },
+    { name: "CP4 → Đích", cutoff: "18:00", current: "09:24", runners: 8, cleared: 0, total: 42, status: "open" as const },
   ];
 
   return (
@@ -20,8 +20,8 @@ export default function RaceStaffCutoffPage() {
       <div className="animate-slide-up">
       <SectionHeader
         id="FR-OPS-03"
-        title="Route Status & Cut-off Tracking"
-        desc="Monitor runners remaining in each segment versus the cut-off time to manage route opening and closure."
+        title="Trạng thái cung đường & theo dõi cut-off"
+        desc="Theo dõi số VĐV còn lại ở từng chặng so với giờ cut-off để quyết định mở hoặc đóng cung đường."
         color={C}
       />
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -39,11 +39,11 @@ export default function RaceStaffCutoffPage() {
                 <div style={{ height: "100%", width: `${Math.min((seg.runners / seg.total) * 100, 100)}%`, background: seg.status === "closed" ? "rgba(148,163,184,0.4)" : `rgba(${CR},0.8)`, borderRadius: "3px", transition: "width 1s" }} />
               </div>
               <div style={{ fontSize: "11px", color: "#334155" }}>
-                {seg.runners.toLocaleString("en-US")} runners in segment · {seg.total.toLocaleString("en-US")} total entered
+                {seg.runners.toLocaleString("en-US")} VĐV trong chặng · {seg.total.toLocaleString("en-US")} VĐV đã vào chặng
               </div>
             </div>
-            <Badge label={seg.status} type={seg.status === "closed" ? "gray" : "green"} />
-            {seg.status === "open" && <Btn label="Close Segment" danger small />}
+            <Badge label={seg.status === "closed" ? "Đã đóng" : "Đang mở"} type={seg.status === "closed" ? "gray" : "green"} />
+            {seg.status === "open" && <Btn label="Đóng chặng" danger small />}
           </Card>
         ))}
       </div>

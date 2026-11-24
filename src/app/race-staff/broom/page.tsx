@@ -8,10 +8,10 @@ const CR = "245,158,11";
 
 export default function RaceStaffBroomPage() {
   const passages = [
-    { cp: "Start Gate", time: "06:01:00", dnf: 0, note: "Race start" },
-    { cp: "CP1 – KM10", time: "08:32:10", dnf: 12, note: "Cut-off enforced" },
-    { cp: "CP2 – KM21", time: "10:05:48", dnf: 8, note: "6 runners refused wagon" },
-    { cp: "CP3 – KM32", time: "—", dnf: 0, note: "Not yet reached" },
+    { cp: "Cổng xuất phát", time: "06:01:00", dnf: 0, note: "Xuất phát" },
+    { cp: "CP1 – KM10", time: "08:32:10", dnf: 12, note: "Đã áp dụng cut-off" },
+    { cp: "CP2 – KM21", time: "10:05:48", dnf: 8, note: "6 VĐV từ chối lên xe" },
+    { cp: "CP3 – KM32", time: "—", dnf: 0, note: "Chưa đến" },
   ];
 
   return (
@@ -19,19 +19,19 @@ export default function RaceStaffBroomPage() {
       <div className="animate-slide-up">
         <SectionHeader
           id="FR-OPS-06"
-          title="Broom Wagon Timing"
-          desc="Record broom wagon passage times at each checkpoint. Runners still on route after the wagon passes are auto-marked DNF."
+          title="Giờ xe quét (Broom Wagon)"
+          desc="Ghi nhận giờ xe quét đi qua từng checkpoint. VĐV còn trên đường sau khi xe quét đi qua sẽ tự động bị đánh dấu DNF."
           color={C}
         />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "16px" }}>
           <Card>
             <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "14px" }}>
-              Checkpoint Passage Log
+              Nhật ký xe quét qua checkpoint
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  {["Checkpoint", "Passage Time", "Auto-DNF", "Notes"].map((h) => (
+                  {["Checkpoint", "Giờ đi qua", "Auto-DNF", "Ghi chú"].map((h) => (
                     <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontSize: "11px", color: "#334155", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {h}
                     </th>
@@ -57,13 +57,13 @@ export default function RaceStaffBroomPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <Card style={{ textAlign: "center" }}>
               <div style={{ fontSize: "36px", marginBottom: "6px" }}>🚐</div>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>Broom Wagon</div>
-              <Badge label="En Route → CP2" type="amber" />
-              <div style={{ fontSize: "12px", color: "#475569", marginTop: "8px" }}>Current position: KM 18.3</div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>Xe quét (Broom Wagon)</div>
+              <Badge label="Đang di chuyển → CP2" type="amber" />
+              <div style={{ fontSize: "12px", color: "#475569", marginTop: "8px" }}>Vị trí hiện tại: KM 18.3</div>
             </Card>
             <Card>
               <div style={{ fontSize: "12px", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "12px" }}>
-                Record Passage
+                Ghi nhận giờ đi qua
               </div>
               <select style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px", marginBottom: "10px" }}>
                 <option style={{ background: "#0B0A14" }}>CP3 – KM32</option>
@@ -71,7 +71,7 @@ export default function RaceStaffBroomPage() {
               </select>
               <input type="time" defaultValue="12:00" style={{ width: "100%", padding: "9px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "#fff", fontSize: "13px", marginBottom: "10px" }} />
               <button style={{ width: "100%", padding: "10px", borderRadius: "9px", background: `rgba(${CR},0.18)`, border: `1px solid rgba(${CR},0.3)`, color: C, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>
-                Record & Auto-DNF
+                Ghi nhận & Auto-DNF
               </button>
             </Card>
           </div>

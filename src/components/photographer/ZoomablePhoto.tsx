@@ -22,7 +22,7 @@ type Props = {
 /**
  * Preview ảnh review: zoom + kéo — không vẽ bbox OCR (bbox hay lệch).
  */
-export function ZoomablePhoto({ url, alt = "Race photo" }: Props) {
+export function ZoomablePhoto({ url, alt = "Ảnh giải chạy" }: Props) {
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<{
@@ -136,7 +136,7 @@ export function ZoomablePhoto({ url, alt = "Race photo" }: Props) {
         </button>
         <button
           type="button"
-          title="Reset"
+          title="Đặt lại"
           onClick={reset}
           className="pointer-events-auto rounded-full p-2 text-slate-300 hover:bg-white/10 hover:text-white"
         >

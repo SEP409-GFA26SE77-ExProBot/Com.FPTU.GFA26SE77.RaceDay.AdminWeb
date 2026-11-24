@@ -222,7 +222,7 @@ export default function AdministratorUsersPage() {
                 <tr>
                   <th className="px-3 py-2 font-semibold">Họ tên</th>
                   <th className="px-3 py-2 font-semibold">Email / Username</th>
-                  <th className="px-3 py-2 font-semibold">Role</th>
+                  <th className="px-3 py-2 font-semibold">Vai trò</th>
                   <th className="px-3 py-2 font-semibold">Trạng thái</th>
                   <th className="px-3 py-2 font-semibold">Tham gia</th>
                   <th className="px-3 py-2 font-semibold">Thao tác</th>

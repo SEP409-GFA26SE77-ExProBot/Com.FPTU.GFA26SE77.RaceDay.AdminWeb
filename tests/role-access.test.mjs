@@ -112,8 +112,10 @@ test('Race-staff can open every former Coordinator and Volunteer tool', () => {
   const links = nav.RACE_STAFF_NAV.groups.flatMap((group) => group.items.map((item) => item.href));
   // Emergency is shared with Admin on the short URL; each workspace prefix still resolves to one role.
   const shared = { emergency: 'ADMIN,RACE_STAFF' };
+  // 'manual' was merged into the scanner page: no nav link, but the URL still resolves (it redirects to /scanner).
+  const merged = new Set(['manual']);
   for (const tool of tools) {
-    assert(links.includes('/' + tool));
+    if (!merged.has(tool)) assert(links.includes('/' + tool));
     for (const prefix of ['', '/race-staff', '/coordinator', '/volunteer']) {
       const expected = prefix === '' && shared[tool] ? shared[tool] : 'RACE_STAFF';
       assert.equal(permissions.routePermission(`${prefix}/${tool}`).join(','), expected);

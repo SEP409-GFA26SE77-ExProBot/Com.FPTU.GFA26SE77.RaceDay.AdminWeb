@@ -8,13 +8,13 @@ const CR = "16,185,129";
 
 export default function RaceStaffStatusPage() {
   const statuses = [
-    { code: "DNS", label: "Did Not Start", color: "#6366F1", desc: "Runner registered but never started" },
-    { code: "DNF", label: "Did Not Finish", color: "#F59E0B", desc: "Runner started but retired during the race" },
-    { code: "DQ", label: "Disqualified", color: "#EF4444", desc: "Runner disqualified per race rules" },
+    { code: "DNS", label: "Không xuất phát", color: "#6366F1", desc: "VĐV đã đăng ký nhưng không xuất phát" },
+    { code: "DNF", label: "Không về đích", color: "#F59E0B", desc: "VĐV đã xuất phát nhưng bỏ cuộc giữa chừng" },
+    { code: "DQ", label: "Bị loại", color: "#EF4444", desc: "VĐV bị loại theo điều lệ giải" },
   ];
   const recent = [
     { bib: "A0195", name: "Vo Thi F", type: "DNF", cp: "CP2", time: "08:42" },
-    { bib: "B0031", name: "Dang Van G", type: "DNS", cp: "Start", time: "06:30" },
+    { bib: "B0031", name: "Dang Van G", type: "DNS", cp: "Xuất phát", time: "06:30" },
     { bib: "C0112", name: "Bui Thi H", type: "DQ", cp: "CP1", time: "07:55" },
   ];
   const typeColor = (t: string) =>
@@ -25,8 +25,8 @@ export default function RaceStaffStatusPage() {
       <div className="animate-slide-up">
       <SectionHeader
         id="FR-VOL-04"
-        title="Special Status Marking"
-        desc="Mark a runner's special status: DNS, DNF, or DQ. This is logged immediately and reflects in results."
+        title="Đánh dấu trạng thái đặc biệt"
+        desc="Đánh dấu trạng thái đặc biệt của VĐV: DNS, DNF hoặc DQ. Thay đổi được ghi nhận ngay và phản ánh vào kết quả."
         color={C}
       />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
@@ -41,7 +41,7 @@ export default function RaceStaffStatusPage() {
               marginBottom: "16px",
             }}
           >
-            Mark Runner Status
+            Đánh dấu trạng thái VĐV
           </div>
           <div style={{ marginBottom: "14px" }}>
             <label
@@ -55,11 +55,11 @@ export default function RaceStaffStatusPage() {
                 letterSpacing: "0.05em",
               }}
             >
-              Runner BIB
+              BIB của VĐV
             </label>
             <input
               className="runner-status-field"
-              placeholder="Search by BIB or name…"
+              placeholder="Tìm theo BIB hoặc tên…"
               style={{
                 width: "100%",
                 padding: "9px 12px",
@@ -113,11 +113,11 @@ export default function RaceStaffStatusPage() {
                 letterSpacing: "0.05em",
               }}
             >
-              Notes
+              Ghi chú
             </label>
             <textarea
               className="runner-status-field"
-              placeholder="Reason / checkpoint location…"
+              placeholder="Lý do / vị trí checkpoint…"
               rows={2}
               style={{
                 width: "100%",
@@ -144,7 +144,7 @@ export default function RaceStaffStatusPage() {
               cursor: "pointer",
             }}
           >
-            Confirm Status
+            Xác nhận trạng thái
           </button>
         </Card>
 
@@ -159,7 +159,7 @@ export default function RaceStaffStatusPage() {
               marginBottom: "14px",
             }}
           >
-            Recent Status Changes
+            Thay đổi trạng thái gần đây
           </div>
           {recent.map((r) => (
             <div
@@ -181,7 +181,7 @@ export default function RaceStaffStatusPage() {
                   {r.cp} · {r.time}
                 </div>
               </div>
-              <Btn label="Undo" color={C} colorRgb={CR} />
+              <Btn label="Hoàn tác" color={C} colorRgb={CR} />
             </div>
           ))}
         </Card>

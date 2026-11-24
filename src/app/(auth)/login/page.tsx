@@ -38,17 +38,17 @@ function LoginHomeInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.username.trim() || !form.password.trim()) {
+    const username = form.username.trim();
+    const password = form.password.trim();
+    if (!username || !password) {
       setError("Vui lòng điền đầy đủ tên đăng nhập và mật khẩu.");
       return;
     }
+    setForm({ username, password });
     setLoading(true);
     setError(null);
     try {
-      const res = await login({
-        username: form.username.trim(),
-        password: form.password,
-      });
+      const res = await login({ username, password });
       const role = res.role || "";
 
       if (!ROLE_PREFIX[role]) {
@@ -130,7 +130,10 @@ function LoginHomeInner() {
                 name="username"
                 type="text"
                 autoComplete="username"
-                placeholder="Username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="Tên đăng nhập"
                 value={form.username}
                 onChange={handleChange}
                 className="auth-input"
@@ -150,7 +153,7 @@ function LoginHomeInner() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={form.password}
                   onChange={handleChange}
                   className="auth-input auth-input--with-icon"

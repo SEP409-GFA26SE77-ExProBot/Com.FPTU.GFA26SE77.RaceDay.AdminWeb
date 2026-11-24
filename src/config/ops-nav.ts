@@ -10,7 +10,6 @@ import {
   FileCheck,
   Flag,
   ImagePlus,
-  Keyboard,
   Map,
   MapPin,
   Pencil,
@@ -119,15 +118,9 @@ const CHECK_IN_NAV: OpsRoleNav = {
       items: [
         {
           id: "scanner",
-          label: "Quét QR / RFID",
+          label: "Quét QR / Nhập tay",
           href: "/scanner",
           icon: Radio,
-        },
-        {
-          id: "manual",
-          label: "Nhập tay",
-          href: "/manual",
-          icon: Keyboard,
         },
         {
           id: "issues",
@@ -227,6 +220,12 @@ export const RACE_STAFF_NAV: OpsRoleNav = {
           label: "Khẩn cấp",
           href: "/emergency",
           icon: Siren,
+        },
+        {
+          id: "timeline",
+          label: "Timeline trực tiếp",
+          href: "/timeline",
+          icon: Radio,
         },
         {
           id: "cutoff",

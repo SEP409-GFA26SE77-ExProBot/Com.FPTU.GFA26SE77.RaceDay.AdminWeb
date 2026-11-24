@@ -24,7 +24,7 @@ export default function DashboardExport({ range, download, disabled = false }: {
     setMessage("");
     try {
       const blob = await download(format);
-      if (!blob.size) throw new Error("Empty report");
+      if (!blob.size) throw new Error("Báo cáo trống");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
