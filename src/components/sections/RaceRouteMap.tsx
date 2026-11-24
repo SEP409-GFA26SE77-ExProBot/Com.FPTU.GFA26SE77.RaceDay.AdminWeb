@@ -53,7 +53,8 @@ function MapPlaceholder() {
     <div
       style={{
         width: "100%",
-        height: "520px",
+        height: "100%",
+        minHeight: "240px",
         borderRadius: "14px",
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(255,255,255,0.07)",
@@ -71,7 +72,7 @@ function MapPlaceholder() {
         <line x1="8" y1="2" x2="8" y2="18" />
         <line x1="16" y1="6" x2="16" y2="22" />
       </svg>
-      Loading map…
+      Đang tải bản đồ…
     </div>
   );
 }

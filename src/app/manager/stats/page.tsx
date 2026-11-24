@@ -8,23 +8,23 @@ const CR = "139,92,246";
 
 export default function ManagerStatsPage() {
   const kpis = [
-    { label: "Total Events", value: "142", sub: "+12 this month", icon: "🏁", color: "#8B5CF6" },
-    { label: "Registered Users", value: "28,410", sub: "+682 this week", icon: "👥", color: "#06B6D4" },
-    { label: "Photos Uploaded", value: "1.4M", sub: "+48K this event", icon: "📷", color: "#10B981" },
-    { label: "Monthly Revenue", value: "$84.2K", sub: "↑ 11% vs last mo", icon: "💰", color: "#F59E0B" },
-    { label: "Race Completions", value: "92.4%", sub: "Avg across events", icon: "✅", color: "#EC4899" },
-    { label: "Avg Runners/Event", value: "1,200", sub: "Up from 980", icon: "🏃", color: "#8B5CF6" },
+    { label: "Tổng số sự kiện", value: "142", sub: "+12 trong tháng này", icon: "🏁", color: "#8B5CF6" },
+    { label: "Người dùng đã đăng ký", value: "28,410", sub: "+682 trong tuần này", icon: "👥", color: "#06B6D4" },
+    { label: "Ảnh đã tải lên", value: "1.4M", sub: "+48K trong sự kiện này", icon: "📷", color: "#10B981" },
+    { label: "Doanh thu tháng", value: "$84.2K", sub: "↑ 11% so với tháng trước", icon: "💰", color: "#F59E0B" },
+    { label: "Tỷ lệ về đích", value: "92.4%", sub: "Trung bình các sự kiện", icon: "✅", color: "#EC4899" },
+    { label: "VĐV trung bình/sự kiện", value: "1,200", sub: "Tăng từ 980", icon: "🏃", color: "#8B5CF6" },
   ];
   const monthlyData = [65, 72, 58, 80, 74, 91, 88, 95, 84, 78, 102, 110];
   const maxVal = Math.max(...monthlyData);
-  const months = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+  const months = ["T10", "T11", "T12", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9"];
 
   const roles = [
-    { role: "Runners", count: 26840, pct: 94.5, color: "#06B6D4" },
-    { role: "Photographers", count: 840, pct: 3.0, color: "#10B981" },
-    { role: "Organizers", count: 380, pct: 1.3, color: "#F59E0B" },
+    { role: "Runner", count: 26840, pct: 94.5, color: "#06B6D4" },
+    { role: "Photographer", count: 840, pct: 3.0, color: "#10B981" },
+    { role: "Organizer", count: 380, pct: 1.3, color: "#F59E0B" },
     { role: "Race-staff", count: 280, pct: 1.0, color: "#8B5CF6" },
-    { role: "Admins", count: 70, pct: 0.2, color: "#EC4899" },
+    { role: "Admin", count: 70, pct: 0.2, color: "#EC4899" },
   ];
 
   return (
@@ -32,8 +32,8 @@ export default function ManagerStatsPage() {
       <div className="animate-slide-up">
       <SectionHeader
         id="FR-ADM-05"
-        title="Platform Statistics Dashboard"
-        desc="Monitor overall platform health: events, users, photos, revenue, and completion rates."
+        title="Bảng thống kê nền tảng"
+        desc="Theo dõi tình hình chung của nền tảng: sự kiện, người dùng, ảnh, doanh thu và tỷ lệ hoàn thành."
         color={C}
       />
 
@@ -56,7 +56,7 @@ export default function ManagerStatsPage() {
         {/* Monthly bar chart */}
         <Card>
           <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
-            📈 Monthly Events (last 12 months)
+            📈 Sự kiện theo tháng (12 tháng gần nhất)
           </div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "140px" }}>
             {monthlyData.map((v, i) => (
@@ -84,7 +84,7 @@ export default function ManagerStatsPage() {
         {/* User breakdown */}
         <Card>
           <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "16px" }}>
-            👥 Users by Role
+            👥 Người dùng theo vai trò
           </div>
           {roles.map((r) => (
             <div key={r.role} style={{ marginBottom: "12px" }}>
@@ -102,9 +102,9 @@ export default function ManagerStatsPage() {
 
           {/* Transaction volume */}
           <div style={{ marginTop: "16px", padding: "12px", background: `rgba(${CR},0.06)`, border: `1px solid rgba(${CR},0.18)`, borderRadius: "10px", textAlign: "center" }}>
-            <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "4px" }}>Cumulative Revenue</div>
+            <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "4px" }}>Doanh thu lũy kế</div>
             <div style={{ fontSize: "22px", fontWeight: 800, color: C }}>$1.24M</div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>since platform launch</div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>kể từ khi ra mắt nền tảng</div>
           </div>
         </Card>
       </div>

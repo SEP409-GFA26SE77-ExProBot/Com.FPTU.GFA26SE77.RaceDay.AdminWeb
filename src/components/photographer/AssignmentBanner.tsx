@@ -76,19 +76,19 @@ export function AssignmentBanner({
       </div>
       <div className="min-w-0 flex-1 space-y-1.5 text-sm">
         <p className="text-slate-800">
-          <span className="font-semibold text-slate-500">Event:</span>{" "}
+          <span className="font-semibold text-slate-500">Sự kiện:</span>{" "}
           <span className="font-extrabold text-slate-900">
             {assignment.eventName}
           </span>
         </p>
         <p className="text-slate-700">
-          <span className="font-semibold text-slate-500">Assign Location:</span>{" "}
+          <span className="font-semibold text-slate-500">Khu vực phân công:</span>{" "}
           <span className="font-semibold">
             {assignment.stationLabel?.trim() || "Chưa gán khu vực"}
           </span>
         </p>
         <p className="text-slate-700">
-          <span className="font-semibold text-slate-500">Status:</span>{" "}
+          <span className="font-semibold text-slate-500">Trạng thái:</span>{" "}
           <span
             className={
               statusActive
@@ -101,13 +101,13 @@ export function AssignmentBanner({
         </p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-700">
           <p>
-            <span className="font-semibold text-slate-500">Event start:</span>{" "}
+            <span className="font-semibold text-slate-500">Bắt đầu:</span>{" "}
             <span className="font-semibold">
               {formatStart(assignment.eventDate, assignment.startTime)}
             </span>
           </p>
           <p>
-            <span className="font-semibold text-slate-500">Event end:</span>{" "}
+            <span className="font-semibold text-slate-500">Kết thúc:</span>{" "}
             <span className="font-semibold">
               {formatEnd(assignment.endDate, assignment.eventDate)}
             </span>

@@ -34,7 +34,7 @@ const Scanner = dynamic(
             animation: "spin-slow 1s linear infinite",
           }}
         />
-        <span>Initializing camera stream…</span>
+        <span>Đang khởi động camera…</span>
       </div>
     ),
   }
@@ -54,8 +54,8 @@ export default function QrScannerModal({
   isOpen,
   onClose,
   onScan,
-  title = "QR / RFID Scanner",
-  subtitle = "Align runner QR code within the viewfinder to scan",
+  title = "Quét QR / RFID",
+  subtitle = "Đưa mã QR của VĐV vào khung ngắm để quét",
   themeColor = "#10B981",
   themeRgb = "16,185,129",
 }: QrScannerModalProps) {
@@ -120,7 +120,7 @@ export default function QrScannerModal({
         ? error.message
         : typeof error === "string"
         ? error
-        : "Unable to access camera. Please verify camera permissions.";
+        : "Không truy cập được camera. Vui lòng kiểm tra quyền truy cập camera.";
     setErrorMsg(msg);
   };
 
@@ -214,7 +214,7 @@ export default function QrScannerModal({
           {/* Close button */}
           <button
             onClick={onClose}
-            aria-label="Close Scanner Modal"
+            aria-label="Đóng cửa sổ quét"
             style={{
               width: "32px",
               height: "32px",
@@ -346,7 +346,7 @@ export default function QrScannerModal({
                     textShadow: "0 2px 4px rgba(0,0,0,0.8)",
                   }}
                 >
-                  QR Code Detected!
+                  Đã phát hiện mã QR!
                 </div>
                 <div
                   style={{
@@ -410,7 +410,7 @@ export default function QrScannerModal({
                     letterSpacing: "0.05em",
                   }}
                 >
-                  Last Scanned Code
+                  Mã quét gần nhất
                 </div>
                 <div
                   style={{
@@ -440,7 +440,7 @@ export default function QrScannerModal({
                   cursor: "pointer",
                 }}
               >
-                Scan Next
+                Quét tiếp
               </button>
             </div>
           )}
@@ -474,7 +474,7 @@ export default function QrScannerModal({
                 cursor: "pointer",
               }}
             >
-              Done Scanning
+              Hoàn tất quét
             </button>
           </div>
         </div>

@@ -8,8 +8,8 @@ const CR = "16,185,129";
 
 export default function RaceStaffIssuesPage() {
   const issues = [
-    { id: "ISS-001", type: "Lost QR", bib: "A0042", runner: "Nguyen Van A", status: "open", opened: "08:32" },
-    { id: "ISS-002", type: "BIB Reissue", bib: "C0055", runner: "Le Van C", status: "resolved", opened: "07:15" },
+    { id: "ISS-001", type: "Mất mã QR", bib: "A0042", runner: "Nguyen Van A", status: "open", opened: "08:32" },
+    { id: "ISS-002", type: "Cấp lại BIB", bib: "C0055", runner: "Le Van C", status: "resolved", opened: "07:15" },
   ];
 
   return (
@@ -17,8 +17,8 @@ export default function RaceStaffIssuesPage() {
       <div className="animate-slide-up">
       <SectionHeader
         id="FR-VOL-03"
-        title="On-site Issue Handling"
-        desc="Handle on-site issues such as lost QR codes or reissuing a BIB number for a runner."
+        title="Xử lý sự cố tại chỗ"
+        desc="Xử lý các sự cố tại chỗ như mất mã QR hoặc cấp lại số BIB cho VĐV."
         color={C}
       />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
@@ -33,11 +33,11 @@ export default function RaceStaffIssuesPage() {
               marginBottom: "14px",
             }}
           >
-            🆕 Log New Issue
+            🆕 Ghi nhận sự cố mới
           </div>
           {[
-            { label: "Runner BIB", placeholder: "e.g. A0042" },
-            { label: "Runner Name", placeholder: "e.g. Nguyen Van A" },
+            { label: "BIB của VĐV", placeholder: "VD: A0042" },
+            { label: "Tên VĐV", placeholder: "VD: Nguyen Van A" },
           ].map((f) => (
             <div key={f.label} style={{ marginBottom: "12px" }}>
               <label
@@ -80,7 +80,7 @@ export default function RaceStaffIssuesPage() {
                 letterSpacing: "0.05em",
               }}
             >
-              Issue Type
+              Loại sự cố
             </label>
             <select
               className="runner-status-field"
@@ -95,10 +95,10 @@ export default function RaceStaffIssuesPage() {
                 cursor: "pointer",
               }}
             >
-              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Lost QR Code</option>
-              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>BIB Reissue Required</option>
-              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Medical Assistance</option>
-              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Other</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Mất mã QR</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Cần cấp lại BIB</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Hỗ trợ y tế</option>
+              <option style={{ background: "var(--popover)", color: "var(--popover-foreground)" }}>Khác</option>
             </select>
           </div>
           <div style={{ marginBottom: "14px" }}>
@@ -113,11 +113,11 @@ export default function RaceStaffIssuesPage() {
                 letterSpacing: "0.05em",
               }}
             >
-              Notes
+              Ghi chú
             </label>
             <textarea
               className="runner-status-field"
-              placeholder="Describe the issue…"
+              placeholder="Mô tả sự cố…"
               rows={3}
               style={{
                 width: "100%",
@@ -144,7 +144,7 @@ export default function RaceStaffIssuesPage() {
               cursor: "pointer",
             }}
           >
-            Log Issue
+            Ghi nhận sự cố
           </button>
         </Card>
 
@@ -180,17 +180,17 @@ export default function RaceStaffIssuesPage() {
                     {iss.type}
                   </div>
                 </div>
-                <Badge label={iss.status} type={iss.status === "open" ? "amber" : "green"} />
+                <Badge label={iss.status === "open" ? "Đang mở" : "Đã xử lý"} type={iss.status === "open" ? "amber" : "green"} />
               </div>
               <div style={{ fontSize: "13px", color: "#475569", marginBottom: "12px" }}>
-                Runner: <span style={{ color: C, fontWeight: 600 }}>{iss.bib}</span> · {iss.runner}
+                VĐV: <span style={{ color: C, fontWeight: 600 }}>{iss.bib}</span> · {iss.runner}
                 <br />
-                <span style={{ fontSize: "11px", color: "#334155" }}>Opened {iss.opened}</span>
+                <span style={{ fontSize: "11px", color: "#334155" }}>Mở lúc {iss.opened}</span>
               </div>
               {iss.status === "open" && (
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <Btn label="Reissue BIB" primary color={C} colorRgb={CR} />
-                  <Btn label="Mark Resolved" color={C} colorRgb={CR} />
+                  <Btn label="Cấp lại BIB" primary color={C} colorRgb={CR} />
+                  <Btn label="Đánh dấu đã xử lý" color={C} colorRgb={CR} />
                 </div>
               )}
             </Card>

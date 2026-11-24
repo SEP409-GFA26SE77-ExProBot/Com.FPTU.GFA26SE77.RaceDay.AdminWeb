@@ -35,30 +35,30 @@ const DEMO_FINISH: Coordinate = { lat: 21.0285, lng: 105.8542 }; // loop course
 const DEMO_CHECKPOINTS: Checkpoint[] = [
   {
     id: "cp-1",
-    name: "Water Station #1",
+    name: "Trạm nước số 1",
     latitude: 21.0335,
     longitude: 105.8558,
     distanceFromStart: 2500,
     type: "WATER",
-    description: "Hydration point near north lakeside. Sports drinks and water available.",
+    description: "Điểm cấp nước phía bắc hồ. Có nước uống thể thao và nước lọc.",
   },
   {
     id: "cp-2",
-    name: "Timing Mat A",
+    name: "Thảm bấm giờ A",
     latitude: 21.0300,
     longitude: 105.8490,
     distanceFromStart: 5000,
     type: "TIMING",
-    description: "5K split timing mat. Results posted live.",
+    description: "Thảm bấm giờ mốc 5K. Kết quả cập nhật trực tiếp.",
   },
   {
     id: "cp-3",
-    name: "Medical Post",
+    name: "Trạm y tế",
     latitude: 21.0250,
     longitude: 105.8520,
     distanceFromStart: 7200,
     type: "MEDICAL",
-    description: "Full medical tent with AED, first-aid, and physiotherapy support.",
+    description: "Lều y tế đầy đủ với AED, sơ cứu và hỗ trợ vật lý trị liệu.",
   },
   {
     id: "cp-4",
@@ -67,7 +67,7 @@ const DEMO_CHECKPOINTS: Checkpoint[] = [
     longitude: 105.8565,
     distanceFromStart: 9000,
     type: "CHECKPOINT",
-    description: "Final checkpoint before the finish line. Course marshal on-site.",
+    description: "Checkpoint cuối trước vạch đích. Có tình nguyện viên điều phối tại chỗ.",
   },
 ];
 
@@ -76,8 +76,8 @@ export default function MapDemoPage() {
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
       <SectionHeader
         id="MAP-DEMO"
-        title="Race Route Map — Component Demo"
-        desc="Interactive Leaflet map showing a sample 10K loop course around Hoàn Kiếm Lake, Hanoi with checkpoints, start/finish markers, and OSM tiles."
+        title="Bản đồ cung đường — Demo thành phần"
+        desc="Bản đồ Leaflet tương tác hiển thị cung đường mẫu 10K quanh hồ Hoàn Kiếm, Hà Nội cùng các checkpoint, điểm xuất phát/về đích và nền bản đồ OSM."
         color="#8B5CF6"
       />
 
@@ -103,19 +103,19 @@ export default function MapDemoPage() {
         }}
       >
         {[
-          { color: "#10B981", label: "Start" },
-          { color: "#EF4444", label: "Finish" },
-          { color: "#8B5CF6", label: "Checkpoint" },
-          { color: "#3B82F6", label: "Water" },
-          { color: "#F59E0B", label: "Timing" },
-          { color: "#EF4444", label: "Medical" },
+          { color: "#10B981", label: "Xuất phát" },
+          { color: "#EF4444", label: "Về đích" },
+          { color: "#8B5CF6", label: "Checkpoint", square: true },
+          { color: "#3B82F6", label: "Nước", square: true },
+          { color: "#F59E0B", label: "Bấm giờ", square: true },
+          { color: "#EF4444", label: "Y tế", square: true },
         ].map((l) => (
           <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div
               style={{
                 width: 12,
                 height: 12,
-                borderRadius: l.label === "Checkpoint" || l.label === "Water" || l.label === "Timing" || l.label === "Medical" ? 3 : "50%",
+                borderRadius: "square" in l ? 3 : "50%",
                 background: l.color,
               }}
             />

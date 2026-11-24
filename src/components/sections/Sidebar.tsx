@@ -250,7 +250,7 @@ export default function Sidebar({
       >
         <Link
           href="/"
-          title="Back to Role Selection"
+          title="Quay lại chọn vai trò"
           style={{
             width: "38px",
             height: "38px",
@@ -307,7 +307,7 @@ export default function Sidebar({
                 borderRadius: "6px",
                 flexShrink: 0,
               }}
-              title="Collapse sidebar"
+              title="Thu gọn thanh bên"
             >
               <ChevronLeft size={16} strokeWidth={1.75} />
             </button>
@@ -430,7 +430,7 @@ export default function Sidebar({
               alignItems: "center",
               justifyContent: "center",
             }}
-            title="Expand sidebar"
+            title="Mở rộng thanh bên"
           >
             <ChevronRight size={16} strokeWidth={1.75} />
           </button>
@@ -470,7 +470,7 @@ export default function Sidebar({
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: "11px", color: "var(--text-muted)", flex: 1 }}>Live Sync</span>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)", flex: 1 }}>Đồng bộ trực tiếp</span>
               <span
                 style={{
                   fontSize: "10px",
@@ -513,7 +513,7 @@ export default function Sidebar({
                 e.currentTarget.style.background = "transparent";
               }}
             >
-              <span>⇄</span> Change Role
+              <span>⇄</span> Đổi vai trò
             </button>
           </div>
         )}

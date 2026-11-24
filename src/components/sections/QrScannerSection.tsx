@@ -15,19 +15,19 @@ interface QrScannerSectionProps {
 
 export function QrScannerSection({
   sectionId = "FR-SCAN-01",
-  title = "QR / RFID Scanner",
-  desc = "Scan runner QR codes or RFID chips at the current checkpoint. Scans are logged in real-time.",
+  title = "Quét QR / RFID",
+  desc = "Quét mã QR hoặc chip RFID của VĐV tại checkpoint hiện tại. Các lượt quét được ghi nhận theo thời gian thực.",
   color = "#10B981",
   colorRgb = "16,185,129",
   roleLabel = "Checkpoint",
 }: QrScannerSectionProps) {
   const checkpoints = [
-    "Start Gate",
+    "Cổng xuất phát",
     "CP1 – KM 10",
     "CP2 – KM 21",
     "CP3 – KM 32",
     "CP4 – KM 50",
-    "Finish Line",
+    "Vạch đích",
   ];
   const [selectedCp, setSelectedCp] = useState("CP1 – KM 10");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -56,7 +56,7 @@ export function QrScannerSection({
 
     const newScan = {
       bib: bibCode,
-      runner: `Runner ${bibCode}`,
+      runner: `VĐV ${bibCode}`,
       time: timeStr,
       cp: cpTag,
       status: isDuplicate ? "dup" : "ok",
@@ -66,8 +66,8 @@ export function QrScannerSection({
     setLastNotification({
       bib: bibCode,
       text: isDuplicate
-        ? `Duplicate scan detected at ${cpTag}`
-        : `Successfully logged at ${cpTag}`,
+        ? `Phát hiện quét trùng tại ${cpTag}`
+        : `Đã ghi nhận thành công tại ${cpTag}`,
       isDup: isDuplicate,
     });
   };
@@ -225,7 +225,7 @@ export function QrScannerSection({
               {roleLabel} Scanner Ready
             </div>
             <p style={{ fontSize: "12px", color: "#64748B", margin: "0 0 16px", maxWidth: "260px" }}>
-              Launch camera to scan runner QR codes or RFID barcodes automatically.
+              Bật camera để tự động quét mã QR hoặc mã vạch RFID của VĐV.
             </p>
 
             <button
@@ -255,7 +255,7 @@ export function QrScannerSection({
               }}
             >
               <span>📷</span>
-              <span>Open QR Scanner Modal</span>
+              <span>Mở cửa sổ quét QR</span>
             </button>
           </div>
 
@@ -264,7 +264,7 @@ export function QrScannerSection({
             <input
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value)}
-              placeholder="Manual BIB override (e.g. A0042)…"
+              placeholder="Nhập BIB thủ công (VD: A0042)…"
               style={{
                 flex: 1,
                 padding: "9px 12px",
@@ -276,7 +276,7 @@ export function QrScannerSection({
               }}
             />
             <Btn
-              label="Submit"
+              label="Gửi"
               primary
               color={color}
               colorRgb={colorRgb}
@@ -316,7 +316,7 @@ export function QrScannerSection({
                 cursor: "pointer",
               }}
             >
-              Clear
+              Xóa
             </button>
           </div>
           <div style={{ maxHeight: "330px", overflowY: "auto" }}>
@@ -371,9 +371,9 @@ export function QrScannerSection({
                   </div>
                 </div>
                 {s.status === "dup" ? (
-                  <Badge label="DUPLICATE" type="rose" />
+                  <Badge label="TRÙNG" type="rose" />
                 ) : (
-                  <Badge label="LOGGED" type="green" />
+                  <Badge label="ĐÃ GHI NHẬN" type="green" />
                 )}
               </div>
             ))}

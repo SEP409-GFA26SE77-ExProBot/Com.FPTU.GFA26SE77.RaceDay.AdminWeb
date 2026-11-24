@@ -154,7 +154,7 @@ export function PendingEventInfoModal({
             className="gap-1.5 text-xs font-semibold border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/50"
           >
             <Info className="h-3.5 w-3.5" />
-            Information
+            Thông tin
           </Button>
         </DialogTrigger>
       )}
@@ -171,7 +171,7 @@ export function PendingEventInfoModal({
                 <div className="flex items-center gap-2">
                   <Badge variant="pending" className="text-[11px] font-bold">
                     {event.status === "pending"
-                      ? "PENDING APPROVAL"
+                      ? "CHỜ DUYỆT"
                       : event.status.toUpperCase()}
                   </Badge>
                   <span className="text-xs text-foreground/70 font-mono">
@@ -194,7 +194,7 @@ export function PendingEventInfoModal({
             <div className="flex items-center gap-2.5">
               <MapPin className="h-4 w-4 text-foreground/70 shrink-0" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-foreground/70">Location</div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Địa điểm</div>
                 <div className="text-xs font-semibold text-foreground truncate max-w-[140px]" title={event.location}>
                   {event.location}
                 </div>
@@ -204,7 +204,7 @@ export function PendingEventInfoModal({
             <div className="flex items-center gap-2.5">
               <Calendar className="h-4 w-4 text-foreground/70 shrink-0" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-foreground/70">Date</div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Ngày</div>
                 <div className="text-xs font-semibold text-foreground">{event.date}</div>
               </div>
             </div>
@@ -212,9 +212,9 @@ export function PendingEventInfoModal({
             <div className="flex items-center gap-2.5">
               <Users className="h-4 w-4 text-foreground/70 shrink-0" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-foreground/70">Runners Cap</div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Giới hạn VĐV</div>
                 <div className="text-xs font-semibold text-foreground">
-                  {event.totalRunners.toLocaleString("en-US")} Runners
+                  {event.totalRunners.toLocaleString("en-US")} VĐV
                 </div>
               </div>
             </div>
@@ -222,7 +222,7 @@ export function PendingEventInfoModal({
             <div className="flex items-center gap-2.5">
               <CloudSun className="h-4 w-4 text-foreground/70 shrink-0" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-foreground/70">Forecast</div>
+                <div className="text-[10px] uppercase font-bold text-foreground/70">Dự báo</div>
                 <div className="text-xs font-semibold text-foreground">
                   {event.weather.temp} · {event.weather.condition}
                 </div>
@@ -239,14 +239,14 @@ export function PendingEventInfoModal({
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-foreground/70" />
                     <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                      Organizer Application
+                      Hồ sơ Organizer
                     </span>
                   </div>
                   <Badge
                     variant={event.organizer.verified ? "success" : "pending"}
                     className="text-[10px]"
                   >
-                    {event.organizer.verified ? "Verified Organizer" : "Pending Verification"}
+                    {event.organizer.verified ? "Organizer đã xác minh" : "Chờ xác minh"}
                   </Badge>
                 </div>
 
@@ -270,11 +270,11 @@ export function PendingEventInfoModal({
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-foreground/70" />
                   <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Official Permit Document
+                    Giấy phép chính thức
                   </span>
                 </div>
                 <Badge variant="success" className="text-[10px]">
-                  Authority Approved
+                  Cơ quan chức năng đã duyệt
                 </Badge>
               </div>
 
@@ -289,9 +289,9 @@ export function PendingEventInfoModal({
                     </span>
                   </div>
                   <div className="text-[11px] text-foreground/85 leading-snug">
-                    <div><span className="font-semibold text-foreground">Issuing Authority:</span> {event.permitDocument.issuingAuthority}</div>
-                    <div><span className="font-semibold text-foreground">Permit Code:</span> <code className="font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-foreground">{event.permitDocument.permitNumber}</code></div>
-                    <div><span className="font-semibold text-foreground">Issued:</span> {event.permitDocument.issueDate} · <span className="font-semibold text-foreground">Valid Until:</span> {event.permitDocument.validUntil}</div>
+                    <div><span className="font-semibold text-foreground">Cơ quan cấp:</span> {event.permitDocument.issuingAuthority}</div>
+                    <div><span className="font-semibold text-foreground">Mã giấy phép:</span> <code className="font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-foreground">{event.permitDocument.permitNumber}</code></div>
+                    <div><span className="font-semibold text-foreground">Ngày cấp:</span> {event.permitDocument.issueDate} · <span className="font-semibold text-foreground">Có hiệu lực đến:</span> {event.permitDocument.validUntil}</div>
                   </div>
                   <div className="pt-1">
                     <a
@@ -301,14 +301,14 @@ export function PendingEventInfoModal({
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-foreground text-background hover:opacity-90 font-semibold text-xs transition-opacity shadow-sm"
                     >
                       <FileText className="h-3.5 w-3.5" />
-                      View Approved Permit (PDF)
+                      Xem giấy phép đã duyệt (PDF)
                       <span className="text-[10px] opacity-80">↗</span>
                     </a>
                   </div>
                 </div>
               ) : (
                 <div className="text-xs text-foreground/80">
-                  Standard provincial tournament permit approved.
+                  Giấy phép tổ chức giải cấp tỉnh đã được duyệt.
                 </div>
               )}
             </div>
@@ -322,14 +322,14 @@ export function PendingEventInfoModal({
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-foreground/70" />
                   <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Rules & Anti-Cheating Penalties
+                    Quy định & chế tài chống gian lận
                   </h4>
                 </div>
 
                 <div className="space-y-2.5 text-xs">
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
                     <div className="font-bold text-foreground mb-1 text-[11px] uppercase tracking-wide">
-                      General Competition Rules
+                      Quy định thi đấu chung
                     </div>
                     <p className="text-foreground/90 leading-relaxed font-normal">
                       {event.rules.generalRules}
@@ -338,7 +338,7 @@ export function PendingEventInfoModal({
 
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
                     <div className="font-bold text-foreground mb-1 text-[11px] uppercase tracking-wide">
-                      Mandatory Safety Gear
+                      Trang bị an toàn bắt buộc
                     </div>
                     <p className="text-foreground/90 leading-relaxed font-normal">
                       {event.rules.mandatoryEquipment}
@@ -348,7 +348,7 @@ export function PendingEventInfoModal({
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
                     <div className="font-bold text-foreground mb-1 flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
                       <AlertCircle className="h-3.5 w-3.5 text-foreground shrink-0" />
-                      <span>Cheating Penalties & Disqualification (DQ)</span>
+                      <span>Xử phạt gian lận & loại khỏi giải (DQ)</span>
                     </div>
                     <p className="text-foreground/90 leading-relaxed text-[11px] font-normal">
                       {event.rules.cheatingAndPenalties}
@@ -365,7 +365,7 @@ export function PendingEventInfoModal({
                   <div className="flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-foreground/70" />
                     <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                      Prize Pool & Rewards
+                      Giải thưởng & phần thưởng
                     </h4>
                   </div>
                   <Badge variant="outline" className="text-[10px] font-bold text-foreground border-border">
@@ -376,7 +376,7 @@ export function PendingEventInfoModal({
                 <div className="space-y-2.5 text-xs">
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border space-y-1.5">
                     <div className="font-bold text-[11px] uppercase tracking-wide text-foreground">
-                      Podium Placements
+                      Vị trí trên bục vinh quang
                     </div>
                     <div className="space-y-1">
                       {event.rewards.podium.map((pod: any, idx: number) => (
@@ -390,7 +390,7 @@ export function PendingEventInfoModal({
 
                   <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
                     <div className="font-bold text-[11px] uppercase tracking-wide text-foreground mb-1">
-                      Finisher Package & Perks
+                      Quà tặng & quyền lợi Finisher
                     </div>
                     <p className="text-foreground/90 leading-relaxed text-[11px]">
                       {event.rewards.finisherRewards}
@@ -406,18 +406,18 @@ export function PendingEventInfoModal({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Ticket className="h-4 w-4 text-foreground/70" />
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Registration Fees by Phase</h4>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Lệ phí đăng ký theo giai đoạn</h4>
               </div>
               <div className="rounded-xl border border-border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-muted/80 dark:bg-muted/60 border-b border-border">
-                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Phase</th>
-                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Period</th>
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Giai đoạn</th>
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Thời gian</th>
                       {Object.keys(event.ticketPricing.phases[0]?.prices ?? {}).map((dist) => (
                         <th key={dist} className="text-right px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">{dist}</th>
                       ))}
-                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Note</th>
+                      <th className="text-left px-3 py-2 font-bold text-foreground uppercase tracking-wide text-[10px]">Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -440,7 +440,7 @@ export function PendingEventInfoModal({
                 <div className="p-3 rounded-xl border border-border bg-muted/30 space-y-2">
                   <div className="flex items-center gap-2">
                     <Tag className="h-3.5 w-3.5 text-foreground/70" />
-                    <span className="text-[11px] font-bold text-foreground uppercase tracking-wide">Group Discount Policy</span>
+                    <span className="text-[11px] font-bold text-foreground uppercase tracking-wide">Chính sách giảm giá theo nhóm</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {event.ticketPricing.groupDiscount.tiers.map((tier: any, i: number) => (
@@ -460,7 +460,7 @@ export function PendingEventInfoModal({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Shirt className="h-4 w-4 text-foreground/70" />
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Race Kit & Merchandise Design</h4>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Thiết kế bộ kit & quà lưu niệm</h4>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Running Shirt */}
@@ -468,14 +468,14 @@ export function PendingEventInfoModal({
                   <div className="relative w-full h-36 bg-muted/40">
                     <Image
                       src={event.merchandise.runningShirt.sizeChartImage}
-                      alt="Running Shirt Size Chart"
+                      alt="Bảng size áo chạy"
                       fill
                       className="object-contain p-2"
                       unoptimized
                     />
                   </div>
                   <div className="p-2.5 space-y-1">
-                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Official Shirt</div>
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Áo chính thức</div>
                     <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.runningShirt.description}</p>
                     <div className="flex flex-wrap gap-1 pt-0.5">
                       {event.merchandise.runningShirt.sizes.map((sz: string) => (
@@ -489,14 +489,14 @@ export function PendingEventInfoModal({
                   <div className="relative w-full h-36 bg-muted/40">
                     <Image
                       src={event.merchandise.bib.designImage}
-                      alt="Race BIB Design"
+                      alt="Thiết kế BIB"
                       fill
                       className="object-contain p-2"
                       unoptimized
                     />
                   </div>
                   <div className="p-2.5 space-y-1">
-                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Race BIB Design</div>
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Thiết kế BIB</div>
                     <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.bib.description}</p>
                     <p className="text-[10px] text-foreground/70 leading-snug">{event.merchandise.bib.note}</p>
                   </div>
@@ -506,14 +506,14 @@ export function PendingEventInfoModal({
                   <div className="relative w-full h-36 bg-muted/40">
                     <Image
                       src={event.merchandise.medal.designImage}
-                      alt="Finisher Medal Design"
+                      alt="Thiết kế huy chương Finisher"
                       fill
                       className="object-contain p-2"
                       unoptimized
                     />
                   </div>
                   <div className="p-2.5 space-y-1">
-                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Finisher Medal</div>
+                    <div className="text-[11px] font-bold text-foreground uppercase tracking-wide">Huy chương Finisher</div>
                     <p className="text-[10px] text-foreground/80 leading-snug">{event.merchandise.medal.description}</p>
                     <p className="text-[10px] text-foreground/70 leading-snug">{event.merchandise.medal.note}</p>
                   </div>
@@ -527,16 +527,16 @@ export function PendingEventInfoModal({
             <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
               <div className="flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-foreground/70" />
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Beneficiary / Payment Account Details</h4>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Thông tin tài khoản thụ hưởng / thanh toán</h4>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
                 {[
-                  { label: "Account Holder", value: (event.organizer as any).beneficiaryAccount.accountHolder, mono: false, highlight: true },
-                  { label: "Bank Name", value: (event.organizer as any).beneficiaryAccount.bankName, mono: false, highlight: false },
-                  { label: "Account Number", value: (event.organizer as any).beneficiaryAccount.accountNumber, mono: true, highlight: true },
-                  { label: "Branch", value: (event.organizer as any).beneficiaryAccount.branch, mono: false, highlight: false },
+                  { label: "Chủ tài khoản", value: (event.organizer as any).beneficiaryAccount.accountHolder, mono: false, highlight: true },
+                  { label: "Ngân hàng", value: (event.organizer as any).beneficiaryAccount.bankName, mono: false, highlight: false },
+                  { label: "Số tài khoản", value: (event.organizer as any).beneficiaryAccount.accountNumber, mono: true, highlight: true },
+                  { label: "Chi nhánh", value: (event.organizer as any).beneficiaryAccount.branch, mono: false, highlight: false },
                   { label: "SWIFT / BIC", value: (event.organizer as any).beneficiaryAccount.swiftCode, mono: true, highlight: false },
-                  { label: "Transfer Note Format", value: (event.organizer as any).beneficiaryAccount.transferNote, mono: true, highlight: false },
+                  { label: "Cú pháp nội dung chuyển khoản", value: (event.organizer as any).beneficiaryAccount.transferNote, mono: true, highlight: false },
                 ].map((row) => (
                   <div key={row.label} className="flex flex-col gap-0.5">
                     <span className="text-[10px] uppercase font-bold text-foreground/70 tracking-wide">{row.label}</span>
@@ -565,7 +565,7 @@ export function PendingEventInfoModal({
               <div className="flex items-center gap-2">
                 <Navigation className="h-4 w-4 text-foreground/70" />
                 <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                  Course Route Preview & Checkpoints
+                  Xem trước cung đường & checkpoint
                 </h4>
               </div>
             </div>
@@ -597,22 +597,22 @@ export function PendingEventInfoModal({
                     {/* Distance Detail Metrics */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       <div className="p-3 rounded-lg bg-card border border-border">
-                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Total Distance</div>
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Tổng quãng đường</div>
                         <div className="text-lg font-black text-foreground">{dist.distanceKm} km</div>
                       </div>
                       <div className="p-3 rounded-lg bg-card border border-border">
-                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Elevation Gain</div>
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Độ cao tích lũy</div>
                         <div className="text-lg font-black text-foreground">+{dist.elevationGainM} m</div>
                       </div>
                       <div className="p-3 rounded-lg bg-card border border-border">
-                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Elevation Range</div>
+                        <div className="text-[10px] text-foreground/70 uppercase font-bold">Biên độ độ cao</div>
                         <div className="text-sm font-bold text-foreground mt-1">
                           {dist.minElevationM}m → {dist.maxElevationM}m
                         </div>
                       </div>
                       <div className="p-3 rounded-lg bg-card border border-border">
                         <div className="text-[10px] text-foreground/70 uppercase font-bold">Checkpoints</div>
-                        <div className="text-lg font-black text-foreground">{dist.checkpoints.length} Stations</div>
+                        <div className="text-lg font-black text-foreground">{dist.checkpoints.length} trạm</div>
                       </div>
                     </div>
 
@@ -635,7 +635,7 @@ export function PendingEventInfoModal({
                     {/* Checkpoint Breakdown List */}
                     <div className="p-3.5 rounded-xl border border-border bg-card/40 space-y-2">
                       <div className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
-                        Official Checkpoints Timeline
+                        Lộ trình checkpoint chính thức
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {dist.checkpoints.map((cp) => (
@@ -662,13 +662,13 @@ export function PendingEventInfoModal({
                               <div>
                                 <div className="font-semibold text-foreground">{cp.name}</div>
                                 <div className="text-[10px] text-foreground/70">
-                                  KM {cp.km} · Alt: {cp.elevation}m
+                                  KM {cp.km} · Độ cao: {cp.elevation}m
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] font-bold text-foreground bg-muted border border-border px-1.5 py-0.5 rounded">
-                                Cutoff: {cp.cutoff}
+                                Cut-off: {cp.cutoff}
                               </span>
                             </div>
                           </div>
@@ -691,7 +691,7 @@ export function PendingEventInfoModal({
             onClick={() => setIsOpen(false)}
             className="text-muted-foreground hover:text-foreground"
           >
-            Close
+            Đóng
           </Button>
 
           <div className="flex items-center gap-2">
@@ -705,7 +705,7 @@ export function PendingEventInfoModal({
                   setIsOpen(false);
                 }}
               >
-                Reject Application
+                Từ chối hồ sơ
               </Button>
             )}
             {onApprove && (
@@ -719,7 +719,7 @@ export function PendingEventInfoModal({
                 }}
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Approve Event
+                Duyệt sự kiện
               </Button>
             )}
           </div>
