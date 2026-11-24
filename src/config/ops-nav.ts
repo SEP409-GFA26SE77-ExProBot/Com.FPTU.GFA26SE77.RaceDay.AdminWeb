@@ -41,13 +41,13 @@ export type OpsRoleNav = {
 export const ADMINISTRATOR_NAV: OpsRoleNav = {
   homeHref: "/",
   breadcrumbLabel: "Quản trị hệ thống",
-  footerLabel: "Admin panel",
+  footerLabel: "Trang quản trị",
   footerIcon: ShieldCheck,
   groups: [
     {
       heading: "Hệ thống",
       items: [
-        { id: "dashboard", label: "Dashboard", href: "/", icon: BarChart3 },
+        { id: "dashboard", label: "Tổng quan", href: "/", icon: BarChart3 },
         {
           id: "users",
           label: "Người dùng",

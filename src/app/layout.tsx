@@ -7,20 +7,20 @@ import AuthProvider from "@/components/AuthProvider";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "RaceDay Admin Portal | Operations Dashboard",
+  title: "RaceDay | Quản trị và vận hành",
   description:
-    "RaceDay operations dashboard for Race-staff, Admin, Manager, and Photographer roles.",
+    "Trang quản trị và vận hành RaceDay dành cho quản trị viên, quản lý, nhân viên giải chạy và nhiếp ảnh gia.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} min-h-full`} suppressHydrationWarning>
+    <html lang="vi" className={`${inter.variable} min-h-full`} suppressHydrationWarning>
       <body className="min-h-full antialiased bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"

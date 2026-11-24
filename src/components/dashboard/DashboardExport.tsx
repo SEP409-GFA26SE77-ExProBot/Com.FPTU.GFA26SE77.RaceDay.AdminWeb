@@ -24,11 +24,11 @@ export default function DashboardExport({ range, download, disabled = false }: {
     setMessage("");
     try {
       const blob = await download(format);
-      if (!blob.size) throw new Error("Empty report");
+      if (!blob.size) throw new Error("Báo cáo không có dữ liệu.");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `dashboard-${range.from}-${range.to}.${format}`;
+      link.download = `bao-cao-${range.from}-${range.to}.${format}`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -39,15 +39,15 @@ export default function DashboardExport({ range, download, disabled = false }: {
       if (isAxiosError(error) && error.response?.data instanceof Blob) {
         try { detail = { response: { data: JSON.parse(await error.response.data.text()) } }; } catch { /* Use fallback for a non-JSON error body. */ }
       }
-      setError(getApiErrorMessage(detail, "Không thể xuất dashboard. Vui lòng thử lại."));
+      setError(getApiErrorMessage(detail, "Không thể xuất báo cáo. Vui lòng thử lại."));
     } finally {
       lock.current = false;
       setBusy(null);
     }
   }
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Xuất báo cáo dashboard" aria-busy={busy !== null}>
+    <div className="space-y-1">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Xuất báo cáo tổng quan" aria-busy={busy !== null}>
         {(["xlsx", "pdf"] as const).map((format) => (
           <Button key={format} type="button" variant="outline" className="min-h-11 gap-2"
             disabled={disabled || busy !== null} onClick={() => void exportFile(format)}>
@@ -56,9 +56,9 @@ export default function DashboardExport({ range, download, disabled = false }: {
           </Button>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">Xuất toàn dashboard: biểu đồ theo kỳ đã áp dụng; chỉ số hiện tại được tải lại khi xuất.</p>
+      <p className="sr-only">Biểu đồ theo kỳ đã chọn; các chỉ số hiện tại được tải lại khi xuất.</p>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <p role="status" className="text-sm text-muted-foreground">{message}</p>
+      <p role="status" className={message ? "text-sm text-muted-foreground" : "sr-only"}>{message}</p>
     </div>
   );
 }

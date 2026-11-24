@@ -51,8 +51,8 @@ export function ThemeToggle({
       variant="outline"
       type="button"
       onClick={toggleTheme}
-      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      title={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+      aria-label={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
       className={cn(
         "relative transition-all duration-300 border-border bg-card/60 hover:bg-accent hover:border-primary/40 backdrop-blur-md cursor-pointer",
         !showLabel && "w-9 h-9 p-0",
@@ -78,7 +78,7 @@ export function ThemeToggle({
 
       {showLabel && (
         <span className="text-xs font-semibold select-none capitalize text-foreground">
-          {isDark ? "Dark" : "Light"}
+          {isDark ? "Tối" : "Sáng"}
         </span>
       )}
     </Button>
