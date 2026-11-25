@@ -7,7 +7,7 @@ import AuthProvider from "@/components/AuthProvider";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} min-h-full`} suppressHydrationWarning>
+    <html lang="vi" className={`${inter.variable} min-h-full`} suppressHydrationWarning>
       <body className="min-h-full antialiased bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"

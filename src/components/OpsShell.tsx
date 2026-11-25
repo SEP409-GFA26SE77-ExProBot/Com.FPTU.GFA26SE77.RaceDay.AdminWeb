@@ -76,10 +76,10 @@ export default function OpsShell({
   );
   const userMenuRef = useRef<HTMLDivElement>(null);
   // Cookie chỉ có trên client — đọc sau mount để tránh hydration U≠V
-  const [username, setUsername] = useState("User");
+  const [username, setUsername] = useState("Người dùng");
 
   useEffect(() => {
-    setUsername(getAuthUser()?.username || "User");
+    setUsername(getAuthUser()?.username || "Người dùng");
   }, []);
 
   const initial = username.charAt(0).toUpperCase() || "U";
@@ -162,7 +162,7 @@ export default function OpsShell({
             type="button"
             onClick={closeMobile}
             className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] lg:hidden"
-            aria-label="Đóng menu"
+            aria-label="Đóng trình đơn"
           >
             <X className="h-5 w-5" />
           </button>
@@ -268,7 +268,7 @@ export default function OpsShell({
           type="button"
           className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
           onClick={closeMobile}
-          aria-label="Đóng menu"
+          aria-label="Đóng trình đơn"
         />
       )}
 
@@ -283,7 +283,7 @@ export default function OpsShell({
               type="button"
               onClick={() => setMobileOpen(true)}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text-secondary)] lg:hidden"
-              aria-label="Mở menu"
+              aria-label="Mở trình đơn"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -291,7 +291,7 @@ export default function OpsShell({
               type="button"
               onClick={() => setCollapsed((v) => !v)}
               className="hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text-secondary)] hover:text-orange-600 lg:block"
-              aria-label="Thu gọn sidebar"
+              aria-label={collapsed ? "Mở thanh điều hướng" : "Thu gọn thanh điều hướng"}
             >
               {collapsed ? (
                 <PanelLeftOpen className="h-5 w-5" />

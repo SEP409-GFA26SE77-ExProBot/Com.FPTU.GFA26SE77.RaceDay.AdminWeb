@@ -25,8 +25,8 @@ export function Panel({
   action?: ReactNode;
 }) {
   return (
-    <section className="min-w-0 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <section className="min-w-0 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-bold">{title}</h2>
           {description && (
@@ -47,15 +47,15 @@ export function Metric({
 }: {
   label: string;
   value: string | number;
-  note: string;
+  note?: string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm">
+    <div className="min-w-0 rounded-2xl border border-border bg-card p-3 text-card-foreground shadow-sm sm:p-4">
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="my-2 break-words text-2xl font-bold tracking-tight tabular-nums sm:text-3xl">
+      <p className="mt-1 break-words text-2xl font-bold tracking-tight tabular-nums">
         {typeof value === "number" ? numberLabel(value) : value}
       </p>
-      <p className="text-xs leading-relaxed text-muted-foreground">{note}</p>
+      {note && <p className="text-xs leading-relaxed text-muted-foreground">{note}</p>}
     </div>
   );
 }
@@ -124,7 +124,7 @@ export function DateFilter({
   const id = useId();
   return (
     <form
-      className="space-y-3 rounded-2xl border border-border bg-card p-4 text-card-foreground"
+      className="min-w-0 space-y-2"
       onSubmit={(event) => {
         event.preventDefault();
         const message = rangeError(draft);
@@ -133,7 +133,7 @@ export function DateFilter({
       }}
     >
       <div className="flex flex-wrap items-end gap-3">
-        <label className="w-full min-w-0 text-xs font-medium sm:w-44">
+        <label className="w-[calc(50%-0.375rem)] min-w-0 text-xs font-medium sm:w-36">
           Từ ngày
           <Input
             type="date"
@@ -149,7 +149,7 @@ export function DateFilter({
             aria-describedby={error ? id : undefined}
           />
         </label>
-        <label className="w-full min-w-0 text-xs font-medium sm:w-44">
+        <label className="w-[calc(50%-0.375rem)] min-w-0 text-xs font-medium sm:w-36">
           Đến ngày
           <Input
             type="date"
@@ -172,7 +172,7 @@ export function DateFilter({
               key={days}
               type="button"
               variant="outline"
-              className="min-h-11"
+              className="min-h-11 px-2.5"
               onClick={() => {
                 const next = recentRange(days);
                 setDraft(next);
@@ -190,7 +190,7 @@ export function DateFilter({
           {error}
         </p>
       )}
-      <p className="text-xs text-muted-foreground">
+      <p className="sr-only">
         Đang xem {dateLabel(value.from)} – {dateLabel(value.to)} · UTC+7 · Bao
         gồm cả hai ngày
       </p>
@@ -205,7 +205,7 @@ export function Distribution({
 }) {
   const max = Math.max(1, ...items.map((item) => item.count));
   return (
-    <dl className="space-y-4">
+    <dl className="space-y-3">
       {items.map((item) => (
         <div key={item.label}>
           <div className="mb-1.5 flex justify-between gap-3 text-sm">
@@ -268,7 +268,7 @@ export function TrendChart({
       {values.some((value) => value !== 0) ? (
         <svg
           viewBox="0 0 620 225"
-          className="w-full"
+          className="max-h-56 w-full"
           role="img"
           aria-label="Biểu đồ theo ngày. Số liệu chi tiết ở bảng bên dưới."
         >
