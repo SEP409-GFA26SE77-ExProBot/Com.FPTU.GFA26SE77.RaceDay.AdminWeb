@@ -22,6 +22,11 @@ export type RaceEventLog = {
   /** Missing on logs written before names were stored in metadata. */
   checkpointName?: string | null;
   runnerName?: string | null;
+  /** Runner's first pass at a Start checkpoint (chip time origin); null until they passed Start. */
+  chipStartAtUtc?: string | null;
+  /** Row produced by the organizer race simulator (shown as RFID). */
+  simulated?: boolean;
+  simulationRunId?: string | null;
 };
 
 export type RaceEventLogPage = {
@@ -48,6 +53,8 @@ export const RACE_LOG_EVENTS = {
   created: "RaceEventLogCreated",
   overrun: "RaceEventLogStreamOverrun",
   accessRevoked: "RaceEventLogAccessRevoked",
+  /** { eventId, eventDistanceId, simulationRunId }: drop simulated rows of that distance from other runs. */
+  cleared: "RaceEventLogsCleared",
   /** Sent by our own proxy when the backend is down. */
   unavailable: "unavailable",
 } as const;
