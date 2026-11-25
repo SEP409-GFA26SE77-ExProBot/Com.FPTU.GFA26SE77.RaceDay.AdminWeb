@@ -52,15 +52,40 @@ function mergeLogs(current: RaceEventLog[], incoming: RaceEventLog[]): RaceEvent
   return [...map.values()].sort(byTimeline).slice(-MAX_ROWS);
 }
 
-/** "10:30:15", or "22/11 10:30:15" when not today. Local browser time, 24h. */
+const pad = (value: number, length = 2) => String(value).padStart(length, "0");
+
+/**
+ * Microseconds since epoch from an ISO timestamp. The API sends up to 7 fractional digits and
+ * Date.parse keeps only milliseconds, so the fraction is read from the string. NaN when invalid.
+ */
+export function isoToMicros(iso: string | null | undefined): number {
+  if (!iso) return Number.NaN;
+  const fraction = /\.(\d+)/.exec(iso)?.[1] ?? "";
+  const wholeMs = Date.parse(iso.replace(/\.\d+/, ""));
+  if (Number.isNaN(wholeMs)) return Number.NaN;
+  return wholeMs * 1000 + Number((fraction + "000000").slice(0, 6));
+}
+
+/** "10:30:15.123", or "22/11 10:30:15.123" when not today. Local browser time, 24h. */
 export function formatLogTime(utc: string | null | undefined): string {
-  if (!utc) return "—";
-  const date = new Date(utc);
-  if (Number.isNaN(date.getTime())) return "—";
-  const time = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  const micros = isoToMicros(utc);
+  if (Number.isNaN(micros)) return "—";
+  const date = new Date(Math.floor(micros / 1000));
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
   const now = new Date();
   const today = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
-  return today ? time : `${date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} ${time}`;
+  return today ? time : `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${time}`;
+}
+
+/** Chip time "HH:MM:SS.mmm" = passing time − the runner's Start pass. Null when there is no Start pass. */
+export function formatChipTime(log: Pick<RaceEventLog, "occurredAtUtc" | "chipStartAtUtc">): string | null {
+  const elapsed = isoToMicros(log.occurredAtUtc) - isoToMicros(log.chipStartAtUtc);
+  if (Number.isNaN(elapsed) || elapsed < 0) return null;
+  const totalMs = Math.floor(elapsed / 1000);
+  const hours = Math.floor(totalMs / 3_600_000);
+  const minutes = Math.floor(totalMs / 60_000) % 60;
+  const seconds = Math.floor(totalMs / 1000) % 60;
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(totalMs % 1000, 3)}`;
 }
 
 export const scanMethodLabel = (method: string | null | undefined) =>
@@ -73,7 +98,9 @@ export function describeLog(log: RaceEventLog): string {
   const time = formatLogTime(log.occurredAtUtc);
   if (log.eventType === "RunnerCheckpointPassed") {
     const checkpoint = log.checkpointName || "checkpoint";
-    return `${bib}${runner} đã vượt qua ${checkpoint} - ${scanMethodLabel(log.scanMethod)} - ${time}`;
+    const chip = formatChipTime(log);
+    const source = log.simulated ? `${scanMethodLabel(log.scanMethod)} (giả lập)` : scanMethodLabel(log.scanMethod);
+    return `${bib}${runner} đã vượt qua ${checkpoint} - ${source} - ${chip ? `chip ${chip} - ` : ""}${time}`;
   }
   return `${bib}${runner} - ${log.eventType} - ${time}`;
 }
@@ -202,6 +229,16 @@ export default function RaceTimeline() {
           // Ignore a malformed frame; the next one still arrives.
         }
       });
+      stream.addEventListener(RACE_LOG_EVENTS.cleared, event => {
+        try {
+          const cleared = JSON.parse((event as MessageEvent<string>).data) as { eventDistanceId?: string | null; simulationRunId?: string | null };
+          setLogs(current => current.filter(log => !(log.simulated
+            && log.eventDistanceId === cleared.eventDistanceId
+            && log.simulationRunId !== cleared.simulationRunId)));
+        } catch {
+          // Ignore a malformed frame; a reload shows the current rows.
+        }
+      });
       stream.addEventListener(RACE_LOG_EVENTS.unavailable, () => setConnection("offline"));
       stream.addEventListener(RACE_LOG_EVENTS.accessRevoked, () => {
         stream?.close();
@@ -277,6 +314,7 @@ export default function RaceTimeline() {
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Mỗi lượt VĐV qua checkpoint (RFID hoặc ghi thủ công) hiện ngay tại đây.
+              Thời gian lớn là chip time (tính từ lúc VĐV qua Start, tới mili giây); dòng nhỏ là giờ qua checkpoint.
             </p>
           </div>
           {eventId && <ConnectionBadge state={connection} />}
@@ -403,6 +441,7 @@ export default function RaceTimeline() {
                   <ol className="divide-y">
                     {visible.map(log => {
                       const fresh = freshIds.has(log.id);
+                      const chipTime = formatChipTime(log);
                       return (
                         <li
                           key={log.id}
@@ -412,13 +451,21 @@ export default function RaceTimeline() {
                             fresh && "bg-orange-500/5",
                           )}
                         >
-                          <time
-                            dateTime={log.occurredAtUtc}
-                            className="w-fit shrink-0 rounded-md bg-muted px-2 py-1 font-mono text-xs font-semibold tabular-nums"
-                            title={new Date(log.occurredAtUtc).toLocaleString("vi-VN", { hour12: false })}
-                          >
-                            {formatLogTime(log.occurredAtUtc)}
-                          </time>
+                          <div className="flex w-fit shrink-0 flex-col gap-0.5 sm:w-36">
+                            <span
+                              className="w-fit rounded-md bg-muted px-2 py-1 font-mono text-xs font-semibold tabular-nums"
+                              title={chipTime ? "Chip time: từ lúc VĐV qua Start" : "Chưa có lượt qua Start của VĐV này"}
+                            >
+                              {chipTime ?? "--:--:--.---"}
+                            </span>
+                            <time
+                              dateTime={log.occurredAtUtc}
+                              className="px-2 font-mono text-[11px] tabular-nums text-muted-foreground"
+                              title={new Date(log.occurredAtUtc).toLocaleString("vi-VN", { hour12: false })}
+                            >
+                              {formatLogTime(log.occurredAtUtc)}
+                            </time>
+                          </div>
                           <p className="min-w-0 flex-1 text-sm">
                             <span className="font-bold">BIB {log.bibNumber ?? "—"}</span>
                             {log.runnerName && <span className="text-muted-foreground"> ({log.runnerName})</span>}
@@ -430,6 +477,7 @@ export default function RaceTimeline() {
                           </p>
                           <div className="flex shrink-0 items-center gap-2">
                             {fresh && <Badge variant="live">Mới</Badge>}
+                            {log.simulated && <Badge variant="outline" title="Dòng do giả lập đua tạo, bị xóa khi organizer Reset lượt">Giả lập</Badge>}
                             <Badge variant={log.scanMethod === "RFID" ? "cyan" : "pending"}>{scanMethodLabel(log.scanMethod)}</Badge>
                           </div>
                         </li>
