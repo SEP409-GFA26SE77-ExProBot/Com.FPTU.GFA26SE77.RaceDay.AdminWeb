@@ -310,7 +310,7 @@ function PhotoTable({
                       <th className="px-2 py-2 font-semibold">Conf</th>
                     </>
                   ) : null}
-                  <th className="px-2 py-2 font-semibold">Status</th>
+                  <th className="px-2 py-2 font-semibold">Trạng thái</th>
                   {showReason ? (
                     <th className="px-2 py-2 font-semibold">Lý do</th>
                   ) : null}

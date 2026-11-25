@@ -1,7 +1,5 @@
-"use client";
-
-import AdministratorApprovalsPage from "./approvals/page";
+import AdminDashboard from "@/components/dashboard/AdminDashboard";
 
 export default function AdministratorPage() {
-  return <AdministratorApprovalsPage />;
+  return <AdminDashboard />;
 }

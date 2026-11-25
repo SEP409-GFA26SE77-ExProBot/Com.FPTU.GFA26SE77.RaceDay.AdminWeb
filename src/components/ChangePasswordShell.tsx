@@ -4,18 +4,19 @@ import type { ReactNode } from "react";
 import OpsShell from "@/components/OpsShell";
 import {
   ADMINISTRATOR_NAV,
-  COORDINATOR_NAV,
+  MANAGER_NAV,
   PHOTOGRAPHER_NAV,
-  VOLUNTEER_NAV,
+  RACE_STAFF_NAV,
   type OpsRoleNav,
 } from "@/config/ops-nav";
 import { ActiveTabProvider } from "@/context/ActiveTabContext";
+import { mapAppRole } from "@/lib/role";
 
 const NAV_BY_ROLE: Record<string, OpsRoleNav> = {
   ADMIN: ADMINISTRATOR_NAV,
-  COORDINATOR: COORDINATOR_NAV,
+  MANAGER: MANAGER_NAV,
+  RACE_STAFF: RACE_STAFF_NAV,
   PHOTOGRAPHER: PHOTOGRAPHER_NAV,
-  VOLUNTEER: VOLUNTEER_NAV,
 };
 
 export default function ChangePasswordShell({
@@ -25,7 +26,7 @@ export default function ChangePasswordShell({
   role: string;
   children: ReactNode;
 }) {
-  const nav = NAV_BY_ROLE[role.toUpperCase()] ?? COORDINATOR_NAV;
+  const nav = NAV_BY_ROLE[mapAppRole(role)] ?? RACE_STAFF_NAV;
   const defaultTab = nav.groups[0]?.items[0]?.id ?? "";
 
   return (

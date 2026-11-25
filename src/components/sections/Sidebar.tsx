@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getStoredRole, setStoredRole } from "@/lib/roleStorage";
-import { clearAuth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { logout } from "@/api/auth";
+import { useAuthStore } from "@/stores/auth-store";
+import { mapAppRole } from "@/lib/role";
 import { ROLES_CONFIG, RoleConfig, NavItemConfig } from "@/config/roles";
 import { useActiveTab } from "@/context/ActiveTabContext";
 import {
@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Map,
   HeartPulse,
+  Siren,
   Timer,
   Layers,
   ShieldAlert,
@@ -31,7 +32,6 @@ import {
   LineChart,
   Send,
   Inbox,
-  Activity,
   Camera,
   ChevronLeft,
   ChevronRight,
@@ -39,12 +39,15 @@ import {
   Banknote,
   PiggyBank,
   Settings,
+  Package,
+  Percent,
+  UsersRound,
 } from "lucide-react";
 
 export interface SidebarProps {
   /** Explicit active tab ID for the current route */
   tab?: string;
-  /** Role ID ("volunteer" | "coordinator" | "administrator" | "photographer") */
+  /** Role ID ("race-staff" | "admin" | "manager" | "photographer") */
   role?: string;
   roleName?: string;
   roleAbbr?: string;
@@ -86,6 +89,8 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Map {...iconProps} />;
     case "medical":
       return <HeartPulse {...iconProps} />;
+    case "emergency":
+      return <Siren {...iconProps} />;
     case "cutoff":
       return <Timer {...iconProps} />;
     case "inventory":
@@ -98,6 +103,8 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <FileCheck {...iconProps} />;
     case "payouts":
       return <Banknote {...iconProps} />;
+    case "refund-claims":
+      return <AlertTriangle {...iconProps} />;
     case "finance":
       return <PiggyBank {...iconProps} />;
     case "settings":
@@ -124,6 +131,12 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
       return <Send {...iconProps} />;
     case "requests":
       return <Inbox {...iconProps} />;
+    case "package-durations":
+      return <Package {...iconProps} />;
+    case "package-capacities":
+      return <UsersRound {...iconProps} />;
+    case "promos":
+      return <Percent {...iconProps} />;
     default:
       return <CircleDot {...iconProps} />;
   }
@@ -132,12 +145,10 @@ function renderNavIcon(id: string, color: string, isActive: boolean) {
 function renderRoleIcon(roleKey: string, color: string) {
   const iconProps = { size: 18, strokeWidth: 1.75, style: { color } };
   switch (roleKey.toLowerCase()) {
-    case "coordinator":
-    case "ops":
+    case "race-staff":
       return <Map {...iconProps} />;
-    case "volunteer":
-    case "vol":
-      return <Activity {...iconProps} />;
+    case "manager":
+      return <FileCheck {...iconProps} />;
     case "administrator":
     case "admin":
     case "adm":
@@ -168,45 +179,14 @@ export default function Sidebar({
   className,
 }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
   const contextTab = useActiveTab().activeTab;
 
-  // Internal collapse state if not controlled externally
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse ?? (() => setInternalCollapsed((prev) => !prev));
 
-  // Determine active role from prop, storage/cookie, or pathname fallback
-  const [activeRoleKey, setActiveRoleKey] = useState<string>(() => {
-    if (propRole) return propRole;
-    const stored = getStoredRole();
-    if (stored && ROLES_CONFIG[stored]) return stored;
-    // Derive from pathname
-    if (pathname.startsWith("/coordinator")) return "coordinator";
-    if (pathname.startsWith("/volunteer")) return "volunteer";
-    if (pathname.startsWith("/admin")) return "administrator";
-    if (pathname.startsWith("/photographer")) return "photographer";
-    return "coordinator";
-  });
-
-  useEffect(() => {
-    if (propRole) {
-      setActiveRoleKey(propRole);
-      setStoredRole(propRole);
-    } else {
-      const stored = getStoredRole();
-      if (stored && ROLES_CONFIG[stored]) {
-        setActiveRoleKey(stored);
-      } else {
-        // Infer from route
-        const segments = pathname.split("/").filter(Boolean);
-        if (segments[0] && ROLES_CONFIG[segments[0]]) {
-          setActiveRoleKey(segments[0]);
-          setStoredRole(segments[0]);
-        }
-      }
-    }
-  }, [propRole, pathname]);
+  const activeRoleKey = mapAppRole(propRole ?? user?.roleName).toLowerCase().replace("_", "-");
 
   const roleConfig: RoleConfig | undefined = ROLES_CONFIG[activeRoleKey];
 
@@ -217,7 +197,6 @@ export default function Sidebar({
   const basePath = propBasePath ?? roleConfig?.basePath ?? `/${activeRoleKey}`;
   const navItems = propNavItems ?? roleConfig?.navItems ?? [];
 
-  // Determine active tab: priority is explicit prop > contextTab > pathname match > first item
   const resolvedTab =
     tab ||
     contextTab ||
@@ -247,7 +226,6 @@ export default function Sidebar({
         ...style,
       }}
     >
-      {/* Sidebar top accent glow */}
       <div
         style={{
           position: "absolute",
@@ -260,7 +238,6 @@ export default function Sidebar({
         }}
       />
 
-      {/* Header / Logo row */}
       <div
         style={{
           padding: "18px 12px",
@@ -272,8 +249,8 @@ export default function Sidebar({
         }}
       >
         <Link
-          href={basePath}
-          title="Dashboard"
+          href="/"
+          title="Quay lại chọn vai trò"
           style={{
             width: "38px",
             height: "38px",
@@ -330,7 +307,7 @@ export default function Sidebar({
                 borderRadius: "6px",
                 flexShrink: 0,
               }}
-              title="Collapse sidebar"
+              title="Thu gọn thanh bên"
             >
               <ChevronLeft size={16} strokeWidth={1.75} />
             </button>
@@ -338,7 +315,6 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Navigation tabs */}
       <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto", overflowX: "hidden" }}>
         {navItems.map((item) => {
           const itemHref = item.href ?? (basePath ? `${basePath}/${item.id}` : undefined);
@@ -438,7 +414,6 @@ export default function Sidebar({
         })}
       </nav>
 
-      {/* Footer / Role status */}
       <div style={{ padding: "10px 8px", borderTop: "1px solid var(--border)" }}>
         {isCollapsed ? (
           <button
@@ -455,7 +430,7 @@ export default function Sidebar({
               alignItems: "center",
               justifyContent: "center",
             }}
-            title="Expand sidebar"
+            title="Mở rộng thanh bên"
           >
             <ChevronRight size={16} strokeWidth={1.75} />
           </button>
@@ -495,7 +470,7 @@ export default function Sidebar({
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: "11px", color: "var(--text-muted)", flex: 1 }}>Live Sync</span>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)", flex: 1 }}>Đồng bộ trực tiếp</span>
               <span
                 style={{
                   fontSize: "10px",
@@ -511,35 +486,34 @@ export default function Sidebar({
             <button
               type="button"
               onClick={() => {
-                clearAuth();
-                router.push("/login");
+                void logout();
               }}
               style={{
-                width: "100%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "6px",
-                padding: "8px",
+                padding: "6px",
                 borderRadius: "8px",
-                fontSize: "12px",
-                fontWeight: 600,
-                color: "#EF4444",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                cursor: "pointer",
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+                textDecoration: "none",
                 transition: "all 0.15s",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                width: "100%",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.18)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)";
+                e.currentTarget.style.color = "var(--text-primary)";
+                e.currentTarget.style.background = "var(--surface-hover)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
+                e.currentTarget.style.color = "var(--text-secondary)";
+                e.currentTarget.style.background = "transparent";
               }}
             >
-              <span>🚪</span> Đăng xuất
+              <span>⇄</span> Đổi vai trò
             </button>
           </div>
         )}

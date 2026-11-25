@@ -46,6 +46,9 @@ export default function PhotographerUploadPage() {
   const [page, setPage] = useState(1);
   const [loadingList, setLoadingList] = useState(false);
 
+  /** Zone gắn ảnh = vị trí Organizer đã assign (stationLabel). Không đổi assignment. */
+  const assignedZone = assignment?.stationLabel?.trim() || "";
+
   const loadList = useCallback(async (eid: string, p: number) => {
     if (!eid) {
       setItems([]);
@@ -119,19 +122,24 @@ export default function PhotographerUploadPage() {
     toastInfo(`Bắt đầu upload ${ok.length} ảnh…`);
 
     try {
-      const res = await bulkUploadPhotos(eventId, ok, undefined, (pct) => {
-        const elapsed = (Date.now() - uploadStartedAt.current) / 1000;
-        let eta: number | null = null;
-        if (pct > 3 && elapsed > 0.4) {
-          eta = ((100 - pct) / pct) * elapsed;
+      const res = await bulkUploadPhotos(
+        eventId,
+        ok,
+        assignedZone || undefined,
+        (pct) => {
+          const elapsed = (Date.now() - uploadStartedAt.current) / 1000;
+          let eta: number | null = null;
+          if (pct > 3 && elapsed > 0.4) {
+            eta = ((100 - pct) / pct) * elapsed;
+          }
+          updateUploadProgress({
+            eventId,
+            fileCount: ok.length,
+            percent: pct,
+            etaSeconds: eta,
+          });
         }
-        updateUploadProgress({
-          eventId,
-          fileCount: ok.length,
-          percent: pct,
-          etaSeconds: eta,
-        });
-      });
+      );
       updateUploadProgress({
         eventId,
         fileCount: ok.length,
@@ -211,6 +219,17 @@ export default function PhotographerUploadPage() {
             <p className="mt-1 text-xs text-slate-500">
               JPG / PNG / WEBP · tối đa 25MB/file · ≤500 ảnh/lần (chia lô tự động)
             </p>
+            {assignedZone ? (
+              <p className="mx-auto mt-3 inline-flex max-w-full items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-800">
+                Zone ảnh:{" "}
+                <span className="ml-1 truncate font-semibold">{assignedZone}</span>
+              </p>
+            ) : eventId ? (
+              <p className="mt-3 text-[11px] font-medium text-amber-700">
+                Chưa gán khu vực — ảnh upload không gắn zone (Organizer có thể
+                gán station sau).
+              </p>
+            ) : null}
             <input
               ref={inputRef}
               type="file"
@@ -263,6 +282,7 @@ export default function PhotographerUploadPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-mono text-xs text-slate-500">
                         {p.id.slice(0, 8)}…
+                        {p.zone ? ` · ${p.zone}` : ""}
                       </p>
                       <p className="text-sm font-semibold text-slate-800">
                         BIB: {primaryBib(p)}

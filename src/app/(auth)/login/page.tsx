@@ -5,6 +5,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login } from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/error";
+import { loginDestination, ROLE_PREFIX } from "@/lib/route-permissions";
 
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
@@ -21,7 +22,7 @@ function LoginHomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedPath = searchParams.get("from") || "/";
-  const fromPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\") ? requestedPath : "/";
+  const [destination, setDestination] = useState("/");
 
   const [form, setForm] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -37,40 +38,34 @@ function LoginHomeInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.username.trim() || !form.password.trim()) {
+    const username = form.username.trim();
+    const password = form.password.trim();
+    if (!username || !password) {
       setError("Vui lòng điền đầy đủ tên đăng nhập và mật khẩu.");
       return;
     }
+    setForm({ username, password });
     setLoading(true);
     setError(null);
     try {
-      const res = await login({
-        username: form.username.trim(),
-        password: form.password,
-      });
-      const role = (res.role || "").toUpperCase();
-      const roleId = {
-        ADMIN: "admin",
-        COORDINATOR: "coordinator",
-        PHOTOGRAPHER: "photographer",
-        VOLUNTEER: "volunteer",
-      }[role];
+      const res = await login({ username, password });
+      const role = res.role || "";
 
-      if (!roleId) {
+      if (!ROLE_PREFIX[role]) {
         await useAuthStore.getState().logout();
         setError(
-          "Tài khoản không thuộc Admin / Coordinator / Photographer / Volunteer."
+          "Tài khoản không thuộc Admin / Manager / Race-staff / Photographer."
         );
         return;
       }
-
-
-
+      const nextPath = loginDestination(role, requestedPath);
+      setDestination(nextPath);
       if (res.mustChangePassword) {
         setMustChangePasswordHint(true);
         return;
       }
-      router.push(fromPath);
+      router.replace(nextPath);
+      router.refresh();
     } catch (err) {
       setError(
         getApiErrorMessage(
@@ -115,7 +110,7 @@ function LoginHomeInner() {
           <span className="auth-brand-name">RaceDay Admin</span>
         </div>
 
-        {/* Login — bắt buộc cho Administrator */}
+        {/* Login for the operations portal. */}
         <div className="auth-card">
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -135,7 +130,10 @@ function LoginHomeInner() {
                 name="username"
                 type="text"
                 autoComplete="username"
-                placeholder="Username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="Tên đăng nhập"
                 value={form.username}
                 onChange={handleChange}
                 className="auth-input"
@@ -155,7 +153,7 @@ function LoginHomeInner() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={form.password}
                   onChange={handleChange}
                   className="auth-input auth-input--with-icon"
@@ -218,7 +216,8 @@ function LoginHomeInner() {
                 className="rounded-full border border-[var(--border)] px-4 py-2 text-xs font-bold"
                 onClick={() => {
                   setMustChangePasswordHint(false);
-                  router.push(fromPath);
+                  router.replace(destination);
+                  router.refresh();
                 }}
               >
                 Tiếp tục

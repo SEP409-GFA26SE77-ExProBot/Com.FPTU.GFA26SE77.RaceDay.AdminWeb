@@ -21,15 +21,24 @@ export type Checkpoint = {
 
 export type RaceRouteMapProps = {
   route: Coordinate[];
-  startPoint: Coordinate;
-  finishPoint: Coordinate;
+  startPoint?: Coordinate;
+  finishPoint?: Coordinate;
   checkpoints: Checkpoint[];
+  liveMarkers?: LiveMapMarker[];
+  liveFocus?: { id: string; revision: number } | null;
   /** Map height in CSS units. Defaults to "520px" */
   height?: string;
   /** Route polyline colour. Defaults to "#8B5CF6" (violet) */
   routeColor?: string;
   /** Route polyline width. Defaults to 4 */
   routeWeight?: number;
+};
+
+export type LiveMapMarker = Coordinate & {
+  id: string;
+  name: string;
+  role: string;
+  station: string;
 };
 
 // ─── Dynamic import (SSR‑safe) ──────────────────────────────────────────────
@@ -44,7 +53,8 @@ function MapPlaceholder() {
     <div
       style={{
         width: "100%",
-        height: "520px",
+        height: "100%",
+        minHeight: "240px",
         borderRadius: "14px",
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(255,255,255,0.07)",
@@ -62,7 +72,7 @@ function MapPlaceholder() {
         <line x1="8" y1="2" x2="8" y2="18" />
         <line x1="16" y1="6" x2="16" y2="22" />
       </svg>
-      Loading map…
+      Đang tải bản đồ…
     </div>
   );
 }
@@ -72,8 +82,9 @@ export default function RaceRouteMap(props: RaceRouteMapProps) {
   // Memoize the bounds calculation so we don't recompute every render.
   const bounds = useMemo(() => {
     const allPoints: [number, number][] = [
-      [props.startPoint.lat, props.startPoint.lng],
-      [props.finishPoint.lat, props.finishPoint.lng],
+      ...[props.startPoint, props.finishPoint].flatMap((point): [number, number][] =>
+        point ? [[point.lat, point.lng]] : [],
+      ),
       ...props.route.map((c) => [c.lat, c.lng] as [number, number]),
       ...props.checkpoints.map((cp) => [cp.latitude, cp.longitude] as [number, number]),
     ];

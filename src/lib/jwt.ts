@@ -1,4 +1,5 @@
 import { JwtPayload, jwtPayloadSchema } from "@/dto/jwt.dto";
+import { mapAppRole } from "@/lib/role";
 
 export function extractRoleFromToken(token?: string): string | undefined {
   if (!token) return undefined;
@@ -51,10 +52,7 @@ export function extractExpirationFromToken(token?: string): number | undefined {
 export function normalizeRole(raw: unknown): string | undefined {
   if (Array.isArray(raw) && raw.length > 0) return normalizeRole(raw[0]);
   if (typeof raw !== "string" || !raw.trim()) return undefined;
-  return raw
-    .replace(/^ROLE_/i, "")
-    .trim()
-    .toUpperCase();
+  return mapAppRole(raw);
 }
 
 function decodeBase64Url(input: string): string {

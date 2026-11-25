@@ -1,4 +1,4 @@
-/** Shape chi tiết giải từ GET /api/v1/event/admin/pending & /{id} — khớp FE User CreateRaceEventRequest. */
+/** Shape chi tiết giải từ GET /api/v1/event/manager/pending & /{id} — khớp FE User CreateRaceEventRequest. */
 
 export interface GeoPointDto {
   lat: number;

@@ -1,10 +1,10 @@
 export enum Role {
   ADMIN = "ADMIN",
+  MANAGER = "MANAGER",
+  RACE_STAFF = "RACE_STAFF",
   PHOTOGRAPHER = "PHOTOGRAPHER",
   RUNNER = "RUNNER",
   ORGANIZER = "ORGANIZER",
-  STAFF = "STAFF",
-  COORDINATOR = "COORDINATOR",
 }
 
 export const ALL_ROLES: Role[] = Object.values(Role);

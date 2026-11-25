@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Eye, Loader2, Pencil, X, Ban } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CheckSquare, Eye, Loader2, Pencil, Square, X, Ban } from "lucide-react";
 import { RouteTab } from "@/context/ActiveTabContext";
 import { AssignmentBanner } from "@/components/photographer/AssignmentBanner";
+import { ZoomablePhoto } from "@/components/photographer/ZoomablePhoto";
 import {
   PhotoPager,
   PAGE_SIZE,
@@ -20,7 +21,7 @@ import {
   type PhotoTagDto,
 } from "@/api/photo";
 import { mediaOpenUrl } from "@/lib/media-url";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastError, toastSuccess, toastWarn } from "@/lib/toast";
 
 export default function PhotographerCorrectionsPage() {
   const { assignment, eventId, loading, error, reload } = usePhotographerEvent();
@@ -28,7 +29,9 @@ export default function PhotographerCorrectionsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [batchBusy, setBatchBusy] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [detail, setDetail] = useState<PhotoListItemDto | null>(null);
 
@@ -37,6 +40,7 @@ export default function PhotographerCorrectionsPage() {
       if (!eid) {
         setItems([]);
         setTotal(0);
+        setSelected({});
         return;
       }
       setLoadingList(true);
@@ -50,6 +54,13 @@ export default function PhotographerCorrectionsPage() {
           next[photo.id] = primaryBib(photo) === "—" ? "" : primaryBib(photo);
         }
         setDrafts((prev) => ({ ...prev, ...next }));
+        setSelected((prev) => {
+          const keep: Record<string, boolean> = {};
+          for (const photo of res.items) {
+            if (prev[photo.id]) keep[photo.id] = true;
+          }
+          return keep;
+        });
         setDetail((cur) => {
           if (!cur) return null;
           const still = res.items.find((x) => x.id === cur.id);
@@ -68,6 +79,33 @@ export default function PhotographerCorrectionsPage() {
     if (eventId) void refresh(eventId, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when event/page changes
   }, [eventId, page]);
+
+  const selectedIds = useMemo(
+    () => items.filter((p) => selected[p.id]).map((p) => p.id),
+    [items, selected]
+  );
+  const allPageSelected =
+    items.length > 0 && items.every((p) => selected[p.id]);
+
+  const toggleOne = (id: string) => {
+    setSelected((s) => ({ ...s, [id]: !s[id] }));
+  };
+
+  const toggleAllPage = () => {
+    if (allPageSelected) {
+      setSelected((s) => {
+        const next = { ...s };
+        for (const p of items) delete next[p.id];
+        return next;
+      });
+      return;
+    }
+    setSelected((s) => {
+      const next = { ...s };
+      for (const p of items) next[p.id] = true;
+      return next;
+    });
+  };
 
   const onSave = async (photoId: string) => {
     if (!eventId) return;
@@ -91,7 +129,11 @@ export default function PhotographerCorrectionsPage() {
 
   const onReject = async (photoId: string) => {
     if (!eventId) return;
-    if (!window.confirm("Reject ảnh này? Ảnh sẽ bị loại (discarded), không search được.")) {
+    if (
+      !window.confirm(
+        "Reject ảnh này? Ảnh sẽ bị loại (discarded), không search được."
+      )
+    ) {
       return;
     }
     setSavingId(photoId);
@@ -107,6 +149,70 @@ export default function PhotographerCorrectionsPage() {
     }
   };
 
+  /** Batch dùng cùng API từng ảnh — không đổi BE / publish / dispute. */
+  const onBatchSave = async () => {
+    if (!eventId || !selectedIds.length) return;
+    const missing = selectedIds.filter((id) => !(drafts[id] || "").trim());
+    if (missing.length) {
+      toastWarn(
+        `${missing.length} ảnh chưa nhập BIB — bỏ chọn hoặc điền rồi lưu.`
+      );
+      return;
+    }
+    setBatchBusy(true);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const id of selectedIds) {
+        const bib = (drafts[id] || "").trim();
+        try {
+          await correctPhotoBib(eventId, id, bib);
+          ok += 1;
+        } catch {
+          fail += 1;
+        }
+      }
+      if (ok) toastSuccess(`Đã lưu BIB ${ok} ảnh.`);
+      if (fail) toastWarn(`${fail} ảnh lưu thất bại.`);
+      setDetail(null);
+      await refresh(eventId, page);
+    } finally {
+      setBatchBusy(false);
+    }
+  };
+
+  const onBatchReject = async () => {
+    if (!eventId || !selectedIds.length) return;
+    if (
+      !window.confirm(
+        `Reject ${selectedIds.length} ảnh đã chọn? Ảnh sẽ discarded, không search được.`
+      )
+    ) {
+      return;
+    }
+    setBatchBusy(true);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const id of selectedIds) {
+        try {
+          await discardPhoto(eventId, id, "photographer_reject");
+          ok += 1;
+        } catch {
+          fail += 1;
+        }
+      }
+      if (ok) toastSuccess(`Đã reject ${ok} ảnh.`);
+      if (fail) toastWarn(`${fail} ảnh reject thất bại.`);
+      setDetail(null);
+      await refresh(eventId, page);
+    } finally {
+      setBatchBusy(false);
+    }
+  };
+
+  const rowBusy = !!savingId || batchBusy;
+
   return (
     <RouteTab tab="corrections">
       <div className="mx-auto max-w-5xl space-y-5 px-1 py-2 animate-slide-up">
@@ -116,8 +222,8 @@ export default function PhotographerCorrectionsPage() {
             Sửa BIB
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Ảnh needs_review / runner_reported — xem chi tiết, sửa BIB hoặc
-            reject.
+            Ảnh needs_review / runner_reported — zoom ảnh để đọc BIB, sửa hoặc
+            reject. Có thể chọn nhiều ảnh để lưu/reject hàng loạt.
           </p>
         </div>
 
@@ -132,13 +238,59 @@ export default function PhotographerCorrectionsPage() {
         />
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-extrabold text-slate-900">
               Hàng chờ sửa ({total})
             </h2>
-            {loadingList ? (
-              <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
-            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
+              {loadingList ? (
+                <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
+              ) : null}
+              {items.length > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={rowBusy}
+                    onClick={toggleAllPage}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {allPageSelected ? (
+                      <CheckSquare className="h-3.5 w-3.5 text-cyan-600" />
+                    ) : (
+                      <Square className="h-3.5 w-3.5" />
+                    )}
+                    {allPageSelected ? "Bỏ chọn trang" : "Chọn trang này"}
+                  </button>
+                  {selectedIds.length > 0 ? (
+                    <>
+                      <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-0.5 text-[11px] font-bold text-cyan-800">
+                        Đã chọn {selectedIds.length}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={rowBusy}
+                        onClick={() => void onBatchSave()}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-500 disabled:opacity-50"
+                      >
+                        {batchBusy ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : null}
+                        Lưu BIB đã chọn
+                      </button>
+                      <button
+                        type="button"
+                        disabled={rowBusy}
+                        onClick={() => void onBatchReject()}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                      >
+                        <Ban className="h-3.5 w-3.5" />
+                        Reject đã chọn
+                      </button>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           </div>
 
           {!items.length ? (
@@ -151,8 +303,22 @@ export default function PhotographerCorrectionsPage() {
                 {items.map((p) => (
                   <li
                     key={p.id}
-                    className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3"
+                    className={`flex flex-wrap items-center gap-3 rounded-xl border p-3 ${
+                      selected[p.id]
+                        ? "border-cyan-200 bg-cyan-50/50"
+                        : "border-slate-100 bg-slate-50/60"
+                    }`}
                   >
+                    <label className="flex shrink-0 cursor-pointer items-center self-start pt-1">
+                      <input
+                        type="checkbox"
+                        checked={!!selected[p.id]}
+                        disabled={rowBusy}
+                        onChange={() => toggleOne(p.id)}
+                        className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                        aria-label={`Chọn ảnh ${p.id.slice(0, 8)}`}
+                      />
+                    </label>
                     <button
                       type="button"
                       onClick={() => setDetail(p)}
@@ -186,14 +352,18 @@ export default function PhotographerCorrectionsPage() {
                         <input
                           value={drafts[p.id] ?? ""}
                           onChange={(e) =>
-                            setDrafts((d) => ({ ...d, [p.id]: e.target.value }))
+                            setDrafts((d) => ({
+                              ...d,
+                              [p.id]: e.target.value,
+                            }))
                           }
                           placeholder="A0020"
-                          className="w-32 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-sm outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+                          disabled={rowBusy}
+                          className="w-32 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-sm outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 disabled:opacity-50"
                         />
                         <button
                           type="button"
-                          disabled={savingId === p.id}
+                          disabled={rowBusy}
                           onClick={() => void onSave(p.id)}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-500 disabled:opacity-50"
                         >
@@ -204,7 +374,7 @@ export default function PhotographerCorrectionsPage() {
                         </button>
                         <button
                           type="button"
-                          disabled={savingId === p.id}
+                          disabled={rowBusy}
                           onClick={() => setDetail(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         >
@@ -213,7 +383,7 @@ export default function PhotographerCorrectionsPage() {
                         </button>
                         <button
                           type="button"
-                          disabled={savingId === p.id}
+                          disabled={rowBusy}
                           onClick={() => void onReject(p.id)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
                         >
@@ -228,7 +398,7 @@ export default function PhotographerCorrectionsPage() {
               <PhotoPager
                 page={page}
                 total={total}
-                disabled={loadingList}
+                disabled={loadingList || rowBusy}
                 onChange={setPage}
               />
             </>
@@ -243,7 +413,7 @@ export default function PhotographerCorrectionsPage() {
           onBibChange={(v) =>
             setDrafts((d) => ({ ...d, [detail.id]: v }))
           }
-          busy={savingId === detail.id}
+          busy={savingId === detail.id || batchBusy}
           onClose={() => setDetail(null)}
           onSave={() => void onSave(detail.id)}
           onReject={() => void onReject(detail.id)}
@@ -302,19 +472,18 @@ function CorrectionDetailPanel({
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
-          <div className="flex min-h-[220px] items-center justify-center bg-slate-950 p-3 lg:min-h-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={mediaOpenUrl(photo.url)}
-              alt="Race photo"
-              className="max-h-full max-w-full object-contain"
-            />
+          <div className="min-h-[240px] bg-slate-950 p-2 lg:min-h-0">
+            <ZoomablePhoto url={photo.url} />
           </div>
 
           <div className="flex min-h-0 flex-col overflow-y-auto border-t border-slate-100 p-4 lg:border-l lg:border-t-0">
             <h3 className="text-sm font-extrabold text-slate-900">
               BIB detect (OCR)
             </h3>
+            <p className="mt-0.5 text-[11px] text-slate-400">
+              Gợi ý từ OCR — zoom ảnh bên trái để tự đọc BIB (không vẽ bbox vì
+              hay lệch). Bấm “Dùng BIB này” nếu đúng.
+            </p>
             {!tags.length ? (
               <p className="mt-2 text-sm text-slate-500">Không có tag OCR.</p>
             ) : (
@@ -342,7 +511,6 @@ function CorrectionDetailPanel({
                     </div>
                     <p className="mt-0.5 text-[11px] text-slate-400">
                       source: {t.source}
-                      {t.bboxJson ? ` · bbox ${t.bboxJson}` : ""}
                     </p>
                     <button
                       type="button"
@@ -363,7 +531,8 @@ function CorrectionDetailPanel({
               value={bibDraft}
               onChange={(e) => onBibChange(e.target.value)}
               placeholder="A0020 / 50001"
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+              disabled={busy}
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 disabled:opacity-50"
             />
 
             <div className="mt-auto flex flex-wrap gap-2 pt-5">
