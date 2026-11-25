@@ -13,9 +13,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RaceDay | Quản trị và vận hành",
+  title: "RaceDay Admin Portal | Bảng điều hành",
   description:
-    "Trang quản trị và vận hành RaceDay dành cho quản trị viên, quản lý, nhân viên giải chạy và nhiếp ảnh gia.",
+    "Bảng điều hành RaceDay dành cho các vai trò Race-staff, Admin, Manager và Photographer.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

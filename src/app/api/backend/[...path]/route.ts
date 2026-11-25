@@ -25,7 +25,8 @@ async function forward(request: NextRequest, context: Context) {
   // Long-lived SSE: no 60 s timeout, no proxy buffering, "retry" frame when the backend is down.
   const isPositionStream = request.method === "GET" && (
     /^\/api\/v1\/positioning\/events\/[\da-f-]{36}\/(alerts|positions\/live)$/i.test(endpoint) ||
-    /^\/api\/v1\/race-monitoring\/cutoff-warnings\/stream$/i.test(endpoint));
+    /^\/api\/v1\/race-monitoring\/cutoff-warnings\/stream$/i.test(endpoint) ||
+    /^\/api\/v1\/race-monitoring\/events\/[\da-f-]{36}\/race-logs\/stream$/i.test(endpoint));
   if (isLogin && request.method !== "POST") return new NextResponse(null, { status: 405 });
   const headers = new Headers();
   for (const name of ["content-type", "accept"]) {

@@ -538,7 +538,7 @@ function BasicDetail({ event }: { event: RaceEventDto }) {
   return (
     <dl className="space-y-2.5">
       <Row label="Tên giải" value={event.name} />
-      <Row label="Tagline" value={event.tagline} />
+      <Row label="Khẩu hiệu" value={event.tagline} />
       <Row label="Địa điểm" value={event.location} />
       <Row label="Ngày tổ chức" value={event.date} />
       <Row label="Ngày kết thúc" value={event.endDate} />
