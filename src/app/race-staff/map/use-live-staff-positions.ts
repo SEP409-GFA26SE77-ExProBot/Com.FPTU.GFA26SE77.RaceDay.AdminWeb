@@ -54,7 +54,8 @@ export function useLiveStaffPositions(eventId: string) {
 
     stream.addEventListener("outside", (event: MessageEvent<string>) => {
       const alert = JSON.parse(event.data) as { staffName: string; assignmentId: string; occurredAtUtc: string };
-      toastWarn(`${alert.staffName} đã rời khỏi khu vực được phân công.`, {
+      // The server only sends this to the staff member who left the zone (the viewer).
+      toastWarn("Bạn đang ở ngoài khu vực được phân công.", {
         autoClose: 8000,
         toastId: `${alert.assignmentId}:${alert.occurredAtUtc}`,
       });
